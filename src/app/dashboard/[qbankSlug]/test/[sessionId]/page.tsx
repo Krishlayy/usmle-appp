@@ -58,7 +58,8 @@ export default async function TestSessionPage({ params }: { params: { qbankSlug:
         media: p.question.media,
         options: (p.question.options as { id: string; text: string; isCorrect?: boolean; explanation?: string | null }[]).map(opt => ({
           ...opt,
-          isCorrect: opt.id === p.question.correctAnswer
+          isCorrect: opt.id === p.question.correctAnswer,
+          explanation: opt.explanation || null,
         })),
       },
       isFlagged: p.flagged,
