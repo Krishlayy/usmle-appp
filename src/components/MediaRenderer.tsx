@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export function MediaRenderer({ media, setZoomImage }: { media: any, setZoomImage?: (url: string) => void }) {
+export function MediaRenderer({ media, setZoomImage }: { media: { id: string; type: string; url: string; caption?: string | null; displaySize?: string; placement?: string; [key: string]: unknown }, setZoomImage?: (url: string) => void }) {
   const widthClass = 
     media.displaySize === 'SMALL' ? 'w-full max-w-sm' :
     media.displaySize === 'MEDIUM' ? 'w-full max-w-2xl' :
@@ -37,7 +37,7 @@ export function MediaRenderer({ media, setZoomImage }: { media: any, setZoomImag
     } else if (isVimeo) {
       iframeSrc = `https://player.vimeo.com/video/${media.url.split('/').pop()}`;
     }
-  } catch (e) {
+  } catch {
     // ignore parse errors
   }
 

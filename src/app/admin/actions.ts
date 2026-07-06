@@ -47,6 +47,16 @@ export async function createQBank(formData: FormData) {
     throw new Error('Invalid data: ' + parsed.error.issues.map((e: z.ZodIssue) => e.message).join(', '));
   }
 
+  const existingSlug = await prisma.qBank.findUnique({ where: { slug: parsed.data.slug } });
+  if (existingSlug) {
+    throw new Error('A Q-Bank with this Slug already exists. Please choose a unique Slug.');
+  }
+
+  const existingCode = await prisma.qBank.findUnique({ where: { qbankCode: parsed.data.qbankCode } });
+  if (existingCode) {
+    throw new Error('A Q-Bank with this QBank Code already exists. Please choose a unique Code.');
+  }
+
   const newQbank = await prisma.qBank.create({
     data: {
       ...parsed.data,

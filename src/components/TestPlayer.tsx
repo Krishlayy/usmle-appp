@@ -19,7 +19,7 @@ type Question = {
   explanation: string | null;
   acceptableAnswers: string[];
   tags: string[];
-  media?: any[];
+  media?: { id: string; type: string; url: string; caption?: string | null; displaySize?: string; placement?: string; [key: string]: unknown }[];
   options: Option[];
 };
 

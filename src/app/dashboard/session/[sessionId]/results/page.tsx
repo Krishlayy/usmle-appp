@@ -51,7 +51,7 @@ export default async function SessionResultsPage({ params }: { params: { session
       acceptableAnswers: p.question.acceptableAnswers,
       tags: p.question.tags,
       media: p.question.media,
-      options: (p.question.options as any[]).map(opt => ({
+      options: (p.question.options as { id: string; [key: string]: unknown }[]).map(opt => ({
         ...opt,
         isCorrect: opt.id === p.question.correctAnswer
       })),
@@ -197,10 +197,11 @@ export default async function SessionResultsPage({ params }: { params: { session
 
               <div className="bg-blue-50 border border-blue-100 rounded-lg p-5">
                 {/* TOP MEDIA */}
-                {q.question.media && q.question.media.filter((m: any) => m.placement === 'TOP').length > 0 && (
+                {q.question.media && q.question.media.filter((m: { placement?: string; [key: string]: unknown }) => m.placement === 'TOP').length > 0 && (
                   <div className="mb-6 flex flex-col gap-6 items-center">
-                    {q.question.media.filter((m: any) => m.placement === 'TOP').map((m: any) => (
-                      <MediaRenderer key={m.id} media={m} />
+                    {q.question.media.filter((m: { placement?: string; [key: string]: unknown }) => m.placement === 'TOP').map((m: { placement?: string; [key: string]: unknown }) => (
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      <MediaRenderer key={m.id as string} media={m as any} />
                     ))}
                   </div>
                 )}
@@ -212,10 +213,11 @@ export default async function SessionResultsPage({ params }: { params: { session
                 />
                 
                 {/* BOTTOM MEDIA */}
-                {q.question.media && q.question.media.filter((m: any) => m.placement === 'BOTTOM').length > 0 && (
+                {q.question.media && q.question.media.filter((m: { placement?: string; [key: string]: unknown }) => m.placement === 'BOTTOM').length > 0 && (
                   <div className="mt-6 flex flex-col gap-6 items-center">
-                    {q.question.media.filter((m: any) => m.placement === 'BOTTOM').map((m: any) => (
-                      <MediaRenderer key={m.id} media={m} />
+                    {q.question.media.filter((m: { placement?: string; [key: string]: unknown }) => m.placement === 'BOTTOM').map((m: { placement?: string; [key: string]: unknown }) => (
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      <MediaRenderer key={m.id as string} media={m as any} />
                     ))}
                   </div>
                 )}

@@ -18,7 +18,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Image as ImageIcon, Video, Plus } from 'lucide-react';
+import { GripVertical, Trash2, Image as ImageIcon, Video } from 'lucide-react';
 
 export type MediaType = 'IMAGE' | 'VIDEO';
 export type MediaPlacement = 'TOP' | 'BOTTOM';
