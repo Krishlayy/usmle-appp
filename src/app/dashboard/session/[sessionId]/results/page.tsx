@@ -15,7 +15,6 @@ export default async function SessionResultsPage({ params }: { params: { session
   const testSession = await prisma.testSession.findUnique({
     where: { id: params.sessionId },
     include: {
-      qbank: true,
       progress: {
         include: {
           question: {
@@ -58,7 +57,10 @@ export default async function SessionResultsPage({ params }: { params: { session
     }
   }));
 
-  const qbank = testSession.qbank;
+  const qbank = await prisma.qBank.findUnique({ where: { id: testSession.qbankId } });
+  if (!qbank) {
+    notFound();
+  }
 
   const totalQuestions = mappedQuestions.length;
   const answeredQuestions = mappedQuestions.filter((q) => q.selectedOptionId).length;
