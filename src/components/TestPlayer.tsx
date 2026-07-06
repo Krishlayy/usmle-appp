@@ -16,6 +16,7 @@ type Option = {
 type Question = {
   id: string;
   qid: string;
+  questionText: string;
   explanation: string | null;
   acceptableAnswers: string[];
   tags: string[];
