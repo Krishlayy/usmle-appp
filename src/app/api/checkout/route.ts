@@ -40,10 +40,13 @@ export async function POST(req: Request) {
       return new NextResponse('You already own this QBank', { status: 400 });
     }
 
+    // Construct base URL for redirects
+    const baseUrl = req.headers.get('origin') || process.env.NEXTAUTH_URL || `https://${process.env.VERCEL_URL}`;
+
     // Create Stripe checkout session
     const stripeSession = await stripe.checkout.sessions.create({
-      success_url: `${process.env.NEXTAUTH_URL}/dashboard/${qbank.slug}?purchased=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/qbanks/${qbank.slug}`,
+      success_url: `${baseUrl}/dashboard/${qbank.slug}?purchased=1&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/qbanks/${qbank.slug}`,
       payment_method_types: ['card'],
       mode: 'payment',
       billing_address_collection: 'auto',
