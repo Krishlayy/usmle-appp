@@ -73,8 +73,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ url: stripeSession.url });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[CHECKOUT_ERROR]', error);
-    return new NextResponse('Internal server error', { status: 500 });
+    return new NextResponse(error?.message || 'Internal server error', { status: 500 });
   }
 }

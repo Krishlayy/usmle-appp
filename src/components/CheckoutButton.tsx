@@ -35,7 +35,7 @@ export function CheckoutButton({ qbankId }: { qbankId: string }) {
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Checkout failed. Please try again later.');
+      alert(error instanceof Error ? error.message : 'Checkout failed. Please try again later.');
     } finally {
       setLoading(false);
     }
