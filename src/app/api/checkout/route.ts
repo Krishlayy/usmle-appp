@@ -40,8 +40,10 @@ export async function POST(req: Request) {
       return new NextResponse('You already own this QBank', { status: 400 });
     }
 
-    // Construct base URL for redirects
-    const baseUrl = req.headers.get('origin') || process.env.NEXTAUTH_URL || `https://${process.env.VERCEL_URL}`;
+    // Construct base URL for redirects using the mandatory Host header
+    const host = req.headers.get('host');
+    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
 
     // Create Stripe checkout session
     const stripeSession = await stripe.checkout.sessions.create({
