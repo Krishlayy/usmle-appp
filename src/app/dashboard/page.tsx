@@ -27,6 +27,31 @@ export default async function DashboardPage() {
     orderBy: { title: 'asc' },
   });
 
+  // Calculate real analytics for purchased QBanks
+  const userProgress = await prisma.userProgress.findMany({
+    where: {
+      userId: session.user.id,
+      qbankId: { in: purchasedQbankIds },
+      selectedAnswer: { not: null }, // Only count attempted questions
+    },
+    select: { qbankId: true, questionId: true, isCorrect: true },
+  });
+
+  const analyticsMap: Record<string, { attempted: Set<string>; correct: Set<string> }> = {};
+  
+  purchasedQbankIds.forEach(id => {
+    analyticsMap[id] = { attempted: new Set(), correct: new Set() };
+  });
+
+  userProgress.forEach(progress => {
+    if (analyticsMap[progress.qbankId]) {
+      analyticsMap[progress.qbankId].attempted.add(progress.questionId);
+      if (progress.isCorrect) {
+        analyticsMap[progress.qbankId].correct.add(progress.questionId);
+      }
+    }
+  });
+
   return (
     <div className="container mx-auto py-12 px-4 md:px-6 max-w-7xl">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4">
@@ -52,7 +77,13 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {purchases.map(({ qbank }) => (
+            {purchases.map(({ qbank }) => {
+              const attemptedCount = analyticsMap[qbank.id]?.attempted.size || 0;
+              const totalCount = qbank.totalQuestions || 1; // avoid div by 0
+              const percentage = Math.round((attemptedCount / totalCount) * 100);
+              const displayPercentage = Math.min(percentage, 100);
+
+              return (
               <div key={qbank.id} className="clinical-card group flex flex-col overflow-hidden">
                 <div className="p-6 flex-1">
                   <div className="flex justify-between items-start mb-4">
@@ -65,12 +96,12 @@ export default async function DashboardPage() {
                   <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="flex justify-between text-sm mb-2 font-medium">
                       <span className="text-slate-700">Completion</span>
-                      <span className="text-blue-600">0%</span>
+                      <span className="text-blue-600">{displayPercentage}%</span>
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                      <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '0%' }}></div>
+                      <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-out" style={{ width: `${displayPercentage}%` }}></div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-2 text-right">0 / {qbank.totalQuestions} Questions</p>
+                    <p className="text-xs text-slate-500 mt-2 text-right">{attemptedCount} / {qbank.totalQuestions} Questions</p>
                   </div>
                 </div>
                 <div className="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-end">
@@ -82,7 +113,7 @@ export default async function DashboardPage() {
                   </Link>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </section>

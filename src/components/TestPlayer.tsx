@@ -170,6 +170,19 @@ export function TestPlayer({ session }: { session: TestSession }) {
       selectedOptionId: optionId,
       isCorrect
     });
+
+    // Background Auto-Save
+    const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
+    fetch(`/api/test-sessions/${session.id}/autosave`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questionProgressId: currentQ.id,
+        selectedOptionId: optionId,
+        isCorrect,
+        timeTakenSec: currentQ.timeTakenSec + timeSpent
+      }),
+    }).catch(console.error); // Silent fail in background
   };
 
   const handleNext = () => {

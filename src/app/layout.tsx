@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "@/components/Providers";
-import Navbar from "@/components/Navbar";
+import { LayoutUIWrapper } from "@/components/LayoutUIWrapper";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased clinical-gradient min-h-screen flex flex-col`}>
         <Providers>
-          <Navbar />
+          <LayoutUIWrapper />
           <main className="flex-1 flex flex-col">
             {children}
           </main>
