@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { TestPlayer } from '@/components/TestPlayer';
 
-export default async function TestSessionPage({ params }: { params: { qbankSlug: string, sessionId: string } }) {
+export default async function TestSessionPage({ params, searchParams }: { params: { qbankSlug: string, sessionId: string }, searchParams: { mode?: string } }) {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !session.user.id) {
@@ -37,13 +37,16 @@ export default async function TestSessionPage({ params }: { params: { qbankSlug:
     notFound();
   }
 
-  if (testSession.status === 'completed') {
-    redirect(`/dashboard/session/${testSession.id}/results`);
+  const isReviewMode = searchParams.mode === 'review';
+
+  if (testSession.status === 'completed' && !isReviewMode) {
+    redirect(`/dashboard/${params.qbankSlug}/session/${testSession.id}/results`);
   }
 
   const mappedSession = {
     id: testSession.id,
-    mode: testSession.mode,
+    qbankSlug: params.qbankSlug,
+    mode: testSession.mode as 'timed' | 'tutor',
     durationSec: testSession.durationSec,
     questions: testSession.progress.map((p, index) => ({
       id: p.id,

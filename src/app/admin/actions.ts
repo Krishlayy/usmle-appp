@@ -102,3 +102,46 @@ export async function updateQBank(formData: FormData) {
   revalidatePath('/admin/qbanks');
   revalidatePath(`/admin/qbanks/${parsed.data.id}/edit`);
 }
+
+export async function deleteQBank(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session || !session.user || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  const id = formData.get('id') as string;
+  if (!id) throw new Error('ID is required');
+
+  // First, delete related data to respect foreign key constraints
+  await prisma.questionImage.deleteMany({
+    where: { question: { qbankId: id } }
+  });
+
+  await prisma.questionMedia.deleteMany({
+    where: { question: { qbankId: id } }
+  });
+
+  await prisma.userProgress.deleteMany({
+    where: { qbankId: id }
+  });
+
+  await prisma.testSession.deleteMany({
+    where: { qbankId: id }
+  });
+
+  await prisma.purchase.deleteMany({
+    where: { qbankId: id }
+  });
+
+  await prisma.question.deleteMany({
+    where: { qbankId: id }
+  });
+
+  await prisma.qBank.delete({
+    where: { id }
+  });
+
+  revalidatePath('/admin/qbanks');
+  redirect('/admin/qbanks');
+}

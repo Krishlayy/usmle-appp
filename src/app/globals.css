@@ -56,3 +56,29 @@
     @apply bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300;
   }
 }
+
+/* TipTap Editor Prose Styling */
+.prose table {
+  @apply border-collapse table-auto w-full text-sm my-6 border border-slate-300 shadow-sm rounded-md overflow-hidden;
+}
+
+.prose table th,
+.prose table td {
+  @apply border border-slate-300 p-3 text-left min-w-[120px] relative;
+}
+
+.prose table th {
+  @apply bg-slate-100 font-bold text-slate-800 uppercase tracking-wider text-xs;
+}
+
+.prose table td {
+  @apply bg-white text-slate-700 align-top;
+}
+
+.prose table p {
+  @apply my-0;
+}
+
+.prose img {
+  @apply rounded-md border border-slate-200 shadow-sm max-w-full h-auto my-4 cursor-zoom-in transition-transform hover:opacity-90 mx-auto block;
+}

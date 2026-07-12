@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { updateQBank } from '@/app/admin/actions';
 import { DeleteQuestionButton } from '@/app/admin/components/DeleteQuestionButton';
+import { DeleteQBankButton } from '@/app/admin/components/DeleteQBankButton';
 
 export default async function EditQBankPage({ params }: { params: { id: string } }) {
   const qbank = await prisma.qBank.findUnique({
@@ -62,6 +63,12 @@ export default async function EditQBankPage({ params }: { params: { id: string }
                 Update Details
               </button>
             </form>
+            
+            <hr className="my-6 border-slate-200" />
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-slate-500 font-medium">Danger Zone</span>
+              <DeleteQBankButton qbankId={qbank.id} title={qbank.title} />
+            </div>
           </div>
         </div>
 

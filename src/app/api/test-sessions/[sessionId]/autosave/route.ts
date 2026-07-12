@@ -12,7 +12,7 @@ export async function POST(req: Request, { params }: { params: { sessionId: stri
     }
 
     const body = await req.json();
-    const { questionProgressId, selectedOptionId, isCorrect, timeTakenSec } = body;
+    const { questionProgressId, selectedOptionId, isCorrect, timeTakenSec, notes } = body;
 
     if (!questionProgressId) {
       return new NextResponse('Invalid request', { status: 400 });
@@ -35,9 +35,10 @@ export async function POST(req: Request, { params }: { params: { sessionId: stri
     await prisma.userProgress.update({
       where: { id: questionProgressId },
       data: {
-        selectedAnswer: selectedOptionId,
-        isCorrect: isCorrect,
-        timeTakenSec: timeTakenSec,
+        ...(selectedOptionId !== undefined && { selectedAnswer: selectedOptionId }),
+        ...(isCorrect !== undefined && { isCorrect: isCorrect }),
+        ...(timeTakenSec !== undefined && { timeTakenSec: timeTakenSec }),
+        ...(notes !== undefined && { notes: notes }),
       },
     });
 

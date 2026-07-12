@@ -152,6 +152,7 @@ model UserProgress {
   isCorrect       Boolean?
   flagged         Boolean      @default(false)
   timeTakenSec    Int?
+  notes           String?
   attemptedAt     DateTime     @default(now())
 
   @@unique([userId, questionId, testSessionId])

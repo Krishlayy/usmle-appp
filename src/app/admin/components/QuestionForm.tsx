@@ -14,7 +14,8 @@ import ExplanationMedia, { QuestionMediaItem } from './ExplanationMedia';
 type Option = {
   id: string;
   text: string;
-  isCorrect: boolean;
+  isCorrect: boolean; // Keep for backwards compatibility
+  answerType: 'best' | 'acceptable' | 'wrong';
   explanation: string;
 };
 
@@ -32,18 +33,26 @@ export function QuestionForm({
   const [media, setMedia] = useState<QuestionMediaItem[]>(initialData?.media as QuestionMediaItem[] || []);
   const [difficulty, setDifficulty] = useState(initialData?.difficulty as string || 'medium');
   const [subtopic, setSubtopic] = useState(initialData?.subtopic as string || '');
-  const [acceptableAnswers, setAcceptableAnswers] = useState<string[]>(initialData?.acceptableAnswers as string[] || []);
   const [tags, setTags] = useState<string[]>(initialData?.tags as string[] || []);
   const [tagInput, setTagInput] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   
   // Default to 4 options A, B, C, D
-  const [options, setOptions] = useState<Option[]>(initialData?.options as Option[] || [
-    { id: '1', text: '', isCorrect: true, explanation: '' },
-    { id: '2', text: '', isCorrect: false, explanation: '' },
-    { id: '3', text: '', isCorrect: false, explanation: '' },
-    { id: '4', text: '', isCorrect: false, explanation: '' },
-  ]);
+  type OptionData = { id: string; isCorrect?: boolean; [key: string]: unknown };
+  const initialOptions = (initialData?.options as OptionData[]) || [];
+  const initialAcceptable = (initialData?.acceptableAnswers as string[]) || [];
+  
+  const formattedOptions = initialOptions.length > 0 ? initialOptions.map(o => ({
+    ...o,
+    answerType: o.isCorrect || initialData?.correctAnswer === o.id ? 'best' : initialAcceptable.includes(o.id) ? 'acceptable' : 'wrong'
+  })) : [
+    { id: '1', text: '', isCorrect: true, answerType: 'best', explanation: '' },
+    { id: '2', text: '', isCorrect: false, answerType: 'wrong', explanation: '' },
+    { id: '3', text: '', isCorrect: false, answerType: 'wrong', explanation: '' },
+    { id: '4', text: '', isCorrect: false, answerType: 'wrong', explanation: '' },
+  ];
+
+  const [options, setOptions] = useState<Option[]>(formattedOptions as Option[]);
 
   useEffect(() => {
     if (tagInput.length > 0) {
@@ -72,15 +81,24 @@ export function QuestionForm({
   };
 
   const addOption = () => {
-    setOptions([...options, { id: Math.random().toString(36).substr(2, 9), text: '', isCorrect: false, explanation: '' }]);
+    setOptions([...options, { id: Math.random().toString(36).substr(2, 9), text: '', isCorrect: false, answerType: 'wrong', explanation: '' }]);
   };
 
   const removeOption = (id: string) => {
     setOptions(options.filter(o => o.id !== id));
   };
 
-  const setCorrectOption = (id: string) => {
-    setOptions(options.map(o => ({ ...o, isCorrect: o.id === id })));
+  const setAnswerType = (id: string, type: 'best' | 'acceptable' | 'wrong') => {
+    setOptions(options.map(o => {
+      if (o.id === id) {
+        return { ...o, answerType: type, isCorrect: type === 'best' };
+      }
+      // Only one best answer allowed
+      if (type === 'best' && o.answerType === 'best') {
+        return { ...o, answerType: 'wrong', isCorrect: false };
+      }
+      return o;
+    }));
   };
 
   const updateOptionText = (id: string, text: string) => {
@@ -96,10 +114,12 @@ export function QuestionForm({
     setLoading(true);
 
     try {
-      const correctOption = options.find(o => o.isCorrect);
-      if (!correctOption) {
-        throw new Error("You must select a correct option.");
+      const bestOption = options.find(o => o.answerType === 'best');
+      if (!bestOption) {
+        throw new Error("You must select exactly one 'Best Answer'.");
       }
+
+      const acceptableIds = options.filter(o => o.answerType === 'acceptable').map(o => o.id);
 
       const payload = {
         qbankId,
@@ -108,8 +128,8 @@ export function QuestionForm({
         media,
         difficulty,
         subtopic,
-        correctAnswer: correctOption.id,
-        acceptableAnswers: acceptableAnswers.filter(id => id !== correctOption.id),
+        correctAnswer: bestOption.id,
+        acceptableAnswers: acceptableIds,
         tags,
         options,
       };
@@ -241,40 +261,17 @@ export function QuestionForm({
         
         <div className="space-y-4">
           {options.map((option, index) => (
-            <div key={option.id} className={`p-4 border rounded-lg flex gap-4 transition-colors ${option.isCorrect ? 'border-green-400 bg-green-50' : acceptableAnswers.includes(option.id) ? 'border-yellow-400 bg-yellow-50' : 'border-slate-200 bg-slate-50'}`}>
-              <div className="pt-2 flex flex-col items-center gap-4">
-                <div className="flex flex-col items-center" title="Best Answer">
-                  <input 
-                    type="radio" 
-                    name="correctOption"
-                    checked={option.isCorrect}
-                    onChange={() => {
-                      setCorrectOption(option.id);
-                      if (acceptableAnswers.includes(option.id)) {
-                        setAcceptableAnswers(acceptableAnswers.filter(id => id !== option.id));
-                      }
-                    }}
-                    className="w-5 h-5 text-green-600 border-slate-300 focus:ring-green-500 cursor-pointer mb-1"
-                  />
-                  <span className="text-[10px] text-green-700 font-medium">Best</span>
-                </div>
-                {!option.isCorrect && (
-                  <div className="flex flex-col items-center" title="Acceptable (2nd Best)">
-                    <input 
-                      type="checkbox"
-                      checked={acceptableAnswers.includes(option.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setAcceptableAnswers([...acceptableAnswers, option.id]);
-                        } else {
-                          setAcceptableAnswers(acceptableAnswers.filter(id => id !== option.id));
-                        }
-                      }}
-                      className="w-4 h-4 text-yellow-600 border-slate-300 focus:ring-yellow-500 cursor-pointer mb-1"
-                    />
-                    <span className="text-[10px] text-yellow-700 font-medium leading-tight text-center">Acceptable</span>
-                  </div>
-                )}
+            <div key={option.id} className={`p-4 border rounded-lg flex gap-4 transition-colors ${option.answerType === 'best' ? 'border-green-400 bg-green-50' : option.answerType === 'acceptable' ? 'border-yellow-400 bg-yellow-50' : 'border-slate-200 bg-slate-50'}`}>
+              <div className="pt-2 flex flex-col items-center gap-4 w-32">
+                <select
+                  value={option.answerType}
+                  onChange={(e) => setAnswerType(option.id, e.target.value as 'best' | 'acceptable' | 'wrong')}
+                  className="w-full text-xs font-medium border border-slate-300 rounded-md p-1.5 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="best">Best Answer</option>
+                  <option value="acceptable">Acceptable</option>
+                  <option value="wrong">Wrong Answer</option>
+                </select>
               </div>
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-2">

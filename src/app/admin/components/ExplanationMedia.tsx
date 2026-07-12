@@ -73,6 +73,7 @@ function SortableMediaItem({
       {/* Preview Thumbnail */}
       <div className="w-full sm:w-32 h-24 bg-slate-100 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center relative border border-slate-200">
         {item.type === 'IMAGE' ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={item.url} alt="Preview" className="w-full h-full object-cover" />
         ) : (
           <div className="flex flex-col items-center text-slate-400">

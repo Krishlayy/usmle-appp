@@ -36,7 +36,10 @@ export async function POST(req: Request) {
     try {
       await prisma.purchase.upsert({
         where: {
-          stripeSessionId: session.id,
+          userId_qbankId: {
+            userId: userId,
+            qbankId: qbankId,
+          }
         },
         create: {
           userId,
@@ -48,6 +51,9 @@ export async function POST(req: Request) {
         },
         update: {
           status: 'active',
+          amountPaidCents: session.amount_total || 0,
+          stripeSessionId: session.id,
+          purchasedAt: new Date(),
         },
       });
     } catch (error) {

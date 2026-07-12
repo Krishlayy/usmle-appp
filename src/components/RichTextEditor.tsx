@@ -7,7 +7,8 @@ import { Table } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
-import { Bold, Italic, List, ListOrdered, Table as TableIcon } from 'lucide-react';
+import Image from '@tiptap/extension-image';
+import { Bold, Italic, List, ListOrdered, Table as TableIcon, ImageIcon } from 'lucide-react';
 
 export default function RichTextEditor({ 
   value, 
@@ -26,6 +27,10 @@ export default function RichTextEditor({
       TableRow,
       TableHeader,
       TableCell,
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+      }),
     ],
     content: value,
     onUpdate: ({ editor }) => {
@@ -44,6 +49,47 @@ export default function RichTextEditor({
 
   const addTable = () => {
     editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Get presigned URL
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to get upload URL');
+      const { presignedUrl, publicUrl } = await res.json();
+
+      // Upload to S3
+      const uploadRes = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadRes.ok) throw new Error('Failed to upload image');
+
+      // Insert image into editor
+      editor.chain().focus().setImage({ src: publicUrl }).run();
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      alert('Image upload failed. Please try again.');
+    }
+    
+    // Reset input
+    e.target.value = '';
   };
 
   return (
@@ -96,6 +142,18 @@ export default function RichTextEditor({
         >
           <TableIcon className="w-4 h-4" />
         </button>
+
+        <div className="w-px h-6 bg-slate-300 mx-1"></div>
+
+        <label className="p-1.5 rounded hover:bg-slate-200 transition-colors text-slate-700 cursor-pointer" title="Upload Inline Image">
+          <ImageIcon className="w-4 h-4" />
+          <input 
+            type="file" 
+            accept="image/*" 
+            className="hidden" 
+            onChange={handleImageUpload}
+          />
+        </label>
       </div>
 
       <div className="prose-wrapper">
