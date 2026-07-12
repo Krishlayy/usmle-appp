@@ -455,26 +455,21 @@ function TestPlayerInner({ session }: { session: TestSession }) {
 
                 return (
                   <div key={opt.id} className="flex items-center w-full relative">
-                    {/* Post-submission Check/Cross Indicator */}
-                    {showTutorFeedback && (
-                      <div className="absolute -left-8 top-2 flex items-center justify-center">
-                        {opt.isCorrect ? (
-                          <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                        ) : isSelected ? (
-                          <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        ) : null}
-                      </div>
-                    )}
-                    
                     <button
                       onClick={() => handleOptionSelect(opt.id)}
                       className={optionClasses}
                       disabled={showTutorFeedback ? true : false}
                     >
-                      <div className="mt-1 mr-3 shrink-0 flex items-center justify-center">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-blue-600' : 'border-slate-400'}`}>
-                          {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600"></div>}
-                        </div>
+                      <div className="mt-1 mr-3 shrink-0 flex items-center justify-center w-5 h-5">
+                        {showTutorFeedback && opt.isCorrect ? (
+                          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                        ) : showTutorFeedback && isSelected && !opt.isCorrect ? (
+                          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        ) : (
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-blue-600' : 'border-slate-400'}`}>
+                            {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600"></div>}
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 flex gap-2">
                         <span className="font-bold">{String.fromCharCode(65 + i)}.</span>
