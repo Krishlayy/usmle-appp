@@ -172,6 +172,35 @@ function TestPlayerInner({ session }: { session: TestSession }) {
     };
   }, []);
 
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in inputs/textareas
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (showSettings || omissionWarning || showCalculator) return;
+      
+      const key = e.key.toLowerCase();
+      
+      if (key === 'arrowright') {
+        handleNext();
+      } else if (key === 'arrowleft') {
+        handlePrev();
+      } else if (key === ' ') {
+        e.preventDefault();
+        updateCurrentQuestionState({ isFlagged: !currentQ.isFlagged });
+      } else if (['a', 'b', 'c', 'd', 'e', 'f', 'g'].includes(key)) {
+        const optionIndex = key.charCodeAt(0) - 97;
+        const option = currentQ.question.options[optionIndex];
+        if (option) {
+          handleOptionSelect(option.id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, currentQ, questions, showSettings, omissionWarning, showCalculator]);
+
   const updateCurrentQuestionState = (updates: Partial<SessionQuestion>) => {
     setQuestions(prev => prev.map((q, i) => 
       i === currentIndex ? { ...q, ...updates } : q

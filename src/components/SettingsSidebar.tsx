@@ -42,6 +42,43 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
           </div>
         </div>
 
+        {/* Color Theme */}
+        <div className="pt-4 border-t border-slate-300">
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Color Theme</h3>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              onClick={() => updateSetting('colorTheme', 'light')}
+              className={`py-2 px-3 text-sm font-medium rounded-md border ${
+                settings.colorTheme === 'light'
+                  ? 'bg-white border-blue-500 text-blue-700 shadow-sm ring-1 ring-blue-500'
+                  : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              Light
+            </button>
+            <button
+              onClick={() => updateSetting('colorTheme', 'dark')}
+              className={`py-2 px-3 text-sm font-medium rounded-md border ${
+                settings.colorTheme === 'dark'
+                  ? 'bg-slate-900 border-blue-500 text-blue-400 shadow-sm ring-1 ring-blue-500'
+                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              Dark
+            </button>
+            <button
+              onClick={() => updateSetting('colorTheme', 'sepia')}
+              className={`py-2 px-3 text-sm font-medium rounded-md border ${
+                settings.colorTheme === 'sepia'
+                  ? 'bg-[#fdf6e3] border-amber-600 text-amber-800 shadow-sm ring-1 ring-amber-600'
+                  : 'bg-[#f4ebd8] border-[#e2d4b7] text-[#8b7355] hover:bg-[#ebdcc2]'
+              }`}
+            >
+              Sepia
+            </button>
+          </div>
+        </div>
+
         {/* Toggles & Features */}
         <div className="space-y-4 pt-4 border-t border-slate-300">
           <div className="flex items-center justify-between group cursor-pointer" onClick={() => updateSetting('showTimer', !settings.showTimer)}>
