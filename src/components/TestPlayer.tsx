@@ -101,6 +101,11 @@ function TestPlayerInner({ session }: { session: TestSession }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [questions, setQuestions] = useState<SessionQuestion[]>(session.questions.sort((a, b) => a.order - b.order));
   const [timeLeft, setTimeLeft] = useState<number | null>(session.durationSec);
+  
+  const initialElapsed = useMemo(() => {
+    return session.questions.reduce((acc, q) => acc + (q.timeTakenSec || 0), 0);
+  }, [session.questions]);
+  const [timeElapsed, setTimeElapsed] = useState(initialElapsed);
   const [submitting, setSubmitting] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const [isObscured, setIsObscured] = useState(false);
@@ -146,6 +151,13 @@ function TestPlayerInner({ session }: { session: TestSession }) {
     }, 1000);
     return () => clearInterval(timer);
   }, [isTimed, timeLeft, finishSession, questions]);
+
+  useEffect(() => {
+    const elapsedTimer = setInterval(() => {
+      setTimeElapsed(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(elapsedTimer);
+  }, []);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -587,12 +599,14 @@ function TestPlayerInner({ session }: { session: TestSession }) {
       {/* Footer Navigation bar */}
       <footer className="bg-[#003b5c] h-12 shrink-0 flex justify-between items-center px-4 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)] select-none border-t border-[#002b44]">
         <div className="flex items-center h-full">
-           {(session.mode === 'timed' || (session.mode === 'tutor' && settings.showTimer)) && timeLeft !== null && (
+           {(session.mode === 'timed' || (session.mode === 'tutor' && settings.showTimer)) && (
              <div className="flex flex-col justify-center px-4 border-r border-[#004f7a] h-full text-white font-bold text-xs">
                <span className="text-slate-400 text-[10px] uppercase tracking-wider">
                  {session.mode === 'timed' ? 'Block Time Remaining' : 'Block Time Elapsed'}
                </span>
-               {session.mode === 'timed' ? formatTime(timeLeft) : formatTime(session.durationSec! - timeLeft)}
+               {session.mode === 'timed' 
+                 ? (timeLeft !== null ? formatTime(timeLeft) : '--:--:--') 
+                 : formatTime(timeElapsed)}
              </div>
            )}
         </div>
