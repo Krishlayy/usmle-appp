@@ -7,9 +7,10 @@ import Link from 'next/link';
 
 export const revalidate = 60;
 
-export default async function QBankDetailPage({ params }: { params: { slug: string } }) {
+export default async function QBankDetailPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
-  
+
   const qbank = await prisma.qBank.findUnique({
     where: { slug: params.slug },
     include: {

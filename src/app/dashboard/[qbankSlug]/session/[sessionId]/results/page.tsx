@@ -4,7 +4,8 @@ import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
 
-export default async function SessionResultsPage({ params }: { params: { qbankSlug: string, sessionId: string } }) {
+export default async function SessionResultsPage(props: { params: Promise<{ qbankSlug: string, sessionId: string }> }) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !session.user.id) {
@@ -41,9 +42,9 @@ export default async function SessionResultsPage({ params }: { params: { qbankSl
   const totalQuestions = testSession.progress.length;
   const answeredQuestions = testSession.progress.filter(p => p.selectedAnswer).length;
   const correctQuestions = testSession.progress.filter(p => p.isCorrect).length;
-  
+
   const scorePercentage = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
-  
+
   const timeTakenTotal = testSession.progress.reduce((sum, p) => sum + (p.timeTakenSec || 0), 0);
   const timeTakenMinutes = Math.floor(timeTakenTotal / 60);
   const timeTakenSeconds = timeTakenTotal % 60;

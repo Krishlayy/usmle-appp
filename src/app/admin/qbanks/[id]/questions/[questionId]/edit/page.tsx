@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
-export default async function EditQuestionPage({ params }: { params: { id: string, questionId: string } }) {
+export default async function EditQuestionPage(props: { params: Promise<{ id: string, questionId: string }> }) {
+  const params = await props.params;
   const question = await prisma.question.findUnique({
     where: { id: params.questionId },
     include: { media: { orderBy: { order: 'asc' } } }

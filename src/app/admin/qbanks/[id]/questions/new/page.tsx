@@ -1,7 +1,8 @@
 import { QuestionForm } from '@/app/admin/components/QuestionForm';
 import Link from 'next/link';
 
-export default function NewQuestionPage({ params }: { params: { id: string } }) {
+export default async function NewQuestionPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">

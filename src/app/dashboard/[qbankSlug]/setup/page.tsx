@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 function SetupTestForm({ qbankSlug }: { qbankSlug: string }) {
@@ -55,7 +55,8 @@ function SetupTestForm({ qbankSlug }: { qbankSlug: string }) {
   );
 }
 
-export default function SetupTestPage({ params }: { params: { qbankSlug: string } }) {
+export default function SetupTestPage(props: { params: Promise<{ qbankSlug: string }> }) {
+  const params = use(props.params);
   return (
     <div className="container mx-auto py-12 px-4 max-w-lg">
       <h1 className="text-3xl font-bold mb-6">Setup Block</h1>

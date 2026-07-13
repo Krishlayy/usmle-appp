@@ -1,12 +1,17 @@
 import { QBankSidebar } from '@/components/QBankSidebar';
 
-export default function QBankLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: { qbankSlug: string };
-}) {
+export default async function QBankLayout(
+  props: {
+    children: React.ReactNode;
+    params: Promise<{ qbankSlug: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   return (
     <div className="flex flex-1 overflow-hidden h-[calc(100vh-64px)]">
       <QBankSidebar qbankSlug={params.qbankSlug} />

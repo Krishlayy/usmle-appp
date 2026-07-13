@@ -5,7 +5,8 @@ import { updateQBank } from '@/app/admin/actions';
 import { DeleteQuestionButton } from '@/app/admin/components/DeleteQuestionButton';
 import { DeleteQBankButton } from '@/app/admin/components/DeleteQBankButton';
 
-export default async function EditQBankPage({ params }: { params: { id: string } }) {
+export default async function EditQBankPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const qbank = await prisma.qBank.findUnique({
     where: { id: params.id },
     include: {

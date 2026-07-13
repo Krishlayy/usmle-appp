@@ -6,13 +6,14 @@ import { verifyQbankAccess } from '@/lib/verifyQbankAccess';
 import Link from 'next/link';
 import { SubtopicChart } from '@/components/SubtopicChart';
 
-export default async function QBankDashboardPage({ 
-  params,
-  searchParams,
-}: { 
-  params: { qbankSlug: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
+export default async function QBankDashboardPage(
+  props: { 
+    params: Promise<{ qbankSlug: string }>;
+    searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !session.user.id) {
@@ -81,10 +82,10 @@ export default async function QBankDashboardPage({
   const totalAttempts = progress.length;
   const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
   const flaggedCount = progress.filter((p) => p.flagged).length;
-  
+
   // Calculate subtopic performance
   const subtopicMap: Record<string, { attempts: number; correct: number }> = {};
-  
+
   for (const p of progress) {
     const sub = p.question.subtopic || 'Uncategorized';
     if (!subtopicMap[sub]) {

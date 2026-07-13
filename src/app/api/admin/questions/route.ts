@@ -55,40 +55,40 @@ export async function POST(req: Request) {
       ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
     });
 
-    // Execute within a transaction to safely increment QBank.questionCounter and generate QID
-    const question = await prisma.$transaction(async (tx) => {
-      const qbank = await tx.qBank.update({
-        where: { id: data.qbankId },
-        data: { questionCounter: { increment: 1 } },
-        select: { qbankCode: true, questionCounter: true },
-      });
+    // Execute qBank update and question creation sequentially.
+    // update with increment is atomic in Postgres, so qid will always be unique.
+    // Avoids P2028 interactive transaction errors with Neon connection pooler.
+    const qbank = await prisma.qBank.update({
+      where: { id: data.qbankId },
+      data: { questionCounter: { increment: 1 } },
+      select: { qbankCode: true, questionCounter: true },
+    });
 
-      const qid = `${qbank.qbankCode}-${qbank.questionCounter}`;
+    const qid = `${qbank.qbankCode}-${qbank.questionCounter}`;
 
-      return await tx.question.create({
-        data: {
-          qid,
-          qbankId: data.qbankId,
-          questionText: sanitizedQuestionText,
-          explanation: sanitizedExplanation,
-          difficulty: data.difficulty,
-          subtopic: data.subtopic || null,
-          correctAnswer: data.correctAnswer,
-          acceptableAnswers: data.acceptableAnswers,
-          tags: data.tags,
-          options: data.options,
-          media: data.media && data.media.length > 0 ? {
-            create: data.media.map(m => ({
-              type: m.type,
-              url: m.url,
-              caption: m.caption,
-              placement: m.placement,
-              displaySize: m.displaySize,
-              order: m.order,
-            }))
-          } : undefined,
-        }
-      });
+    const question = await prisma.question.create({
+      data: {
+        qid,
+        qbankId: data.qbankId,
+        questionText: sanitizedQuestionText,
+        explanation: sanitizedExplanation,
+        difficulty: data.difficulty,
+        subtopic: data.subtopic || null,
+        correctAnswer: data.correctAnswer,
+        acceptableAnswers: data.acceptableAnswers,
+        tags: data.tags,
+        options: data.options,
+        media: data.media && data.media.length > 0 ? {
+          create: data.media.map(m => ({
+            type: m.type,
+            url: m.url,
+            caption: m.caption,
+            placement: m.placement,
+            displaySize: m.displaySize,
+            order: m.order,
+          }))
+        } : undefined,
+      }
     });
 
     return NextResponse.json(question);

@@ -8,7 +8,8 @@ const purchaseStatusSchema = z.object({
   status: z.enum(['active', 'refunded']),
 });
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || session.user.role !== 'ADMIN') {

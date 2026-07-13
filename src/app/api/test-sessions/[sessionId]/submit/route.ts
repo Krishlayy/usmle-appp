@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 
-export async function POST(req: Request, { params }: { params: { sessionId: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ sessionId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
 

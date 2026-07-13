@@ -4,7 +4,11 @@ import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { TestPlayer } from '@/components/TestPlayer';
 
-export default async function TestSessionPage({ params, searchParams }: { params: { qbankSlug: string, sessionId: string }, searchParams: { mode?: string } }) {
+export default async function TestSessionPage(
+  props: { params: Promise<{ qbankSlug: string, sessionId: string }>, searchParams: Promise<{ mode?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !session.user.id) {

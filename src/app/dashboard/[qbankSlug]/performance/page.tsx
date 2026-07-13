@@ -3,7 +3,8 @@ import { authOptions } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 
-export default async function PerformanceOverallPage({ params }: { params: { qbankSlug: string } }) {
+export default async function PerformanceOverallPage(props: { params: Promise<{ qbankSlug: string }> }) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !session.user.id) {
@@ -41,7 +42,7 @@ export default async function PerformanceOverallPage({ params }: { params: { qba
 
   // Aggregate stats
   const statsMap: Record<string, { attempted: number; correct: number; incorrect: number }> = {};
-  
+
   progress.forEach(p => {
     const sub = p.question.subtopic || 'Uncategorized';
     if (!statsMap[sub]) {
