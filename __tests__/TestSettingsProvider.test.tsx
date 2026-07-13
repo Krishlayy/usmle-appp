@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import { TestSettingsProvider, useTestSettings } from '../src/components/TestSettingsProvider';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
