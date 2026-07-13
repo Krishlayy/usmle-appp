@@ -1,6 +1,8 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import AdminLogoutButton from '@/components/AdminLogoutButton';
 
 export default async function AdminLayout({
   children,
@@ -34,6 +36,12 @@ export default async function AdminLayout({
             Purchases & Refunds
           </a>
         </nav>
+        <div className="p-4 border-t border-slate-800 space-y-3">
+          <Link href="/dashboard" className="block w-full px-4 py-2 text-center rounded-md border border-slate-700 hover:bg-slate-800 transition-colors text-sm font-medium text-slate-300 hover:text-white">
+            Go to Dashboard
+          </Link>
+          <AdminLogoutButton />
+        </div>
       </aside>
 
       {/* Admin Main Content */}

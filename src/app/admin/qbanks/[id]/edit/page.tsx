@@ -10,6 +10,12 @@ export default async function EditQBankPage({ params }: { params: { id: string }
     where: { id: params.id },
     include: {
       questions: {
+        select: {
+          id: true,
+          youtubeId: true,
+          questionText: true,
+          createdAt: true
+        },
         orderBy: { createdAt: 'desc' }
       }
     }
@@ -90,7 +96,10 @@ export default async function EditQBankPage({ params }: { params: { id: string }
                       <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded font-mono">ID: {q.id.slice(-6)}</span>
                       {q.youtubeId && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded flex items-center gap-1">📺 Video</span>}
                     </div>
-                    <p className="text-slate-800 text-sm line-clamp-2">{q.questionText}</p>
+                    <div 
+                      className="text-slate-800 text-sm line-clamp-2 prose prose-sm max-w-none" 
+                      dangerouslySetInnerHTML={{ __html: q.questionText }} 
+                    />
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <Link href={`/admin/qbanks/${qbank.id}/questions/${q.id}/edit`} className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded text-sm font-medium hover:bg-slate-200">

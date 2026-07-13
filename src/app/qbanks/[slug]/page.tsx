@@ -31,6 +31,10 @@ export default async function QBankDetailPage({ params }: { params: { slug: stri
 
   return (
     <div className="container mx-auto py-12 px-4 md:px-6 max-w-6xl">
+      <Link href="/store" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-8 transition-colors">
+        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to Store
+      </Link>
       <div className="flex flex-col lg:flex-row gap-12">
         <div className="flex-1 space-y-10">
           <div>
@@ -93,9 +97,10 @@ export default async function QBankDetailPage({ params }: { params: { slug: stri
                 <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                 Experience the Interface
               </h3>
-              <p className="text-slate-800 mb-8 font-medium leading-relaxed">
-                {sampleQuestion.questionText}
-              </p>
+              <div 
+                className="text-slate-800 mb-8 font-medium leading-relaxed prose prose-slate max-w-none"
+                dangerouslySetInnerHTML={{ __html: sampleQuestion.questionText }}
+              />
               <div className="space-y-4 relative">
                 <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center rounded-xl border border-white/50 shadow-sm">
                   <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 text-center max-w-sm w-full mx-4">

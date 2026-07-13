@@ -48,12 +48,12 @@ export default function SignupPage() {
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 sm:p-12 lg:p-24 relative z-10">
         <div className="w-full max-w-md">
           {/* Logo Placeholder */}
-          <div className="mb-12 flex items-center gap-3 text-[#003b5c]">
+          <Link href="/" className="mb-12 flex items-center gap-3 text-[#003b5c] hover:opacity-80 transition-opacity w-fit">
             <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H8v-2h2V9h2v2h2v2h-2v4z"/>
             </svg>
             <span className="text-2xl font-black tracking-tight">MedPrep</span>
-          </div>
+          </Link>
 
           <h2 className="text-3xl font-bold text-slate-800 mb-2">Create an account</h2>
           <p className="text-slate-500 mb-8 font-medium">Join the thousands of medical students who trust MedPrep.</p>

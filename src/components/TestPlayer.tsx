@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Lightbox from "yet-another-react-lightbox";
-import "yet-another-react-lightbox/styles.css";
+import dynamic from 'next/dynamic';
+const LightboxWrapper = dynamic(() => import('@/components/LightboxWrapper'), { ssr: false });
 import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
 
 import { Calculator } from '@/components/Calculator';
@@ -683,7 +683,7 @@ function TestPlayerInner({ session }: { session: TestSession }) {
       {showLabValues && <LabValuesModal onClose={() => setShowLabValues(false)} />}
       {showSettings && <SettingsSidebar onClose={() => setShowSettings(false)} />}
       {showNotes && <NotesModal initialNotes={currentQ.notes || ''} onClose={() => setShowNotes(false)} onSave={handleSaveNotes} />}
-      <Lightbox
+      <LightboxWrapper
         open={!!zoomImage}
         close={() => setZoomImage(null)}
         slides={zoomImage ? [{ src: zoomImage }] : []}

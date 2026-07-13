@@ -12,7 +12,7 @@ export function MediaRenderer({ media, setZoomImage }: { media: { id: string; ty
     return (
       <div className={`flex flex-col items-center ${widthClass}`}>
         <div 
-          className="p-2 bg-slate-50 border border-slate-200 rounded-sm cursor-pointer hover:bg-slate-100 transition-colors w-full flex justify-center"
+          className="p-2 bg-slate-50 border border-slate-200 rounded-sm cursor-zoom-in hover:bg-slate-100 transition-colors w-full flex justify-center"
           onClick={() => setZoomImage?.(media.url)}
           title={setZoomImage ? "Click to zoom" : undefined}
         >

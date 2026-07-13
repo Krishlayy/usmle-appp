@@ -67,7 +67,11 @@ export default async function QBankDashboardPage({
       qbankId: qbank.id,
     },
     include: {
-      question: true,
+      question: {
+        select: {
+          subtopic: true
+        }
+      },
     },
   });
 
