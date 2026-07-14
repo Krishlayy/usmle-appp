@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import dynamic from 'next/dynamic';
 const LightboxWrapper = dynamic(() => import('@/components/LightboxWrapper'), { ssr: false });
 import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
 
-import { Calculator } from '@/components/Calculator';
-import { LabValuesModal } from '@/components/LabValuesModal';
 import { MediaRenderer } from '@/components/MediaRenderer';
 import { TestSettingsProvider, useTestSettings } from '@/components/TestSettingsProvider';
-import { SettingsSidebar } from '@/components/SettingsSidebar';
-import { NotesModal } from '@/components/NotesModal';
+
+const Calculator = dynamic(() => import('@/components/Calculator').then(mod => mod.Calculator), { ssr: false });
+const LabValuesModal = dynamic(() => import('@/components/LabValuesModal').then(mod => mod.LabValuesModal), { ssr: false });
+const SettingsSidebar = dynamic(() => import('@/components/SettingsSidebar').then(mod => mod.SettingsSidebar), { ssr: false });
+const NotesModal = dynamic(() => import('@/components/NotesModal').then(mod => mod.NotesModal), { ssr: false });
 
 type Option = {
   id: string;
@@ -86,6 +88,42 @@ const generateMockStats = (questionId: string, options: Option[]) => {
   return stats;
 };
 
+const formatTime = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+function TimerDisplay({ initialTimeLeft, initialElapsed, isTimed, onTimeUp }: { initialTimeLeft: number | null, initialElapsed: number, isTimed: boolean, onTimeUp: () => void }) {
+  const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
+  const [timeElapsed, setTimeElapsed] = useState(initialElapsed);
+
+  useEffect(() => {
+    if (!isTimed || timeLeft === null) return;
+    if (timeLeft <= 0) {
+      onTimeUp();
+      return;
+    }
+    const timer = setInterval(() => {
+      setTimeLeft(prev => (prev && prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isTimed, timeLeft, onTimeUp]);
+
+  useEffect(() => {
+    const elapsedTimer = setInterval(() => {
+      setTimeElapsed(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(elapsedTimer);
+  }, []);
+
+  return (
+    <>
+      {isTimed ? (timeLeft !== null ? formatTime(timeLeft) : '--:--:--') : formatTime(timeElapsed)}
+    </>
+  );
+}
+
 export function TestPlayer({ session }: { session: TestSession }) {
   return (
     <TestSettingsProvider>
@@ -100,7 +138,6 @@ function TestPlayerInner({ session }: { session: TestSession }) {
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [questions, setQuestions] = useState<SessionQuestion[]>(session.questions.sort((a, b) => a.order - b.order));
-  const [timeLeft, setTimeLeft] = useState<number | null>(session.durationSec);
   
   const initialElapsed = useMemo(() => {
     return session.questions.reduce((acc, q) => acc + (q.timeTakenSec || 0), 0);
@@ -139,25 +176,24 @@ function TestPlayerInner({ session }: { session: TestSession }) {
       router.refresh();
     });
   }, [session.id, session.qbankSlug, router]);
-
+  
+  // Use a ref for questions so that TimerDisplay's onTimeUp callback doesn't need to change every time questions update
+  const questionsRef = useRef(questions);
   useEffect(() => {
-    if (!isTimed || timeLeft === null) return;
-    if (timeLeft <= 0) {
-      finishSession(questions);
-      return;
-    }
-    const timer = setInterval(() => {
-      setTimeLeft(prev => (prev && prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isTimed, timeLeft, finishSession, questions]);
+    questionsRef.current = questions;
+  }, [questions]);
 
-  useEffect(() => {
-    const elapsedTimer = setInterval(() => {
-      setTimeElapsed(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(elapsedTimer);
-  }, []);
+  const handleTimeUp = useCallback(() => {
+    finishSession(questionsRef.current);
+  }, [finishSession]);
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: questions.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 36, // 36px height (approximately p-1.5 plus small padding)
+    overscan: 10,
+  });
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -309,12 +345,6 @@ function TestPlayerInner({ session }: { session: TestSession }) {
     });
   };
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
   const getThemeClasses = () => {
     if (settings.colorTheme === 'dark') return 'bg-slate-900 text-slate-200';
     if (settings.colorTheme === 'sepia') return 'bg-[#fdf6e3] text-[#657b83]';
@@ -376,41 +406,49 @@ function TestPlayerInner({ session }: { session: TestSession }) {
           <div className={`p-2 text-xs font-bold uppercase tracking-wider text-center border-b ${settings.colorTheme === 'dark' ? 'border-slate-800 text-slate-500' : 'border-slate-200 text-slate-500'}`}>
             Questions
           </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {questions.map((q, idx) => {
-              const isActive = idx === currentIndex;
-              const isAnswered = !!q.selectedOptionId;
-              let bg = '';
-              let text = '';
-              if (isActive) {
-                bg = 'bg-blue-600'; text = 'text-white font-bold';
-              } else if (isAnswered) {
-                bg = settings.colorTheme === 'dark' ? 'bg-slate-800' : 'bg-slate-200';
-                text = settings.colorTheme === 'dark' ? 'text-slate-300' : 'text-slate-700';
-              } else {
-                bg = 'transparent';
-                text = settings.colorTheme === 'dark' ? 'text-slate-400' : 'text-slate-600';
-              }
-              
-              return (
-                <button
-                  key={q.id}
-                  onClick={() => {
-                    const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
-                    updateCurrentQuestionState({ timeTakenSec: currentQ.timeTakenSec + timeSpent });
-                    setCurrentIndex(idx);
-                    setQuestionStartTime(Date.now());
-                  }}
-                  className={`w-full flex items-center p-1.5 rounded text-sm transition-colors ${bg} ${text} hover:opacity-80`}
-                >
-                  <div className="w-6 text-center shrink-0 font-medium">{idx + 1}</div>
-                  <div className="flex-1 flex justify-center gap-1 hidden md:flex">
-                    {q.isFlagged && <Bookmark className="w-3.5 h-3.5 text-red-500" fill="currentColor" />}
-                    {isAnswered && !q.isFlagged && <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1"></div>}
+          <div ref={parentRef} className="flex-1 overflow-y-auto p-2">
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const idx = virtualRow.index;
+                const q = questions[idx];
+                const isActive = idx === currentIndex;
+                const isAnswered = !!q.selectedOptionId;
+                let bg = '';
+                let text = '';
+                if (isActive) {
+                  bg = 'bg-blue-600'; text = 'text-white font-bold';
+                } else if (isAnswered) {
+                  bg = settings.colorTheme === 'dark' ? 'bg-slate-800' : 'bg-slate-200';
+                  text = settings.colorTheme === 'dark' ? 'text-slate-300' : 'text-slate-700';
+                } else {
+                  bg = 'transparent';
+                  text = settings.colorTheme === 'dark' ? 'text-slate-400' : 'text-slate-600';
+                }
+                
+                return (
+                  <div 
+                    key={q.id} 
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: `${virtualRow.size - 4}px`, transform: `translateY(${virtualRow.start}px)` }}
+                  >
+                    <button
+                      onClick={() => {
+                        const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
+                        updateCurrentQuestionState({ timeTakenSec: currentQ.timeTakenSec + timeSpent });
+                        setCurrentIndex(idx);
+                        setQuestionStartTime(Date.now());
+                      }}
+                      className={`w-full h-full flex items-center p-1.5 rounded text-sm transition-colors ${bg} ${text} hover:opacity-80`}
+                    >
+                      <div className="w-6 text-center shrink-0 font-medium">{idx + 1}</div>
+                      <div className="flex-1 flex justify-center gap-1 hidden md:flex">
+                        {q.isFlagged && <Bookmark className="w-3.5 h-3.5 text-red-500" fill="currentColor" />}
+                        {isAnswered && !q.isFlagged && <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1"></div>}
+                      </div>
+                    </button>
                   </div>
-                </button>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </aside>
 
@@ -604,9 +642,12 @@ function TestPlayerInner({ session }: { session: TestSession }) {
                <span className="text-slate-400 text-[10px] uppercase tracking-wider">
                  {session.mode === 'timed' ? 'Block Time Remaining' : 'Block Time Elapsed'}
                </span>
-               {session.mode === 'timed' 
-                 ? (timeLeft !== null ? formatTime(timeLeft) : '--:--:--') 
-                 : formatTime(timeElapsed)}
+               <TimerDisplay 
+                 initialTimeLeft={session.durationSec} 
+                 initialElapsed={initialElapsed} 
+                 isTimed={session.mode === 'timed'} 
+                 onTimeUp={handleTimeUp}
+               />
              </div>
            )}
         </div>

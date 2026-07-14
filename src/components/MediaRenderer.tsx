@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 export function MediaRenderer({ media, setZoomImage }: { media: { id: string; type: string; url: string; caption?: string | null; displaySize?: string; placement?: string; [key: string]: unknown }, setZoomImage?: (url: string) => void }) {
   const widthClass = 
@@ -12,12 +13,17 @@ export function MediaRenderer({ media, setZoomImage }: { media: { id: string; ty
     return (
       <div className={`flex flex-col items-center ${widthClass}`}>
         <div 
-          className="p-2 bg-slate-50 border border-slate-200 rounded-sm cursor-zoom-in hover:bg-slate-100 transition-colors w-full flex justify-center"
+          className="p-2 bg-slate-50 border border-slate-200 rounded-sm cursor-zoom-in hover:bg-slate-100 transition-colors w-full flex justify-center relative min-h-[200px]"
           onClick={() => setZoomImage?.(media.url)}
           title={setZoomImage ? "Click to zoom" : undefined}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={media.url} alt={media.caption || 'Clinical figure'} className="max-w-full h-auto max-h-[500px] object-contain" />
+          <Image 
+            src={media.url} 
+            alt={media.caption || 'Clinical figure'} 
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-contain" 
+          />
         </div>
         {media.caption && <p className="text-sm text-slate-500 mt-2 font-medium text-center">{media.caption}</p>}
       </div>

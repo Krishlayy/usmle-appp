@@ -1,13 +1,21 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
+import { redis } from '@/lib/redis';
 
 export const revalidate = 60;
 
 export default async function StorePage() {
-  const qbanks = await prisma.qBank.findMany({
-    where: { isActive: true },
-    orderBy: { title: 'asc' },
-  });
+  const cacheKey = 'qbanks:storefront:active';
+  let qbanks = await redis.get<any[]>(cacheKey);
+
+  if (!qbanks) {
+    qbanks = await prisma.qBank.findMany({
+      where: { isActive: true },
+      orderBy: { title: 'asc' },
+    });
+    // Cache for 60 seconds to match ISR revalidate time
+    await redis.set(cacheKey, qbanks, { ex: 60 });
+  }
 
   return (
     <div className="container mx-auto py-16 px-4 md:px-6 max-w-7xl">

@@ -136,7 +136,7 @@ model TestSession {
   completedAt DateTime?
   progress    UserProgress[]
 
-  @@index([userId, qbankId])
+  @@index([userId, qbankId, status])
 }
 
 model UserProgress {
@@ -157,4 +157,5 @@ model UserProgress {
 
   @@unique([userId, questionId, testSessionId])
   @@index([userId, qbankId])
+  @@index([userId, questionId])
 }

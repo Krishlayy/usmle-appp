@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { testSubmitRateLimiter } from '@/lib/redis';
 
 export async function POST(req: Request, props: { params: Promise<{ sessionId: string }> }) {
   const params = await props.params;
@@ -10,6 +11,12 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
 
     if (!session || !session.user || !session.user.id) {
       return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    // Rate Limiting: 10 requests per 10s per user
+    const { success } = await testSubmitRateLimiter.limit(session.user.id);
+    if (!success) {
+      return new NextResponse('Too Many Requests', { status: 429 });
     }
 
     const { questions } = await req.json();
@@ -33,8 +40,9 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
     // Update all TestSessionQuestion records
     // Also, we need to log to UserProgress to maintain global history
 
-    for (const q of questions) {
-      await prisma.userProgress.update({
+    // Batch all updates into a single transaction to prevent N+1 query exhaustions
+    const updatePromises = questions.map((q: any) =>
+      prisma.userProgress.update({
         where: { id: q.id },
         data: {
           selectedAnswer: q.selectedOptionId,
@@ -42,8 +50,10 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
           flagged: q.isFlagged,
           timeTakenSec: q.timeTakenSec,
         },
-      });
-    }
+      })
+    );
+
+    await prisma.$transaction(updatePromises);
 
     // Mark session as completed
     await prisma.testSession.update({

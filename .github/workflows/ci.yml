@@ -60,3 +60,8 @@ jobs:
       env:
         DATABASE_URL: "postgresql://postgres:password@localhost:5432/usmle?schema=public"
         NEXTAUTH_SECRET: "mock-secret-for-testing-only"
+        
+    - name: Build Next.js App
+      run: npm run build
+      env:
+        DATABASE_URL: "postgresql://postgres:password@localhost:5432/usmle?schema=public"

@@ -9,7 +9,11 @@ const globalForPrisma = globalThis as unknown as {
   pgPool: Pool;
 };
 
-const pool = globalForPrisma.pgPool ?? new Pool({ connectionString });
+const pool = globalForPrisma.pgPool ?? new Pool({ 
+  connectionString, 
+  max: 20, // Strict limit per serverless instance to prevent overwhelming Neon pooler
+  idleTimeoutMillis: 20000 
+});
 const adapter = new PrismaPg(pool);
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
