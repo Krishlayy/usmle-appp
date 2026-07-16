@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { verifyQbankAccess } from '@/lib/verifyQbankAccess';
+import { getCachedOrFetch } from '@/lib/redis';
 
 export async function POST(req: Request) {
   try {
@@ -28,12 +29,15 @@ export async function POST(req: Request) {
     // Verify access
     await verifyQbankAccess(session.user.id, resolvedQbankId);
 
-    // Fetch all questions for this QBank
-    const questions = await prisma.question.findMany({
-      where: { qbankId: resolvedQbankId },
-      // Optional: order randomly or sequentially
-      orderBy: { createdAt: 'asc' }
-    });
+    // Fetch all questions for this QBank, cached for 1 hour
+    const questions = await getCachedOrFetch(
+      `qbank:${resolvedQbankId}:questions`,
+      () => prisma.question.findMany({
+        where: { qbankId: resolvedQbankId },
+        orderBy: { createdAt: 'asc' }
+      }),
+      3600
+    );
 
     // Calculate duration for timed mode (e.g., 90 seconds per question)
     const durationSec = mode === 'timed' ? questions.length * 90 : null;

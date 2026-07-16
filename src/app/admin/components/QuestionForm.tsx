@@ -21,10 +21,12 @@ type Option = {
 
 export function QuestionForm({ 
   qbankId, 
-  initialData 
+  initialData,
+  bibliographyTags = []
 }: { 
   qbankId: string, 
-  initialData?: Record<string, unknown> | null
+  initialData?: Record<string, unknown> | null,
+  bibliographyTags?: string[]
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -78,6 +80,25 @@ export function QuestionForm({
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(t => t !== tagToRemove));
+  };
+
+  const handleAutoTag = () => {
+    if (!bibliographyTags || bibliographyTags.length === 0) return;
+    
+    const textToScan = `${questionText} ${explanation}`.toLowerCase();
+    
+    const matches = bibliographyTags.filter(tag => {
+      const lowerTag = tag.toLowerCase();
+      return !tags.includes(lowerTag) && textToScan.includes(lowerTag);
+    });
+    
+    if (matches.length > 0) {
+      const spaceLeft = 4 - tags.length;
+      const toAdd = matches.slice(0, spaceLeft).map(t => t.toLowerCase());
+      if (toAdd.length > 0) {
+        setTags(prev => [...prev, ...toAdd]);
+      }
+    }
   };
 
   const addOption = () => {
@@ -190,7 +211,18 @@ export function QuestionForm({
           </div>
 
           <div className="pb-4 border-b border-slate-100">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Tags (Max 4)</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-slate-700">Tags (Max 4)</label>
+              {bibliographyTags && bibliographyTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleAutoTag}
+                  className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-200 transition-colors shadow-sm font-medium"
+                >
+                  ✨ Auto-Tag from Bibliography
+                </button>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2 mb-2">
               {tags.map(tag => (
                 <span key={tag} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">

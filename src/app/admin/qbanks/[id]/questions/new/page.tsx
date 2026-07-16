@@ -1,8 +1,14 @@
 import { QuestionForm } from '@/app/admin/components/QuestionForm';
+import { prisma } from '@/lib/db';
 import Link from 'next/link';
 
 export default async function NewQuestionPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
+  const qbank = await prisma.qBank.findUnique({
+    where: { id: params.id },
+    select: { bibliographyTags: true }
+  });
+  
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
@@ -13,7 +19,10 @@ export default async function NewQuestionPage(props: { params: Promise<{ id: str
         <p className="text-slate-500 mt-2">Build a new clinical scenario with multiple-choice options.</p>
       </div>
 
-      <QuestionForm qbankId={params.id} />
+      <QuestionForm 
+        qbankId={params.id} 
+        bibliographyTags={qbank?.bibliographyTags || []} 
+      />
     </div>
   );
 }

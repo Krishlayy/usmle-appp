@@ -9,10 +9,10 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full glass-panel border-b">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">
+      <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
         <Link className="flex items-center gap-2" href="/">
-          <div className="bg-blue-600 text-white rounded p-1.5 shadow-sm">
+          <div className="bg-black text-white rounded-sm p-1">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
             </svg>
@@ -22,18 +22,18 @@ export default function Navbar() {
         <nav className="flex items-center gap-6">
           <Link 
             href="/store" 
-            className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname.startsWith('/store') ? 'text-blue-600' : 'text-slate-600'}`}
+            className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/store') ? 'text-black' : 'text-gray-500'}`}
           >
             Store
           </Link>
           
           {status === 'loading' ? (
-            <div className="w-20 h-8 animate-pulse bg-slate-200 rounded"></div>
+            <div className="w-20 h-8 animate-pulse bg-gray-100 rounded-none"></div>
           ) : session ? (
             <>
               <Link 
                 href="/dashboard" 
-                className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname.startsWith('/dashboard') ? 'text-blue-600' : 'text-slate-600'}`}
+                className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/dashboard') ? 'text-black' : 'text-gray-500'}`}
               >
                 Dashboard
               </Link>
@@ -41,7 +41,7 @@ export default function Navbar() {
               {session.user?.role === 'ADMIN' && (
                 <Link 
                   href="/admin" 
-                  className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname.startsWith('/admin') ? 'text-blue-600' : 'text-slate-600'}`}
+                  className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/admin') ? 'text-black' : 'text-gray-500'}`}
                 >
                   Admin
                 </Link>
@@ -49,7 +49,7 @@ export default function Navbar() {
               
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="text-sm font-medium text-slate-600 hover:text-red-600 transition-colors"
+                className="text-sm font-medium text-gray-500 hover:text-black transition-colors"
               >
                 Log Out
               </button>
@@ -58,13 +58,13 @@ export default function Navbar() {
             <>
               <Link 
                 href="/login" 
-                className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors"
+                className="text-sm font-medium text-gray-500 hover:text-black transition-colors"
               >
                 Log In
               </Link>
               <Link 
                 href="/signup" 
-                className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+                className="text-sm font-medium bg-black text-white px-4 py-2 hover:bg-gray-800 transition-colors rounded-none"
               >
                 Sign Up
               </Link>

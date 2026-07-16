@@ -137,11 +137,88 @@ function TestPlayerInner({ session }: { session: TestSession }) {
   const { settings } = useTestSettings();
   
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [questions, setQuestions] = useState<SessionQuestion[]>(session.questions.sort((a, b) => a.order - b.order));
+  const [questions, setQuestions] = useState<SessionQuestion[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const localState = localStorage.getItem(`test-session-state-${session.id}`);
+        if (localState) {
+          const parsed = JSON.parse(localState);
+          const localAnswered = parsed.filter((q: any) => q.selectedOptionId).length;
+          const serverAnswered = session.questions.filter((q: any) => q.selectedOptionId).length;
+          if (localAnswered > serverAnswered) {
+            return parsed;
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load local state', e);
+    }
+    return session.questions.sort((a, b) => a.order - b.order);
+  });
   
+  useEffect(() => {
+    localStorage.setItem(`test-session-state-${session.id}`, JSON.stringify(questions));
+  }, [questions, session.id]);
+  
+  // Offline Sync Logic
+  const pushToSyncQueue = useCallback((payload: any) => {
+    try {
+      const queue = JSON.parse(localStorage.getItem(`sync-queue-${session.id}`) || '[]');
+      queue.push(payload);
+      localStorage.setItem(`sync-queue-${session.id}`, JSON.stringify(queue));
+    } catch (e) {
+      console.error('Local storage error', e);
+    }
+  }, [session.id]);
+
+  const flushSyncQueue = useCallback(async () => {
+    try {
+      const queue = JSON.parse(localStorage.getItem(`sync-queue-${session.id}`) || '[]');
+      if (queue.length === 0) return;
+
+      const successfulIndexes: number[] = [];
+      for (let i = 0; i < queue.length; i++) {
+        try {
+          const res = await fetch(`/api/test-sessions/${session.id}/autosave`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(queue[i]),
+          });
+          if (res.ok) {
+            successfulIndexes.push(i);
+          }
+        } catch (err) {
+          console.error('Network error while flushing', err);
+          break; // Stop flushing if network is still down
+        }
+      }
+
+      // Remove successful ones
+      if (successfulIndexes.length > 0) {
+        const remaining = queue.filter((_: any, idx: number) => !successfulIndexes.includes(idx));
+        if (remaining.length === 0) {
+          localStorage.removeItem(`sync-queue-${session.id}`);
+        } else {
+          localStorage.setItem(`sync-queue-${session.id}`, JSON.stringify(remaining));
+        }
+      }
+    } catch (e) {
+      console.error('Queue flush error', e);
+    }
+  }, [session.id]);
+
+  useEffect(() => {
+    // Flush on mount
+    flushSyncQueue();
+    // Flush when coming back online
+    window.addEventListener('online', flushSyncQueue);
+    return () => window.removeEventListener('online', flushSyncQueue);
+  }, [flushSyncQueue]);
+
   const initialElapsed = useMemo(() => {
-    return session.questions.reduce((acc, q) => acc + (q.timeTakenSec || 0), 0);
-  }, [session.questions]);
+    return questions.reduce((acc, q) => acc + (q.timeTakenSec || 0), 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [timeElapsed, setTimeElapsed] = useState(initialElapsed);
   const [submitting, setSubmitting] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
@@ -268,28 +345,38 @@ function TestPlayerInner({ session }: { session: TestSession }) {
       timeTakenSec: currentQ.timeTakenSec + timeSpent
     });
 
+    const payload = {
+      questionProgressId: currentQ.id,
+      selectedOptionId: optionId,
+      isCorrect,
+      timeTakenSec: currentQ.timeTakenSec + timeSpent
+    };
+
     fetch(`/api/test-sessions/${session.id}/autosave`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        questionProgressId: currentQ.id,
-        selectedOptionId: optionId,
-        isCorrect,
-        timeTakenSec: currentQ.timeTakenSec + timeSpent
-      }),
-    }).catch(console.error);
+      body: JSON.stringify(payload),
+    }).catch((err) => {
+      console.error('Save failed, queueing offline', err);
+      pushToSyncQueue(payload);
+    });
   };
   
   const handleSaveNotes = (notes: string) => {
     updateCurrentQuestionState({ notes });
+    const payload = {
+      questionProgressId: currentQ.id,
+      notes: notes
+    };
+    
     fetch(`/api/test-sessions/${session.id}/autosave`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        questionProgressId: currentQ.id,
-        notes: notes
-      }),
-    }).catch(console.error);
+      body: JSON.stringify(payload),
+    }).catch((err) => {
+      console.error('Save failed, queueing offline', err);
+      pushToSyncQueue(payload);
+    });
   };
 
   const handleNext = () => {
@@ -355,43 +442,43 @@ function TestPlayerInner({ session }: { session: TestSession }) {
     <div className={`flex flex-col h-screen font-sans ${settings.colorTheme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'}`}>
       
       {/* Top Header */}
-      <header className="bg-[#003b5c] text-white h-14 flex items-center justify-between px-4 shrink-0 shadow-md z-10 select-none">
+      <header className="bg-white text-black h-14 flex items-center justify-between px-4 shrink-0 border-b border-gray-200 z-10 select-none">
         <div className="flex items-center gap-6">
-          <div className="flex items-center bg-[#002b44] px-4 py-1.5 rounded text-sm font-bold tracking-wide">
-            <span className="text-slate-300 mr-2">Item:</span>
+          <div className="flex items-center bg-gray-100 px-4 py-1.5 rounded-none text-sm font-bold tracking-wide">
+            <span className="text-gray-500 mr-2">Item:</span>
             <span>{currentIndex + 1} of {questions.length}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={handlePrev} disabled={currentIndex === 0} className="p-1 hover:bg-[#004f7a] rounded disabled:opacity-50">
+            <button onClick={handlePrev} disabled={currentIndex === 0} className="p-1 hover:bg-gray-100 rounded-none disabled:opacity-50">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="text-sm font-medium text-slate-300">Previous</span>
-            <span className="text-slate-500 mx-2">|</span>
-            <span className="text-sm font-medium text-slate-300">Next</span>
-            <button onClick={handleNext} className="p-1 hover:bg-[#004f7a] rounded">
+            <span className="text-sm font-medium text-gray-500">Previous</span>
+            <span className="text-gray-300 mx-2">|</span>
+            <span className="text-sm font-medium text-gray-500">Next</span>
+            <button onClick={handleNext} className="p-1 hover:bg-gray-100 rounded-none">
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
         
         <div className="flex items-center gap-1">
-          <button className="flex flex-col items-center justify-center w-14 h-12 hover:bg-[#004f7a] rounded text-slate-300 hover:text-white transition-colors">
+          <button className="flex flex-col items-center justify-center w-14 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors">
             <HelpCircle className="w-5 h-5 mb-0.5" />
             <span className="text-[10px] font-medium">Tutorial</span>
           </button>
-          <button onClick={() => setShowLabValues(true)} className="flex flex-col items-center justify-center w-16 h-12 hover:bg-[#004f7a] rounded text-slate-300 hover:text-white transition-colors">
+          <button onClick={() => setShowLabValues(true)} className="flex flex-col items-center justify-center w-16 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors">
             <TestTubes className="w-5 h-5 mb-0.5" />
             <span className="text-[10px] font-medium">Lab Values</span>
           </button>
-          <button onClick={() => setShowNotes(true)} className="flex flex-col items-center justify-center w-14 h-12 hover:bg-[#004f7a] rounded text-slate-300 hover:text-white transition-colors">
+          <button onClick={() => setShowNotes(true)} className="flex flex-col items-center justify-center w-14 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors">
             <FileText className="w-5 h-5 mb-0.5" />
             <span className="text-[10px] font-medium">Notes</span>
           </button>
-          <button onClick={() => setShowCalculator(true)} className="flex flex-col items-center justify-center w-16 h-12 hover:bg-[#004f7a] rounded text-slate-300 hover:text-white transition-colors">
+          <button onClick={() => setShowCalculator(true)} className="flex flex-col items-center justify-center w-16 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors">
             <CalcIcon className="w-5 h-5 mb-0.5" />
             <span className="text-[10px] font-medium">Calculator</span>
           </button>
-          <button onClick={() => setShowSettings(true)} className="flex flex-col items-center justify-center w-14 h-12 hover:bg-[#004f7a] rounded text-slate-300 hover:text-white transition-colors ml-4 border-l border-[#004f7a]">
+          <button onClick={() => setShowSettings(true)} className="flex flex-col items-center justify-center w-14 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors ml-4 border-l border-gray-200">
             <SettingsIcon className="w-5 h-5 mb-0.5" />
             <span className="text-[10px] font-medium">Settings</span>
           </button>
@@ -402,8 +489,8 @@ function TestPlayerInner({ session }: { session: TestSession }) {
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Sidebar (Question Grid) */}
-        <aside className={`w-16 md:w-48 shrink-0 flex flex-col border-r shadow-sm z-0 overflow-y-auto ${settings.colorTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-          <div className={`p-2 text-xs font-bold uppercase tracking-wider text-center border-b ${settings.colorTheme === 'dark' ? 'border-slate-800 text-slate-500' : 'border-slate-200 text-slate-500'}`}>
+        <aside className={`w-16 md:w-48 shrink-0 flex flex-col border-r border-gray-200 z-0 overflow-y-auto ${settings.colorTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white'}`}>
+          <div className={`p-2 text-xs font-bold uppercase tracking-wider text-center border-b ${settings.colorTheme === 'dark' ? 'border-slate-800 text-slate-500' : 'border-gray-200 text-gray-400'}`}>
             Questions
           </div>
           <div ref={parentRef} className="flex-1 overflow-y-auto p-2">
@@ -416,13 +503,13 @@ function TestPlayerInner({ session }: { session: TestSession }) {
                 let bg = '';
                 let text = '';
                 if (isActive) {
-                  bg = 'bg-blue-600'; text = 'text-white font-bold';
+                  bg = 'bg-black'; text = 'text-white font-bold';
                 } else if (isAnswered) {
-                  bg = settings.colorTheme === 'dark' ? 'bg-slate-800' : 'bg-slate-200';
-                  text = settings.colorTheme === 'dark' ? 'text-slate-300' : 'text-slate-700';
+                  bg = settings.colorTheme === 'dark' ? 'bg-slate-800' : 'bg-gray-100';
+                  text = settings.colorTheme === 'dark' ? 'text-slate-300' : 'text-black';
                 } else {
                   bg = 'transparent';
-                  text = settings.colorTheme === 'dark' ? 'text-slate-400' : 'text-slate-600';
+                  text = settings.colorTheme === 'dark' ? 'text-slate-400' : 'text-gray-500';
                 }
                 
                 return (
@@ -492,13 +579,13 @@ function TestPlayerInner({ session }: { session: TestSession }) {
                 const isSelected = currentQ.selectedOptionId === opt.id;
                 const isStriked = settings.showStrikeout && strikethroughOptions[currentQ.id]?.has(opt.id);
                 
-                let optionClasses = "flex items-start group w-full text-left rounded px-2 py-1.5 transition-colors ";
+                let optionClasses = "flex items-start group w-full text-left rounded-none px-2 py-1.5 transition-colors border border-transparent ";
                 if (isSelected) {
-                  optionClasses += "bg-blue-500/10 text-blue-700";
+                  optionClasses += "border-black bg-gray-50 text-black";
                 } else if (isStriked) {
-                  optionClasses += "opacity-50 line-through text-slate-500";
+                  optionClasses += "opacity-50 line-through text-gray-400";
                 } else {
-                  optionClasses += "hover:bg-slate-500/5";
+                  optionClasses += "hover:border-gray-300 hover:bg-gray-50 text-gray-800";
                 }
 
                 const showTutorFeedback = (session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review';
@@ -516,8 +603,8 @@ function TestPlayerInner({ session }: { session: TestSession }) {
                         ) : showTutorFeedback && isSelected && !opt.isCorrect ? (
                           <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                         ) : (
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-blue-600' : 'border-slate-400'}`}>
-                            {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600"></div>}
+                          <div className={`w-4 h-4 rounded-none border flex items-center justify-center transition-colors ${isSelected ? 'border-black bg-black' : 'border-gray-300 bg-white'}`}>
+                            {isSelected && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                           </div>
                         )}
                       </div>
@@ -635,11 +722,11 @@ function TestPlayerInner({ session }: { session: TestSession }) {
       </div>
 
       {/* Footer Navigation bar */}
-      <footer className="bg-[#003b5c] h-12 shrink-0 flex justify-between items-center px-4 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)] select-none border-t border-[#002b44]">
+      <footer className="bg-white text-black h-12 shrink-0 flex justify-between items-center px-4 z-10 border-t border-gray-200 select-none">
         <div className="flex items-center h-full">
            {(session.mode === 'timed' || (session.mode === 'tutor' && settings.showTimer)) && (
-             <div className="flex flex-col justify-center px-4 border-r border-[#004f7a] h-full text-white font-bold text-xs">
-               <span className="text-slate-400 text-[10px] uppercase tracking-wider">
+             <div className="flex flex-col justify-center px-4 border-r border-gray-200 h-full font-bold text-xs text-black">
+               <span className="text-gray-400 text-[10px] uppercase tracking-wider">
                  {session.mode === 'timed' ? 'Block Time Remaining' : 'Block Time Elapsed'}
                </span>
                <TimerDisplay 
@@ -657,7 +744,7 @@ function TestPlayerInner({ session }: { session: TestSession }) {
              <button
              onClick={() => finishSession(questions)}
              disabled={submitting}
-             className="px-6 h-8 text-xs font-bold text-white bg-[#c62828] hover:bg-red-700 rounded transition-colors mr-4 flex items-center"
+             className="px-6 h-8 text-xs font-bold text-black bg-white border border-gray-300 hover:bg-gray-100 rounded-none transition-colors mr-4 flex items-center"
            >
              Suspend Block
            </button>
@@ -665,7 +752,7 @@ function TestPlayerInner({ session }: { session: TestSession }) {
           {session.mode === 'review' && (
              <button
              onClick={() => window.location.href = `/dashboard/${session.qbankSlug}/session/${session.id}/results`}
-             className="px-6 h-8 text-xs font-bold text-slate-800 bg-white hover:bg-slate-100 rounded transition-colors mr-4 flex items-center"
+             className="px-6 h-8 text-xs font-bold text-black bg-white border border-gray-300 hover:bg-gray-100 rounded-none transition-colors mr-4 flex items-center"
            >
              Back to Results
            </button>
@@ -673,7 +760,7 @@ function TestPlayerInner({ session }: { session: TestSession }) {
           <button
             onClick={currentIndex === questions.length - 1 ? handleEndBlock : handleNext}
             disabled={submitting}
-            className={`px-8 h-8 text-xs font-bold text-white rounded transition-colors flex items-center ${currentIndex === questions.length - 1 ? 'bg-[#003b5c] border border-white hover:bg-[#004f7a]' : 'bg-[#003b5c] border border-white hover:bg-[#004f7a]'}`}
+            className={`px-8 h-8 text-xs font-bold text-white bg-black border border-black hover:bg-gray-800 rounded-none transition-colors flex items-center`}
           >
             {currentIndex === questions.length - 1 ? 'End Block' : 'Next'}
           </button>

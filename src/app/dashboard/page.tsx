@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import { CheckoutButton } from '@/components/CheckoutButton';
+import { getCachedOrFetch } from '@/lib/redis';
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -19,13 +20,16 @@ export default async function DashboardPage() {
 
   const purchasedQbankIds = purchases.map((p) => p.qbankId);
 
-  const availableQbanks = await prisma.qBank.findMany({
-    where: {
-      isActive: true,
-      id: { notIn: purchasedQbankIds.length > 0 ? purchasedQbankIds : [''] },
-    },
-    orderBy: { title: 'asc' },
-  });
+  const allActiveQbanks = await getCachedOrFetch(
+    'qbanks:active',
+    () => prisma.qBank.findMany({
+      where: { isActive: true },
+      orderBy: { title: 'asc' },
+    }),
+    3600
+  );
+
+  const availableQbanks = allActiveQbanks.filter(qb => !purchasedQbankIds.includes(qb.id));
 
   // Calculate real analytics for purchased QBanks
   const userProgress = await prisma.userProgress.findMany({
@@ -63,8 +67,7 @@ export default async function DashboardPage() {
 
       <section className="mb-16">
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-1.5 bg-blue-600 rounded-full"></div>
-          <h2 className="text-2xl font-bold text-slate-900">Active Subscriptions</h2>
+          <h2 className="text-xl font-bold text-black tracking-tight">Active Subscriptions</h2>
         </div>
         
         {purchases.length === 0 ? (
@@ -93,21 +96,21 @@ export default async function DashboardPage() {
                     </span>
                   </div>
                   
-                  <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                  <div className="mt-6 pt-4 border-t border-gray-100">
                     <div className="flex justify-between text-sm mb-2 font-medium">
-                      <span className="text-slate-700">Completion</span>
-                      <span className="text-blue-600">{displayPercentage}%</span>
+                      <span className="text-gray-500">Completion</span>
+                      <span className="text-black">{displayPercentage}%</span>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                      <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-out" style={{ width: `${displayPercentage}%` }}></div>
+                    <div className="w-full bg-gray-100 h-1 overflow-hidden rounded-none">
+                      <div className="bg-black h-1 transition-all duration-1000 ease-out" style={{ width: `${displayPercentage}%` }}></div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-2 text-right">{attemptedCount} / {qbank.totalQuestions} Questions</p>
+                    <p className="text-xs text-gray-400 mt-2 text-right">{attemptedCount} / {qbank.totalQuestions} Questions</p>
                   </div>
                 </div>
-                <div className="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-end">
+                <div className="px-6 py-4 border-t border-gray-100 bg-white flex items-center justify-end">
                   <Link
                     href={`/dashboard/${qbank.slug}`}
-                    className="inline-flex items-center justify-center rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors px-4 py-2.5 w-full shadow-sm"
+                    className="inline-flex items-center justify-center bg-black text-white font-medium hover:bg-gray-800 transition-colors px-4 py-2 w-full text-sm"
                   >
                     Go to Analytics & Practice
                   </Link>
@@ -120,8 +123,7 @@ export default async function DashboardPage() {
 
       <section>
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-1.5 bg-slate-800 rounded-full"></div>
-          <h2 className="text-2xl font-bold text-slate-900">Available to Unlock</h2>
+          <h2 className="text-xl font-bold text-black tracking-tight">Available to Unlock</h2>
         </div>
         
         {availableQbanks.length === 0 ? (
@@ -131,11 +133,11 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {availableQbanks.map((qbank) => (
-              <div key={qbank.id} className="clinical-card group flex flex-col overflow-hidden bg-slate-50">
+              <div key={qbank.id} className="clinical-card group flex flex-col overflow-hidden bg-white">
                 <div className="p-6 flex-1">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-bold text-slate-900">{qbank.title}</h3>
-                    <span className="inline-flex items-center rounded-md bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700">
+                    <h3 className="text-lg font-bold text-black">{qbank.title}</h3>
+                    <span className="inline-flex items-center bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
                       {qbank.specialtyTag}
                     </span>
                   </div>

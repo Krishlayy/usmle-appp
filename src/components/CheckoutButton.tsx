@@ -46,7 +46,7 @@ export function CheckoutButton({ qbankId }: { qbankId: string }) {
       type="button"
       onClick={handleCheckout}
       disabled={loading}
-      className="flex w-full items-center justify-center rounded-md text-base font-medium transition-colors bg-gray-900 text-gray-50 shadow hover:bg-gray-900/90 h-12 px-8 mb-4 disabled:opacity-50"
+      className="flex w-full items-center justify-center rounded-none text-base font-medium transition-colors bg-black text-white hover:bg-gray-800 h-12 px-8 mb-4 disabled:opacity-50"
     >
       {loading ? 'Processing...' : 'Buy Now'}
     </button>

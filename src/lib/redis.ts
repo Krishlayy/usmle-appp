@@ -18,3 +18,34 @@ export const webhookRateLimiter = new Ratelimit({
   limiter: Ratelimit.slidingWindow(5, "10 s"),
   analytics: true,
 });
+
+/**
+ * Generic caching utility to check Redis first, and if miss, fetch and cache.
+ * @param key Redis cache key
+ * @param fetcher Function to fetch data from DB if cache miss
+ * @param ttlSeconds Time to live in seconds (default 1 hour = 3600)
+ */
+export async function getCachedOrFetch<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttlSeconds: number = 3600
+): Promise<T> {
+  try {
+    const cached = await redis.get<T>(key);
+    if (cached !== null) {
+      return cached;
+    }
+  } catch (error) {
+    console.error(`[Redis] Error getting key ${key}:`, error);
+  }
+
+  // Cache miss or Redis error, fetch fresh data
+  const freshData = await fetcher();
+
+  // Don't await the set, let it happen in background
+  redis.set(key, freshData, { ex: ttlSeconds }).catch((err) => {
+    console.error(`[Redis] Error setting key ${key}:`, err);
+  });
+
+  return freshData;
+}

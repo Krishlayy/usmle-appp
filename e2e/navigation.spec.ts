@@ -16,5 +16,5 @@ test('login page renders correctly', async ({ page }) => {
 
 test('store page lists question banks', async ({ page }) => {
   await page.goto('/store');
-  await expect(page.getByRole('heading', { name: /Question Bank Directory/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Question Banks/i })).toBeVisible();
 });

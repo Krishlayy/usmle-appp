@@ -50,10 +50,7 @@ export async function POST(req: Request) {
     try {
       await prisma.purchase.upsert({
         where: {
-          userId_qbankId: {
-            userId: userId,
-            qbankId: qbankId,
-          }
+          stripeSessionId: session.id
         },
         create: {
           userId,
@@ -75,6 +72,29 @@ export async function POST(req: Request) {
     } catch (error) {
       console.error('Error fulfilling purchase', error);
       return new NextResponse('Database Error', { status: 500 });
+    }
+  } else if (event.type === 'charge.refunded') {
+    const charge = event.data.object as Stripe.Charge;
+    
+    // We need to find the purchase associated with this payment intent / charge
+    if (charge.payment_intent && typeof charge.payment_intent === 'string') {
+      try {
+        // Stripe Sessions usually link to payment intents. Let's find by stripe session if possible,
+        // or we just find the purchase where stripeSessionId matches the checkout session that created this payment intent.
+        // It's easier to find the checkout session first.
+        const sessions = await stripe.checkout.sessions.list({ payment_intent: charge.payment_intent, limit: 1 });
+        if (sessions.data.length > 0) {
+          const sessionId = sessions.data[0].id;
+          await prisma.purchase.updateMany({
+            where: { stripeSessionId: sessionId },
+            data: { status: 'refunded' }
+          });
+        }
+        await redis.set(`stripe:event:${eventId}`, 'true', { ex: 86400 });
+      } catch (error) {
+        console.error('Error processing refund', error);
+        return new NextResponse('Database Error', { status: 500 });
+      }
     }
   }
 

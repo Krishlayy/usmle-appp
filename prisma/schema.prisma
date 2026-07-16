@@ -45,6 +45,7 @@ model QBank {
   createdAt       DateTime   @default(now())
   questions       Question[]
   purchases       Purchase[]
+  bibliographyTags String[]   @default([])
 
   @@index([isActive])
 }

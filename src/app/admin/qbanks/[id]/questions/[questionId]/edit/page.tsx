@@ -7,7 +7,10 @@ export default async function EditQuestionPage(props: { params: Promise<{ id: st
   const params = await props.params;
   const question = await prisma.question.findUnique({
     where: { id: params.questionId },
-    include: { media: { orderBy: { order: 'asc' } } }
+    include: { 
+      media: { orderBy: { order: 'asc' } },
+      qbank: { select: { bibliographyTags: true } }
+    }
   });
 
   if (!question || question.qbankId !== params.id) {
@@ -30,7 +33,11 @@ export default async function EditQuestionPage(props: { params: Promise<{ id: st
         <p className="text-slate-500 mt-2 font-mono text-sm">ID: {question.id}</p>
       </div>
 
-      <QuestionForm qbankId={params.id} initialData={initialData} />
+      <QuestionForm 
+        qbankId={params.id} 
+        initialData={initialData} 
+        bibliographyTags={question.qbank.bibliographyTags || []}
+      />
     </div>
   );
 }

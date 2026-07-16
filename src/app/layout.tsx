@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased clinical-gradient min-h-screen flex flex-col`}>
+      <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <Providers>
           <LayoutUIWrapper />
           <main className="flex-1 flex flex-col">

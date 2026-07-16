@@ -22,6 +22,7 @@ const updateQBankSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   price: z.number().min(0, 'Price must be positive'),
   isActive: z.boolean(),
+  bibliographyTags: z.array(z.string()).default([]),
 });
 
 export async function createQBank(formData: FormData) {
@@ -82,6 +83,7 @@ export async function updateQBank(formData: FormData) {
     title: formData.get('title') as string,
     price: parseFloat(formData.get('price') as string),
     isActive: formData.get('isActive') === 'on',
+    bibliographyTags: formData.get('bibliographyTags') ? JSON.parse(formData.get('bibliographyTags') as string) : [],
   };
 
   const parsed = updateQBankSchema.safeParse(rawData);
@@ -96,6 +98,7 @@ export async function updateQBank(formData: FormData) {
       title: parsed.data.title,
       price: Math.round(parsed.data.price * 100),
       isActive: parsed.data.isActive,
+      bibliographyTags: parsed.data.bibliographyTags,
     }
   });
 
