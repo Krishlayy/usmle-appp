@@ -14,9 +14,13 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
     }
 
     // Rate Limiting: 10 requests per 10s per user
-    const { success } = await testSubmitRateLimiter.limit(session.user.id);
-    if (!success) {
-      return new NextResponse('Too Many Requests', { status: 429 });
+    try {
+      const { success } = await testSubmitRateLimiter.limit(session.user.id);
+      if (!success) {
+        return new NextResponse('Too Many Requests', { status: 429 });
+      }
+    } catch (e) {
+      console.warn('Rate limiter unreachable, bypassing', e);
     }
 
     const { questions } = await req.json();
