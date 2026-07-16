@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from './db';
 
 if (!process.env.NEXTAUTH_SECRET) {
-  throw new Error("NEXTAUTH_SECRET is not set. Please add it to your .env file.");
+  console.warn("NEXTAUTH_SECRET is not set. Please add it to your .env file.");
 }
 
 export const authOptions: NextAuthOptions = {

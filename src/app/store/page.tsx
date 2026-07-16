@@ -7,10 +7,17 @@ export const revalidate = 60;
 export default async function StorePage() {
   const qbanks = await getCachedOrFetch(
     'qbanks:storefront:active',
-    () => prisma.qBank.findMany({
-      where: { isActive: true },
-      orderBy: { title: 'asc' },
-    }),
+    async () => {
+      try {
+        return await prisma.qBank.findMany({
+          where: { isActive: true },
+          orderBy: { title: 'asc' },
+        });
+      } catch (error) {
+        console.warn('Database unreachable, returning empty QBank list during build/fetch', error);
+        return [];
+      }
+    },
     60
   );
 
