@@ -41,7 +41,7 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
     // Also, we need to log to UserProgress to maintain global history
 
     // Batch all updates into a single transaction to prevent N+1 query exhaustions
-    const updatePromises = questions.map((q: any) =>
+    const updatePromises = questions.map((q: { id: string; selectedOptionId: string; isCorrect: boolean; isFlagged: boolean; timeTakenSec: number }) =>
       prisma.userProgress.update({
         where: { id: q.id },
         data: {

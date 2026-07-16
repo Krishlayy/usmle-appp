@@ -219,7 +219,7 @@ function TestPlayerInner({ session }: { session: TestSession }) {
     return questions.reduce((acc, q) => acc + (q.timeTakenSec || 0), 0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const [timeElapsed, setTimeElapsed] = useState(initialElapsed);
+
   const [submitting, setSubmitting] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const [isObscured, setIsObscured] = useState(false);
@@ -235,7 +235,7 @@ function TestPlayerInner({ session }: { session: TestSession }) {
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
   const currentQ = questions[currentIndex];
-  const isTimed = session.mode === 'timed';
+
   
   const mockStats = useMemo(() => {
     return generateMockStats(currentQ.question.id, currentQ.question.options);
@@ -324,6 +324,7 @@ function TestPlayerInner({ session }: { session: TestSession }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, currentQ, questions, showSettings, omissionWarning, showCalculator]);
 
   const updateCurrentQuestionState = (updates: Partial<SessionQuestion>) => {

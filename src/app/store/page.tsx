@@ -6,6 +6,7 @@ export const revalidate = 60;
 
 export default async function StorePage() {
   const cacheKey = 'qbanks:storefront:active';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let qbanks = await redis.get<any[]>(cacheKey);
 
   if (!qbanks) {
