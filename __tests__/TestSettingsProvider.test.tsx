@@ -29,7 +29,7 @@ describe('TestSettingsProvider', () => {
       </TestSettingsProvider>
     );
 
-    expect(screen.getByTestId('fontSize')).toHaveTextContent('14');
+    expect(screen.getByTestId('fontSize')).toHaveTextContent('15');
     expect(screen.getByTestId('showTimer')).toHaveTextContent('true');
   });
 

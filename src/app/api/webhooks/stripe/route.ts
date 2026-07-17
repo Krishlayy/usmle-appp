@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   const body = await req.text();
   const signature = (await headers()).get('Stripe-Signature') as string;
 
-  let event: Stripe.Event;
+  let event: any;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     return new NextResponse(`Webhook Error: ${errorMessage}`, { status: 400 });
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
+  const session = event.data.object as any;
 
   // Idempotency Check using Redis (expires in 24h)
   const eventId = event.id;
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
       return new NextResponse('Database Error', { status: 500 });
     }
   } else if (event.type === 'charge.refunded') {
-    const charge = event.data.object as Stripe.Charge;
+    const charge = event.data.object as any;
     
     // We need to find the purchase associated with this payment intent / charge
     if (charge.payment_intent && typeof charge.payment_intent === 'string') {

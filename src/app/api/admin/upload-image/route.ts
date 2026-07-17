@@ -45,7 +45,6 @@ export async function POST(req: Request) {
       Key: filename,
       Body: buffer,
       ContentType: file.type,
-      ACL: 'public-read', // Ensure your bucket allows public read ACLs, or remove this and use a bucket policy
     });
 
     await s3Client.send(command);
