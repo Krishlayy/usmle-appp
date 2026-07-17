@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import DOMPurify from 'isomorphic-dompurify';
+import sanitizeHtml from 'sanitize-html';
 import { z } from 'zod';
 
 const questionSchema = z.object({
@@ -46,12 +46,17 @@ export async function POST(req: Request) {
     }
 
     const sanitizeConfig = {
-      ADD_TAGS: ['iframe'],
-      ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'style', 'class', 'data-align', 'data-drag-handle', 'draggable']
+      allowedTags: sanitizeHtml.defaults.allowedTags.concat(['iframe', 'img']),
+      allowedAttributes: {
+        ...sanitizeHtml.defaults.allowedAttributes,
+        'iframe': ['src', 'allow', 'allowfullscreen', 'frameborder', 'scrolling'],
+        'img': ['src', 'alt', 'style', 'class', 'data-align', 'data-drag-handle', 'draggable'],
+        '*': ['style', 'class']
+      }
     };
 
-    const sanitizedQuestionText = DOMPurify.sanitize(data.questionText || '', sanitizeConfig);
-    const sanitizedExplanation = DOMPurify.sanitize(data.explanation || '', sanitizeConfig);
+    const sanitizedQuestionText = sanitizeHtml(data.questionText || '', sanitizeConfig);
+    const sanitizedExplanation = sanitizeHtml(data.explanation || '', sanitizeConfig);
 
     // Execute qBank update and question creation sequentially.
     // update with increment is atomic in Postgres, so qid will always be unique.
