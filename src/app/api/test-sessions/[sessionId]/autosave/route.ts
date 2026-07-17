@@ -13,7 +13,7 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
     }
 
     const body = await req.json();
-    const { questionProgressId, selectedOptionId, isCorrect, timeTakenSec, notes } = body;
+    const { questionProgressId, selectedOptionId, isCorrect, timeTakenSec, notes, strikethroughs } = body;
 
     if (!questionProgressId) {
       return new NextResponse('Invalid request', { status: 400 });
@@ -40,6 +40,7 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
         ...(isCorrect !== undefined && { isCorrect: isCorrect }),
         ...(timeTakenSec !== undefined && { timeTakenSec: timeTakenSec }),
         ...(notes !== undefined && { notes: notes }),
+        ...(strikethroughs !== undefined && { strikethroughs: strikethroughs }),
       },
     });
 

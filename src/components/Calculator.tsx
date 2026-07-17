@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { DraggableModal } from './DraggableModal';
+import { Calculator as CalcIcon } from 'lucide-react';
 
 export function Calculator({ onClose }: { onClose: () => void }) {
   const [display, setDisplay] = useState('0');
@@ -80,27 +82,25 @@ export function Calculator({ onClose }: { onClose: () => void }) {
   const opClass = "bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 rounded-md active:bg-blue-300 transition-colors";
 
   return (
-    <div className="absolute top-16 right-4 w-72 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden z-50 animate-in slide-in-from-top-4">
-      {/* Header */}
-      <div className="bg-slate-800 text-white p-3 flex justify-between items-center cursor-move">
-        <span className="font-semibold text-sm flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-          Calculator
-        </span>
-        <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
-      </div>
-
-      <div className="p-4">
+    <DraggableModal 
+      isOpen={true} 
+      onClose={onClose} 
+      title="Calculator" 
+      icon={<CalcIcon size={16} />}
+      width="300px"
+      height="380px"
+      minWidth="300px"
+      minHeight="380px"
+    >
+      <div className="p-4 flex flex-col h-full bg-white">
         {/* Display */}
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 text-right">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 text-right shrink-0">
           <div className="text-xs text-slate-400 h-4 mb-1 font-mono">{equation}</div>
           <div className="text-3xl font-mono text-slate-800 overflow-hidden text-ellipsis">{display}</div>
         </div>
 
         {/* Keypad */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-2 flex-1">
           <button onClick={clear} className="col-span-2 bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 rounded-md transition-colors">C</button>
           <button onClick={() => setDisplay(String(parseFloat(display) * -1))} className={btnClass}>±</button>
           <button onClick={() => performOperation('/')} className={opClass}>÷</button>
@@ -125,6 +125,6 @@ export function Calculator({ onClose }: { onClose: () => void }) {
           <button onClick={handleEqual} className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md active:bg-blue-800 transition-colors">=</button>
         </div>
       </div>
-    </div>
+    </DraggableModal>
   );
 }

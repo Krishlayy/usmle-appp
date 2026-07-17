@@ -45,22 +45,23 @@ export async function POST(req: Request) {
       return new NextResponse('Correct answer cannot be in acceptable answers', { status: 400 });
     }
 
-    const sanitizedQuestionText = DOMPurify.sanitize(data.questionText || '', {
+    const sanitizeConfig = {
       ADD_TAGS: ['iframe'],
-      ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
-    });
+      ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'style', 'class', 'data-align', 'data-drag-handle', 'draggable']
+    };
 
-    const sanitizedExplanation = DOMPurify.sanitize(data.explanation || '', {
-      ADD_TAGS: ['iframe'],
-      ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
-    });
+    const sanitizedQuestionText = DOMPurify.sanitize(data.questionText || '', sanitizeConfig);
+    const sanitizedExplanation = DOMPurify.sanitize(data.explanation || '', sanitizeConfig);
 
     // Execute qBank update and question creation sequentially.
     // update with increment is atomic in Postgres, so qid will always be unique.
     // Avoids P2028 interactive transaction errors with Neon connection pooler.
     const qbank = await prisma.qBank.update({
       where: { id: data.qbankId },
-      data: { questionCounter: { increment: 1 } },
+      data: { 
+        questionCounter: { increment: 1 },
+        totalQuestions: { increment: 1 }
+      },
       select: { qbankCode: true, questionCounter: true },
     });
 

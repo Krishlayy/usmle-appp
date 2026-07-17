@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import RoleSelector from './RoleSelector';
+import UnblockButton from './UnblockButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +42,7 @@ export default async function AdminUsersPage() {
               <th className="p-4">Joined</th>
               <th className="p-4">Purchases</th>
               <th className="p-4">Sessions</th>
+              <th className="p-4">Security</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -66,11 +68,24 @@ export default async function AdminUsersPage() {
                 <td className="p-4 text-slate-600">
                   {user._count.testSessions}
                 </td>
+                <td className="p-4">
+                  <div className="flex flex-col gap-2 items-start">
+                    {user.securityViolations > 0 && (
+                      <span className="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                        {user.securityViolations} Violations
+                      </span>
+                    )}
+                    {user.isBlocked && <UnblockButton userId={user.id} />}
+                    {!user.isBlocked && user.securityViolations === 0 && (
+                      <span className="text-xs text-slate-400">Clean</span>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-500">
+                <td colSpan={6} className="p-8 text-center text-slate-500">
                   No users found.
                 </td>
               </tr>

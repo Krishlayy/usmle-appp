@@ -46,15 +46,13 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
       return new NextResponse('Correct answer cannot be in acceptable answers', { status: 400 });
     }
 
-    const sanitizedQuestionText = DOMPurify.sanitize(data.questionText || '', {
+    const sanitizeConfig = {
       ADD_TAGS: ['iframe'],
-      ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
-    });
+      ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'style', 'class', 'data-align', 'data-drag-handle', 'draggable']
+    };
 
-    const sanitizedExplanation = DOMPurify.sanitize(data.explanation || '', {
-      ADD_TAGS: ['iframe'],
-      ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
-    });
+    const sanitizedQuestionText = DOMPurify.sanitize(data.questionText || '', sanitizeConfig);
+    const sanitizedExplanation = DOMPurify.sanitize(data.explanation || '', sanitizeConfig);
 
     const question = await prisma.$transaction(async (tx) => {
       await tx.questionMedia.deleteMany({
@@ -101,9 +99,24 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await prisma.question.delete({
-      where: { id: params.id }
+    const question = await prisma.question.findUnique({
+      where: { id: params.id },
+      select: { qbankId: true }
     });
+
+    if (!question) {
+      return new NextResponse('Not found', { status: 404 });
+    }
+
+    await prisma.$transaction([
+      prisma.question.delete({
+        where: { id: params.id }
+      }),
+      prisma.qBank.update({
+        where: { id: question.qbankId },
+        data: { totalQuestions: { decrement: 1 } }
+      })
+    ]);
 
     return new NextResponse('OK', { status: 200 });
   } catch (error) {

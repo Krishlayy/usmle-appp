@@ -148,3 +148,21 @@ export async function deleteQBank(formData: FormData) {
   revalidatePath('/admin/qbanks');
   redirect('/admin/qbanks');
 }
+
+export async function unblockUser(userId: string) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session || !session.user || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      isBlocked: false,
+      securityViolations: 0,
+    },
+  });
+
+  revalidatePath('/admin/users');
+}

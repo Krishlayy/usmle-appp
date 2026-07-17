@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 import { TestPlayer } from '@/components/TestPlayer';
 
 export default async function TestSessionPage(
-  props: { params: Promise<{ qbankSlug: string, sessionId: string }>, searchParams: Promise<{ mode?: string }> }
+  props: { params: Promise<{ qbankSlug: string, sessionId: string }>, searchParams: Promise<{ mode?: string, item?: string }> }
 ) {
   const searchParams = await props.searchParams;
   const params = await props.params;
@@ -73,8 +73,12 @@ export default async function TestSessionPage(
       selectedOptionId: p.selectedAnswer,
       isCorrect: p.isCorrect,
       timeTakenSec: p.timeTakenSec || 0,
+      notes: p.notes || null,
+      strikethroughs: p.strikethroughs || [],
     })),
   };
 
-  return <TestPlayer session={mappedSession} />;
+  const initialIndex = searchParams.item ? parseInt(searchParams.item, 10) : 0;
+
+  return <TestPlayer session={mappedSession} initialIndex={!isNaN(initialIndex) ? initialIndex : 0} />;
 }

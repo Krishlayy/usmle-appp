@@ -4,16 +4,68 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import dynamic from 'next/dynamic';
-const LightboxWrapper = dynamic(() => import('@/components/LightboxWrapper'), { ssr: false });
-import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
-
+import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark, X, Clock, FlaskConical, PenLine, ArrowLeftCircle, ArrowRightCircle, Lock, XCircle, Flag, Strikethrough } from 'lucide-react';
 import { MediaRenderer } from '@/components/MediaRenderer';
-import { TestSettingsProvider, useTestSettings } from '@/components/TestSettingsProvider';
+import { NotebookModal, NoteItem } from './NotebookModal';
+import { TestSettingsProvider, useTestSettings, TestSettings } from '@/components/TestSettingsProvider';
+import { Button } from '@/components/ui/Button';
+import { TestSecurityWarning } from '@/components/TestSecurityWarning';
+import { SettingsDropdown } from './SettingsDropdown';
+import { ExhibitDisplay } from './ExhibitDisplay';
+import { TestTutorial } from './TestTutorial';
 
+const SmartContextMenu = ({ 
+  top, left, onHighlight, onNote, onFlashcard, onClose, settings 
+}: { 
+  top: number, left: number, onHighlight: (color: string) => void, onNote: () => void, onFlashcard: () => void, onClose: () => void, settings: TestSettings 
+}) => {
+  const colors = [
+    { id: 'yellow', hex: '#ffeb3b' },
+    { id: 'pink', hex: '#f48fb1' },
+    { id: 'orange', hex: '#ffb74d' },
+    { id: 'blue', hex: '#81d4fa' },
+    { id: 'green', hex: '#a5d6a7' }
+  ];
+  
+  const displayColors = settings.multicolorHighlighting 
+    ? colors 
+    : colors.filter(c => c.id === (settings.defaultHighlighter || 'yellow'));
+
+  return (
+    <div 
+      className="fixed z-[100] flex items-center gap-2 px-3 py-2 bg-white shadow-xl rounded-lg border border-gray-200 -translate-x-1/2 -translate-y-[calc(100%+10px)]"
+      style={{ top, left }}
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      <div className="flex gap-1.5 border-r border-gray-200 pr-2">
+        {displayColors.map(c => (
+          <button
+            key={c.id}
+            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onHighlight(c.hex); onClose(); }}
+            className="w-5 h-5 rounded-full border border-gray-300 hover:scale-110 transition-transform"
+            style={{ backgroundColor: c.hex }}
+          />
+        ))}
+      </div>
+      <button onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onHighlight('transparent'); onClose(); }} className="p-1 hover:bg-gray-100 rounded text-gray-500" title="Remove Highlight">
+        <X className="w-4 h-4" />
+      </button>
+      <div className="w-px h-4 bg-gray-200 mx-1"></div>
+      <button onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onNote(); onClose(); }} className="p-1 hover:bg-gray-100 rounded text-gray-500" title="Add to Notebook">
+        <FileText className="w-4 h-4" />
+      </button>
+      <button onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onFlashcard(); onClose(); }} className="p-1 hover:bg-gray-100 rounded text-gray-500" title="Create Flashcard">
+        <Bookmark className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
+const LightboxWrapper = dynamic(() => import('@/components/LightboxWrapper'), { ssr: false });
 const Calculator = dynamic(() => import('@/components/Calculator').then(mod => mod.Calculator), { ssr: false });
 const LabValuesModal = dynamic(() => import('@/components/LabValuesModal').then(mod => mod.LabValuesModal), { ssr: false });
 const SettingsSidebar = dynamic(() => import('@/components/SettingsSidebar').then(mod => mod.SettingsSidebar), { ssr: false });
-const NotesModal = dynamic(() => import('@/components/NotesModal').then(mod => mod.NotesModal), { ssr: false });
+const FlashcardModal = dynamic(() => import('@/components/FlashcardModal').then(mod => mod.FlashcardModal), { ssr: false });
 
 type Option = {
   id: string;
@@ -42,6 +94,9 @@ type SessionQuestion = {
   isCorrect: boolean | null;
   timeTakenSec: number;
   notes?: string | null;
+  strikethroughs?: string[];
+  highlightedQuestionText?: string;
+  highlightedExplanation?: string;
 };
 
 export interface TestSession {
@@ -52,49 +107,27 @@ export interface TestSession {
   questions: SessionQuestion[];
 };
 
-// Deterministic mock stats generator based on question ID
-const generateMockStats = (questionId: string, options: Option[]) => {
-  let hash = 0;
-  for (let i = 0; i < questionId.length; i++) {
-    hash = questionId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  
-  const correctOptIndex = options.findIndex(o => o.isCorrect);
-  let remainingPct = 100;
-  const stats: Record<string, number> = {};
-  
-  // Assign a high percentage (40-80%) to the correct answer
-  const correctPct = 40 + (Math.abs(hash) % 41); 
-  if (correctOptIndex !== -1) {
-    stats[options[correctOptIndex].id] = correctPct;
-    remainingPct -= correctPct;
-  }
-  
-  // Distribute remaining evenlyish with some noise
-  const incorrectOpts = options.filter(o => !o.isCorrect);
-  incorrectOpts.forEach((opt, idx) => {
-    if (idx === incorrectOpts.length - 1) {
-      stats[opt.id] = remainingPct;
-    } else {
-      const share = Math.floor(remainingPct / (incorrectOpts.length - idx));
-      const noise = (Math.abs(hash + idx) % 10) - 5; // -5 to +5
-      let val = Math.max(0, share + noise);
-      if (val > remainingPct) val = remainingPct;
-      stats[opt.id] = val;
-      remainingPct -= val;
-    }
-  });
-  
-  return stats;
-};
-
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-function TimerDisplay({ initialTimeLeft, initialElapsed, isTimed, onTimeUp }: { initialTimeLeft: number | null, initialElapsed: number, isTimed: boolean, onTimeUp: () => void }) {
+function TimerDisplay({ 
+  initialTimeLeft, 
+  initialElapsed, 
+  isTimed, 
+  onTimeUp,
+  type = 'combined',
+  className = ''
+}: { 
+  initialTimeLeft: number | null, 
+  initialElapsed: number, 
+  isTimed: boolean, 
+  onTimeUp: () => void,
+  type?: 'elapsed' | 'remaining' | 'combined',
+  className?: string
+}) {
   const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
   const [timeElapsed, setTimeElapsed] = useState(initialElapsed);
 
@@ -117,26 +150,39 @@ function TimerDisplay({ initialTimeLeft, initialElapsed, isTimed, onTimeUp }: { 
     return () => clearInterval(elapsedTimer);
   }, []);
 
+  if (type === 'elapsed') {
+    return <span className={className}>{formatTime(timeElapsed)}</span>;
+  }
+  if (type === 'remaining') {
+    return <span className={className}>{timeLeft !== null ? formatTime(timeLeft) : '--:--:--'}</span>;
+  }
+
+  let colorClass = "text-primary";
+  if (isTimed && timeLeft !== null) {
+    if (timeLeft < 60) colorClass = "text-red-600";
+    else if (timeLeft < 300) colorClass = "text-amber-600";
+  }
+
   return (
-    <>
+    <div className={`font-mono font-bold tracking-wider transition-colors duration-500 ${colorClass} ${className}`}>
       {isTimed ? (timeLeft !== null ? formatTime(timeLeft) : '--:--:--') : formatTime(timeElapsed)}
-    </>
+    </div>
   );
 }
 
-export function TestPlayer({ session }: { session: TestSession }) {
+export function TestPlayer({ session, initialIndex }: { session: TestSession, initialIndex?: number }) {
   return (
     <TestSettingsProvider>
-      <TestPlayerInner session={session} />
+      <TestPlayerInner session={session} initialIndex={initialIndex} />
     </TestSettingsProvider>
   );
 }
 
-function TestPlayerInner({ session }: { session: TestSession }) {
+function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, initialIndex?: number }) {
   const router = useRouter();
   const { settings } = useTestSettings();
   
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [questions, setQuestions] = useState<SessionQuestion[]>(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -146,7 +192,14 @@ function TestPlayerInner({ session }: { session: TestSession }) {
           const localAnswered = parsed.filter((q: any) => q.selectedOptionId).length;
           const serverAnswered = session.questions.filter((q: any) => q.selectedOptionId).length;
           if (localAnswered > serverAnswered) {
-            return parsed;
+            const merged = session.questions.map(sq => {
+              const localQ = parsed.find((pq: any) => pq.id === sq.id);
+              if (localQ) {
+                return { ...sq, ...localQ, question: sq.question };
+              }
+              return sq;
+            });
+            return merged.sort((a, b) => a.order - b.order);
           }
         }
       }
@@ -157,10 +210,48 @@ function TestPlayerInner({ session }: { session: TestSession }) {
   });
   
   useEffect(() => {
-    localStorage.setItem(`test-session-state-${session.id}`, JSON.stringify(questions));
+    try {
+      const stateToSave = questions.map(q => ({
+        id: q.id,
+        isFlagged: q.isFlagged,
+        selectedOptionId: q.selectedOptionId,
+        isCorrect: q.isCorrect,
+        timeTakenSec: q.timeTakenSec,
+        notes: q.notes,
+        strikethroughs: q.strikethroughs,
+        highlightedQuestionText: q.highlightedQuestionText,
+        highlightedExplanation: q.highlightedExplanation
+      }));
+      localStorage.setItem(`test-session-state-${session.id}`, JSON.stringify(stateToSave));
+    } catch (e: any) {
+      console.error('Failed to save to localStorage:', e);
+      if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+        try {
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('test-session-state-') && key !== `test-session-state-${session.id}`) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          const stateToSave = questions.map(q => ({
+            id: q.id,
+            isFlagged: q.isFlagged,
+            selectedOptionId: q.selectedOptionId,
+            isCorrect: q.isCorrect,
+            timeTakenSec: q.timeTakenSec,
+            notes: q.notes,
+            strikethroughs: q.strikethroughs
+          }));
+          localStorage.setItem(`test-session-state-${session.id}`, JSON.stringify(stateToSave));
+        } catch (retryErr) {
+          console.error('Still failed to save after clearing old sessions', retryErr);
+        }
+      }
+    }
   }, [questions, session.id]);
   
-  // Offline Sync Logic
   const pushToSyncQueue = useCallback((payload: any) => {
     try {
       const queue = JSON.parse(localStorage.getItem(`sync-queue-${session.id}`) || '[]');
@@ -184,16 +275,13 @@ function TestPlayerInner({ session }: { session: TestSession }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(queue[i]),
           });
-          if (res.ok) {
-            successfulIndexes.push(i);
-          }
+          if (res.ok) successfulIndexes.push(i);
         } catch (err) {
           console.error('Network error while flushing', err);
-          break; // Stop flushing if network is still down
+          break;
         }
       }
 
-      // Remove successful ones
       if (successfulIndexes.length > 0) {
         const remaining = queue.filter((_: any, idx: number) => !successfulIndexes.includes(idx));
         if (remaining.length === 0) {
@@ -208,38 +296,191 @@ function TestPlayerInner({ session }: { session: TestSession }) {
   }, [session.id]);
 
   useEffect(() => {
-    // Flush on mount
     flushSyncQueue();
-    // Flush when coming back online
     window.addEventListener('online', flushSyncQueue);
     return () => window.removeEventListener('online', flushSyncQueue);
   }, [flushSyncQueue]);
 
   const initialElapsed = useMemo(() => {
     return questions.reduce((acc, q) => acc + (q.timeTakenSec || 0), 0);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [questions]);
 
   const [submitting, setSubmitting] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const [isObscured, setIsObscured] = useState(false);
   
-  // Tools state
   const [showCalculator, setShowCalculator] = useState(false);
   const [showLabValues, setShowLabValues] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLElement | null>(null);
   const [showNotes, setShowNotes] = useState(false);
+  const [showFlashcardModal, setShowFlashcardModal] = useState(false);
+  const [flashcardPrefillText, setFlashcardPrefillText] = useState('');
   const [omissionWarning, setOmissionWarning] = useState<(() => void) | null>(null);
-  
-  const [strikethroughOptions, setStrikethroughOptions] = useState<Record<string, Set<string>>>({});
   const [zoomImage, setZoomImage] = useState<string | null>(null);
+  const [notebook, setNotebook] = useState<NoteItem[]>([]);
+  const [notebookAppendText, setNotebookAppendText] = useState<string | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+  
+  useEffect(() => {
+    // Only show tutorial once per browser session or permanently, let's say once per test session init if not seen
+    if (!localStorage.getItem('tutorial-seen-' + session.id)) {
+      setShowTutorial(true);
+    }
+  }, [session.id]);
+  
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false); // Bypassed for review
+
+  const handleSecurityViolation = async (reason: string) => {
+    if (session.mode === 'review') return;
+    try {
+      const res = await fetch('/api/security/violation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: reason })
+      });
+      const data = await res.json();
+      if (data.blocked) {
+        alert('SECURITY VIOLATION MAXIMUM REACHED. Your account has been permanently suspended. You are being logged out.');
+        window.location.href = '/blocked';
+      } else {
+        alert(`SECURITY VIOLATION: ${reason}.\nWarning ${data.violations} of 3. Your test has been suspended.`);
+        router.push(`/dashboard/${session.qbankSlug}`);
+      }
+    } catch (e) {
+      console.error('Failed to log violation', e);
+      router.push(`/dashboard/${session.qbankSlug}`);
+    }
+  };
+
+  useEffect(() => {
+    // TEMPORARY BYPASS: Disable all anti-cheat listeners so screenshots can be taken safely
+    return;
+    
+    if (showSecurityWarning || session.mode === 'review') return;
+
+    const handleCopyPaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+      handleSecurityViolation('Copy/Paste attempted');
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        handleSecurityViolation('Tab switched or minimized');
+      }
+    };
+
+    const handleBlur = () => {
+      setTimeout(() => {
+        if (!document.hasFocus()) {
+          handleSecurityViolation('Window lost focus');
+        }
+      }, 200);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === 'Meta' || e.metaKey || (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x'))) {
+        e.preventDefault();
+        handleSecurityViolation('Prohibited keyboard shortcut or OS key');
+        return;
+      }
+      const allowedKeys = [
+        'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter',
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
+      ];
+      if (!allowedKeys.includes(e.key) && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        handleSecurityViolation(`Prohibited key pressed: ${e.key}`);
+      }
+    };
+
+    document.addEventListener('copy', handleCopyPaste);
+    document.addEventListener('paste', handleCopyPaste);
+    document.addEventListener('cut', handleCopyPaste);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('keydown', handleKeyDown, true);
+
+    return () => {
+      document.removeEventListener('copy', handleCopyPaste);
+      document.removeEventListener('paste', handleCopyPaste);
+      document.removeEventListener('cut', handleCopyPaste);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [showSecurityWarning, session.mode, session.qbankSlug]);
+
+  const [contextMenu, setContextMenu] = useState<{
+    top: number;
+    left: number;
+    show: boolean;
+    targetField: 'question' | 'explanation' | null;
+  }>({ top: 0, left: 0, show: false, targetField: null });
+  
+  const questionContentRef = useRef<HTMLDivElement>(null);
+  const explanationContentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleSelection = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || selection.toString().trim() === '') {
+        setContextMenu(prev => ({ ...prev, show: false }));
+        return;
+      }
+      
+      const range = selection.getRangeAt(0);
+      const qContains = questionContentRef.current?.contains(range.commonAncestorContainer);
+      const eContains = explanationContentRef.current?.contains(range.commonAncestorContainer);
+      
+      if (!qContains && !eContains) {
+        setContextMenu(prev => ({ ...prev, show: false }));
+        return;
+      }
+
+      if (!settings.smartContextMenu) {
+        // Auto-highlight with default color if smart menu is disabled
+        const colorMap: Record<string, string> = {
+          'yellow': '#ffeb3b', 'pink': '#f48fb1', 'orange': '#ffb74d', 'blue': '#81d4fa', 'green': '#a5d6a7'
+        };
+        const hex = colorMap[settings.defaultHighlighter || 'yellow'] || '#ffeb3b';
+        
+        const targetRef = qContains ? questionContentRef : explanationContentRef;
+        if (targetRef.current) {
+          targetRef.current.contentEditable = 'true';
+          document.execCommand('styleWithCSS', false, 'true');
+          document.execCommand('backColor', false, hex);
+          targetRef.current.contentEditable = 'false';
+          const newHtml = targetRef.current.innerHTML;
+          updateCurrentQuestionState(qContains ? { highlightedQuestionText: newHtml } : { highlightedExplanation: newHtml });
+          window.getSelection()?.removeAllRanges();
+        }
+        return;
+      }
+
+      const rect = range.getBoundingClientRect();
+      setContextMenu({
+        show: true,
+        top: rect.top, 
+        left: rect.left + rect.width / 2,
+        targetField: qContains ? 'question' : 'explanation',
+      });
+    };
+
+    document.addEventListener('mouseup', handleSelection);
+    const hideMenu = () => setContextMenu(prev => ({ ...prev, show: false }));
+    window.addEventListener('scroll', hideMenu, true);
+    window.addEventListener('resize', hideMenu);
+    
+    return () => {
+      document.removeEventListener('mouseup', handleSelection);
+      window.removeEventListener('scroll', hideMenu, true);
+      window.removeEventListener('resize', hideMenu);
+    };
+  }, [settings.smartContextMenu]);
 
   const currentQ = questions[currentIndex];
-
-  
-  const mockStats = useMemo(() => {
-    return generateMockStats(currentQ.question.id, currentQ.question.options);
-  }, [currentQ.question.id, currentQ.question.options]);
 
   const finishSession = useCallback(async (finalQuestions: SessionQuestion[]) => {
     setSubmitting(true);
@@ -254,11 +495,8 @@ function TestPlayerInner({ session }: { session: TestSession }) {
     });
   }, [session.id, session.qbankSlug, router]);
   
-  // Use a ref for questions so that TimerDisplay's onTimeUp callback doesn't need to change every time questions update
   const questionsRef = useRef(questions);
-  useEffect(() => {
-    questionsRef.current = questions;
-  }, [questions]);
+  useEffect(() => { questionsRef.current = questions; }, [questions]);
 
   const handleTimeUp = useCallback(() => {
     finishSession(questionsRef.current);
@@ -268,22 +506,16 @@ function TestPlayerInner({ session }: { session: TestSession }) {
   const rowVirtualizer = useVirtualizer({
     count: questions.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 36, // 36px height (approximately p-1.5 plus small padding)
+    estimateSize: () => 48,
     overscan: 10,
   });
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setIsObscured(true);
-      }
-    };
-
+    const handleVisibilityChange = () => document.hidden && setIsObscured(true);
     const handleBlur = () => {
       if (document.activeElement?.tagName.toLowerCase() === 'iframe') return;
       setIsObscured(true);
     };
-
     const handleFocus = () => setIsObscured(false);
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -297,44 +529,34 @@ function TestPlayerInner({ session }: { session: TestSession }) {
     };
   }, []);
 
-  // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in inputs/textareas
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-      if (showSettings || omissionWarning || showCalculator) return;
+      if (!!settingsAnchorEl || omissionWarning || showCalculator) return;
       
       const key = e.key.toLowerCase();
-      
-      if (key === 'arrowright') {
-        handleNext();
-      } else if (key === 'arrowleft') {
-        handlePrev();
-      } else if (key === ' ') {
+      if (key === 'arrowright') handleNext();
+      else if (key === 'arrowleft') handlePrev();
+      else if (key === ' ') {
         e.preventDefault();
         updateCurrentQuestionState({ isFlagged: !currentQ.isFlagged });
       } else if (['a', 'b', 'c', 'd', 'e', 'f', 'g'].includes(key)) {
         const optionIndex = key.charCodeAt(0) - 97;
         const option = currentQ.question.options[optionIndex];
-        if (option) {
-          handleOptionSelect(option.id);
-        }
+        if (option) handleOptionSelect(option.id);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, currentQ, questions, showSettings, omissionWarning, showCalculator]);
+  }, [currentIndex, currentQ, questions, !!settingsAnchorEl, omissionWarning, showCalculator]);
 
   const updateCurrentQuestionState = (updates: Partial<SessionQuestion>) => {
-    setQuestions(prev => prev.map((q, i) => 
-      i === currentIndex ? { ...q, ...updates } : q
-    ));
+    setQuestions(prev => prev.map((q, i) => i === currentIndex ? { ...q, ...updates } : q));
   };
 
   const handleOptionSelect = (optionId: string) => {
     if (session.mode === 'tutor' && currentQ.selectedOptionId) return;
+    if (session.mode === 'review') return;
 
     const selectedOption = currentQ.question.options.find(o => o.id === optionId);
     const isCorrect = selectedOption?.isCorrect ?? false;
@@ -358,30 +580,30 @@ function TestPlayerInner({ session }: { session: TestSession }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).catch((err) => {
-      console.error('Save failed, queueing offline', err);
+      console.error('Save failed', err);
       pushToSyncQueue(payload);
     });
   };
   
   const handleSaveNotes = (notes: string) => {
     updateCurrentQuestionState({ notes });
-    const payload = {
-      questionProgressId: currentQ.id,
-      notes: notes
-    };
-    
+    const payload = { questionProgressId: currentQ.id, notes };
     fetch(`/api/test-sessions/${session.id}/autosave`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).catch((err) => {
-      console.error('Save failed, queueing offline', err);
+      console.error('Save failed', err);
       pushToSyncQueue(payload);
     });
   };
 
+  const navigateToIndex = (idx: number) => {
+    if(idx >= 0 && idx < questions.length) setCurrentIndex(idx);
+  };
+
   const handleNext = () => {
-    if (settings.confirmOmission && !currentQ.selectedOptionId) {
+    if (settings.confirmOmission && !currentQ.selectedOptionId && session.mode !== 'review') {
       setOmissionWarning(() => () => proceedNext());
       return;
     }
@@ -391,16 +613,23 @@ function TestPlayerInner({ session }: { session: TestSession }) {
   const proceedNext = () => {
     const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
     updateCurrentQuestionState({ timeTakenSec: currentQ.timeTakenSec + timeSpent });
-    
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setQuestionStartTime(Date.now());
     } else {
-      finishSession(questions);
+      handleEndBlock();
     }
   };
 
-  const handleEndBlock = () => {
+  const handleEndBlock = async () => {
+    if (session.mode === 'review') {
+      router.push(`/dashboard/${session.qbankSlug}/session/${session.id}/results`);
+      return;
+    }
+    
+    const confirmed = window.confirm("You are about to end this block. You will not be able to return to it. Do you want to proceed?");
+    if (!confirmed) return;
+    
     if (settings.confirmOmission) {
       const hasUnanswered = questions.some(q => !q.selectedOptionId);
       if (hasUnanswered) {
@@ -409,7 +638,14 @@ function TestPlayerInner({ session }: { session: TestSession }) {
       }
     }
     finishSession(questions);
-  }
+  };
+
+  const handleSuspend = async () => {
+    const confirmed = window.confirm("You are about to suspend this block. The timer will pause and you will be returned to the dashboard. Do you want to proceed?");
+    if (!confirmed) return;
+    
+    router.push(`/dashboard/${session.qbankSlug}`);
+  };
 
   const handlePrev = () => {
     if (currentIndex > 0) {
@@ -422,401 +658,422 @@ function TestPlayerInner({ session }: { session: TestSession }) {
 
   const toggleStrikethrough = (e: React.MouseEvent, optionId: string) => {
     e.stopPropagation();
-    setStrikethroughOptions(prev => {
-      const qState = new Set(prev[currentQ.id] || []);
-      if (qState.has(optionId)) {
-        qState.delete(optionId);
-      } else {
-        qState.add(optionId);
-      }
-      return { ...prev, [currentQ.id]: qState };
-    });
+    if (session.mode === 'review') return;
+    
+    const currentStrikes = currentQ.strikethroughs || [];
+    const newStrikes = currentStrikes.includes(optionId) 
+      ? currentStrikes.filter(id => id !== optionId)
+      : [...currentStrikes, optionId];
+      
+    updateCurrentQuestionState({ strikethroughs: newStrikes });
+
+    const payload = { questionProgressId: currentQ.id, strikethroughs: newStrikes };
+    fetch(`/api/test-sessions/${session.id}/autosave`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch((err) => pushToSyncQueue(payload));
   };
 
-  const getThemeClasses = () => {
-    if (settings.colorTheme === 'dark') return 'bg-slate-900 text-slate-200';
-    if (settings.colorTheme === 'sepia') return 'bg-[#fdf6e3] text-[#657b83]';
-    return 'bg-white text-slate-900';
+  const applyHighlight = (color: string) => {
+    if (!contextMenu.targetField) return;
+    const ref = contextMenu.targetField === 'question' ? questionContentRef : explanationContentRef;
+    if (!ref.current) return;
+    
+    ref.current.contentEditable = 'true';
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand('backColor', false, color === 'transparent' ? 'rgba(0,0,0,0)' : color);
+    ref.current.contentEditable = 'false';
+    
+    const newHtml = ref.current.innerHTML;
+    const updates = contextMenu.targetField === 'question' 
+      ? { highlightedQuestionText: newHtml }
+      : { highlightedExplanation: newHtml };
+      
+    updateCurrentQuestionState(updates);
+    setContextMenu(prev => ({ ...prev, show: false }));
+    window.getSelection()?.removeAllRanges();
   };
+
+  const handleAddToNotebook = () => {
+    const text = window.getSelection()?.toString() || '';
+    if (text) {
+      const newNotes = (currentQ.notes || '') + (currentQ.notes ? '\n\n' : '') + text;
+      handleSaveNotes(newNotes);
+      setShowNotes(true);
+    }
+    setContextMenu(prev => ({ ...prev, show: false }));
+  };
+
+  const handleAddToFlashcard = () => {
+    const text = window.getSelection()?.toString() || '';
+    if (text) {
+      setFlashcardPrefillText(text);
+      setShowFlashcardModal(true);
+    }
+    setContextMenu(prev => ({ ...prev, show: false }));
+  };
+
+
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName.toLowerCase() === 'img') {
+      setZoomImage((target as HTMLImageElement).src);
+    }
+  };
+
+
+  if (showSecurityWarning && session.mode !== 'review') {
+    return <TestSecurityWarning onAccept={() => setShowSecurityWarning(false)} />;
+  }
+
+  const isDark = settings.colorTheme === 'dark';
+  
+  // Theme variables based on exact screenshots
+  const mainBg = isDark ? 'bg-black' : 'bg-white';
+  const mainText = isDark ? 'text-[#00e5ff]' : 'text-black';
+  const headerFooterBg = isDark ? 'bg-black border-[#00e5ff]' : 'bg-[#003366] border-transparent';
+  const headerFooterText = isDark ? 'text-[#00e5ff]' : 'text-white';
+  const sidebarBg = isDark ? 'bg-black' : 'bg-[#f0f0f0]';
+  const sidebarItemBg = isDark ? 'bg-black text-[#00e5ff]' : 'bg-white text-black';
+  const sidebarActiveBg = isDark ? 'bg-[#003366] text-[#00e5ff]' : 'bg-[#003366] text-white';
+  const borderCol = isDark ? 'border-[#00e5ff]' : 'border-[#808080]';
 
   return (
-    <div className={`flex flex-col h-screen font-sans ${settings.colorTheme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'}`}>
+    <div className={`flex flex-col h-screen overflow-hidden font-sans ${mainBg} ${mainText}`} style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
       
-      {/* Top Header */}
-      <header className="bg-white text-black h-14 flex items-center justify-between px-4 shrink-0 border-b border-gray-200 z-10 select-none">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center bg-gray-100 px-4 py-1.5 rounded-none text-sm font-bold tracking-wide">
-            <span className="text-gray-500 mr-2">Item:</span>
-            <span>{currentIndex + 1} of {questions.length}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={handlePrev} disabled={currentIndex === 0} className="p-1 hover:bg-gray-100 rounded-none disabled:opacity-50">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <span className="text-sm font-medium text-gray-500">Previous</span>
-            <span className="text-gray-300 mx-2">|</span>
-            <span className="text-sm font-medium text-gray-500">Next</span>
-            <button onClick={handleNext} className="p-1 hover:bg-gray-100 rounded-none">
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+      {/* Top Section (Sidebar + Header + Main Content) */}
+      <div className="flex flex-1 overflow-hidden">
         
-        <div className="flex items-center gap-1">
-          <button className="flex flex-col items-center justify-center w-14 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors">
-            <HelpCircle className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-medium">Tutorial</span>
-          </button>
-          <button onClick={() => setShowLabValues(true)} className="flex flex-col items-center justify-center w-16 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors">
-            <TestTubes className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-medium">Lab Values</span>
-          </button>
-          <button onClick={() => setShowNotes(true)} className="flex flex-col items-center justify-center w-14 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors">
-            <FileText className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-medium">Notes</span>
-          </button>
-          <button onClick={() => setShowCalculator(true)} className="flex flex-col items-center justify-center w-16 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors">
-            <CalcIcon className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-medium">Calculator</span>
-          </button>
-          <button onClick={() => setShowSettings(true)} className="flex flex-col items-center justify-center w-14 h-12 hover:bg-gray-100 rounded-none text-gray-500 hover:text-black transition-colors ml-4 border-l border-gray-200">
-            <SettingsIcon className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-medium">Settings</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Main 3-Pane Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        
-        {/* Left Sidebar (Question Grid) */}
-        <aside className={`w-16 md:w-48 shrink-0 flex flex-col border-r border-gray-200 z-0 overflow-y-auto ${settings.colorTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white'}`}>
-          <div className={`p-2 text-xs font-bold uppercase tracking-wider text-center border-b ${settings.colorTheme === 'dark' ? 'border-slate-800 text-slate-500' : 'border-gray-200 text-gray-400'}`}>
-            Questions
+        {/* Left Sidebar */}
+        <aside className={`w-[110px] flex flex-col shrink-0 overflow-hidden border-r ${borderCol} ${sidebarBg}`}>
+          <div className={`h-[45px] flex items-center justify-center text-center leading-tight font-bold text-[11px] ${isDark ? 'bg-black border-[#00e5ff] text-[#00e5ff]' : 'bg-white border-black text-black'} border-b`}>
+            Question<br/>Status
           </div>
-          <div ref={parentRef} className="flex-1 overflow-y-auto p-2">
-            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const idx = virtualRow.index;
-                const q = questions[idx];
-                const isActive = idx === currentIndex;
-                const isAnswered = !!q.selectedOptionId;
-                let bg = '';
-                let text = '';
-                if (isActive) {
-                  bg = 'bg-black'; text = 'text-white font-bold';
-                } else if (isAnswered) {
-                  bg = settings.colorTheme === 'dark' ? 'bg-slate-800' : 'bg-gray-100';
-                  text = settings.colorTheme === 'dark' ? 'text-slate-300' : 'text-black';
-                } else {
-                  bg = 'transparent';
-                  text = settings.colorTheme === 'dark' ? 'text-slate-400' : 'text-gray-500';
-                }
-                
-                return (
-                  <div 
-                    key={q.id} 
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: `${virtualRow.size - 4}px`, transform: `translateY(${virtualRow.start}px)` }}
-                  >
-                    <button
-                      onClick={() => {
-                        const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
-                        updateCurrentQuestionState({ timeTakenSec: currentQ.timeTakenSec + timeSpent });
-                        setCurrentIndex(idx);
-                        setQuestionStartTime(Date.now());
-                      }}
-                      className={`w-full h-full flex items-center p-1.5 rounded text-sm transition-colors ${bg} ${text} hover:opacity-80`}
-                    >
-                      <div className="w-6 text-center shrink-0 font-medium">{idx + 1}</div>
-                      <div className="flex-1 flex justify-center gap-1 hidden md:flex">
-                        {q.isFlagged && <Bookmark className="w-3.5 h-3.5 text-red-500" fill="currentColor" />}
-                        {isAnswered && !q.isFlagged && <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1"></div>}
-                      </div>
-                    </button>
+          <div className="flex-1 overflow-y-auto bg-white">
+            {session.questions.map((q, idx) => {
+              const isActive = idx === currentIndex;
+              const isAnswered = !!q.selectedOptionId;
+              const isFlagged = q.isFlagged;
+              
+              let itemClass = isActive ? sidebarActiveBg : sidebarItemBg;
+              
+              return (
+                <div 
+                  key={q.id}
+                  onClick={() => navigateToIndex(idx)}
+                  className={`flex items-center pl-2 py-0.5 border-b border-gray-300 text-[12px] font-bold cursor-pointer hover:bg-blue-100 ${itemClass}`}
+                >
+                  <div className="w-[14px] flex justify-center mr-1">
+                    {isFlagged ? (
+                      <Flag size={10} className="fill-red-600 text-red-600" />
+                    ) : isAnswered ? (
+                      <div className="w-1.5 h-1.5 rounded-full bg-black"></div>
+                    ) : (
+                      <div className="w-1 h-1 rounded-full bg-black"></div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                  {idx + 1}
+                </div>
+              );
+            })}
           </div>
         </aside>
 
-        {/* Center Content Area */}
-        <main className={`flex-1 flex flex-col p-4 md:p-8 ${getThemeClasses()} ${settings.splitScreen ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-          <div className={`max-w-4xl mx-auto w-full flex flex-col ${settings.splitScreen && (session.mode === 'tutor' || session.mode === 'review') && currentQ.selectedOptionId ? 'md:max-w-none md:grid md:grid-cols-2 md:gap-8 h-full' : ''}`} style={{ fontSize: `${settings.fontSize}px` }}>
+        {/* Right Section */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          
+          {/* Top Header */}
+          <header className={`h-[45px] flex items-center justify-between px-3 shrink-0 select-none ${headerFooterBg} ${headerFooterText}`}>
             
-            <div className={`flex flex-col ${settings.splitScreen && (session.mode === 'tutor' || session.mode === 'review') && currentQ.selectedOptionId ? 'col-span-1 overflow-y-auto pr-4' : ''}`}>
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200/20">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input 
-                    type="checkbox" 
-                    checked={currentQ.isFlagged}
-                    onChange={() => updateCurrentQuestionState({ isFlagged: !currentQ.isFlagged })}
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                  />
-                  <span className={`font-semibold text-sm ${currentQ.isFlagged ? 'text-red-600' : 'group-hover:text-blue-600 text-slate-500'}`}>
-                    Mark Question
-                  </span>
-                </label>
-                
-                <span className="text-sm font-mono text-slate-400 ml-auto">Question Id: {currentQ.question.qid}</span>
+            {/* Left Block Info */}
+            <div className={`flex flex-col text-[12px] font-bold leading-tight border ${isDark ? 'border-[#00e5ff]' : 'border-white'} px-2 py-0.5`}>
+              <div>Item: {currentIndex + 1} of {session.questions.length}</div>
+              <div>Block: 1 of 1</div>
+            </div>
+            
+            {/* Center Navigation */}
+            <div className="flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
+              <button 
+                onClick={handlePrev} 
+                disabled={currentIndex === 0} 
+                className="flex flex-col items-center disabled:opacity-50 hover:bg-white/10 px-2 rounded"
+              >
+                <ArrowLeftCircle size={20} strokeWidth={1.5} />
+                <span className="text-[10px] font-bold mt-0.5">Previous</span>
+              </button>
+              
+              <div className="text-[14px] font-bold">
+                {currentIndex + 1} / {session.questions.length}
               </div>
-
-            {/* TOP MEDIA */}
-            {currentQ.question.media && currentQ.question.media.filter(m => m.placement === 'TOP').length > 0 && (
-              <div className="mb-6 flex flex-col gap-4 items-center">
-                {currentQ.question.media.filter(m => m.placement === 'TOP').map(m => (
-                  <MediaRenderer key={m.id} media={m} setZoomImage={setZoomImage} />
-                ))}
-              </div>
-            )}
-
-            <div 
-              className="leading-relaxed mb-8 font-medium"
-              dangerouslySetInnerHTML={{ __html: currentQ.question.questionText }}
-            />
-
-            <div className="space-y-1 mb-8 max-w-2xl border-l-2 border-slate-300 pl-4 py-2">
-              {currentQ.question.options.map((opt, i) => {
-                const isSelected = currentQ.selectedOptionId === opt.id;
-                const isStriked = settings.showStrikeout && strikethroughOptions[currentQ.id]?.has(opt.id);
-                
-                let optionClasses = "flex items-start group w-full text-left rounded-none px-2 py-1.5 transition-colors border border-transparent ";
-                if (isSelected) {
-                  optionClasses += "border-black bg-gray-50 text-black";
-                } else if (isStriked) {
-                  optionClasses += "opacity-50 line-through text-gray-400";
-                } else {
-                  optionClasses += "hover:border-gray-300 hover:bg-gray-50 text-gray-800";
-                }
-
-                const showTutorFeedback = (session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review';
+              
+              <button 
+                onClick={handleNext} 
+                className="flex flex-col items-center hover:bg-white/10 px-2 rounded"
+              >
+                <ArrowRightCircle size={20} strokeWidth={1.5} />
+                <span className="text-[10px] font-bold mt-0.5">Next</span>
+              </button>
+            </div>
+            
+            {/* Right Tools */}
+            <div className="flex items-center gap-1 h-full pt-1">
+              {[
+                { name: 'Lab Values', icon: <FlaskConical size={18} />, action: (e: any) => setShowLabValues(true), active: showLabValues },
+                { name: 'Notes', icon: <PenLine size={18} />, action: (e: any) => setShowNotes(true), active: showNotes },
+                { name: 'Calculator', icon: <CalcIcon size={18} />, action: (e: any) => setShowCalculator(true), active: showCalculator },
+                { name: 'Settings', icon: <SettingsIcon size={18} />, action: (e: any) => setSettingsAnchorEl(e.currentTarget), active: !!settingsAnchorEl }
+              ].map(tool => {
+                const isActive = tool.active;
+                const toolBg = isActive 
+                  ? (isDark ? 'bg-[#1a3a4a] border-t border-l border-r border-[#00e5ff] text-[#00e5ff]' : 'bg-white text-black border-t border-l border-r border-black')
+                  : 'text-white border-transparent';
+                const toolBorder = isDark && !isActive ? 'border-transparent' : '';
 
                 return (
-                  <div key={opt.id} className="flex items-center w-full relative">
-                    <button
-                      onClick={() => handleOptionSelect(opt.id)}
-                      className={optionClasses}
-                      disabled={showTutorFeedback ? true : false}
-                    >
-                      <div className="mt-1 mr-3 shrink-0 flex items-center justify-center w-5 h-5">
-                        {showTutorFeedback && opt.isCorrect ? (
-                          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                        ) : showTutorFeedback && isSelected && !opt.isCorrect ? (
-                          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        ) : (
-                          <div className={`w-4 h-4 rounded-none border flex items-center justify-center transition-colors ${isSelected ? 'border-black bg-black' : 'border-gray-300 bg-white'}`}>
-                            {isSelected && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 flex gap-2">
-                        <span className="font-bold">{String.fromCharCode(65 + i)}.</span>
-                        <span>{opt.text}</span>
-                        {/* Mocked Statistics */}
-                        {showTutorFeedback && !settings.hidePercentage && (
-                          <span className="text-slate-500 font-medium ml-1">({mockStats[opt.id] || 0}%)</span>
-                        )}
-                      </div>
-                    </button>
-
-                    {/* Strikeout Tool */}
-                    {!showTutorFeedback && settings.showStrikeout && (
-                      <button 
-                        onClick={(e) => toggleStrikethrough(e, opt.id)}
-                        className={`ml-4 px-2 py-0.5 rounded border text-xs font-bold transition-opacity flex items-center justify-center shrink-0 ${isStriked ? 'opacity-100 bg-slate-300 border-slate-400 text-slate-700 line-through' : 'opacity-0 group-hover:opacity-100 bg-white border-slate-300 text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
-                        title="Strikeout"
-                      >
-                        <span className="line-through">ab</span>
-                      </button>
-                    )}
-                  </div>
+                  <button 
+                    key={tool.name}
+                    onClick={tool.action}
+                    className={`flex flex-col items-center justify-center h-full px-3 pt-1 border-b-0 rounded-t-sm ${toolBg} ${toolBorder}`}
+                    style={{ marginBottom: isActive ? '-1px' : '0' }}
+                  >
+                    <div className="leading-none mb-0.5">{tool.icon}</div>
+                    <span className="text-[11px] font-bold pb-1">{tool.name}</span>
+                  </button>
                 );
               })}
             </div>
-          </div>
-
-            {/* Post-submission Explanation Area */}
-            {((session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review') && (
-              <div className={`mt-8 pt-8 ${settings.splitScreen ? 'col-span-1 mt-0 pt-0 md:border-l md:border-slate-200 md:pl-8 overflow-y-auto pb-8' : 'border-t border-slate-200/50 pb-8'}`}>
-                
-                {/* Stats Bar */}
-                <div className="flex items-center gap-6 mb-8 bg-slate-50 border border-slate-200 p-4 rounded-md shadow-sm">
-                  <div className="flex flex-col min-w-[120px]">
-                    <span className={`text-[15px] font-bold ${currentQ.isCorrect ? 'text-emerald-600' : 'text-[#c62828]'}`}>
-                      {currentQ.isCorrect ? 'Correct' : 'Incorrect'}
-                    </span>
-                    <span className="text-[13px] text-slate-600 mt-1">
-                      Correct answer: {String.fromCharCode(65 + currentQ.question.options.findIndex(o => o.isCorrect))}
-                    </span>
-                  </div>
-                  
-                  <div className="w-px h-10 bg-slate-200"></div>
-                  
-                  {!settings.hidePercentage && (
-                    <div className="flex items-center gap-4 flex-1">
-                      <svg className="w-6 h-6 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                      <div className="flex flex-col">
-                        <span className="text-[15px] font-bold text-slate-800">{mockStats[currentQ.question.options.find(o => o.isCorrect)?.id || '']} %</span>
-                        <span className="text-[13px] text-slate-600">Answered correctly</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="w-px h-10 bg-slate-200"></div>
-                  
-                  <div className="flex items-center gap-4 flex-1">
-                    <svg className="w-6 h-6 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <div className="flex flex-col">
-                      <span className="text-[15px] font-bold text-slate-800">{formatTime(currentQ.timeTakenSec)}</span>
-                      <span className="text-[13px] text-slate-600">Time Spent</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-6 border border-slate-300 bg-white rounded shadow-sm text-[15px] text-slate-800">
-                  <div className="px-4 py-2 border-b border-slate-200 bg-slate-50 font-bold text-slate-700">
-                    Explanation
-                  </div>
-                  <div className="p-6">
-                    <div 
-                      className="prose max-w-none text-slate-800 leading-relaxed font-medium"
-                      dangerouslySetInnerHTML={{ __html: currentQ.question.explanation || '' }}
-                    />
-                    
-                    {/* Render Option Explanations */}
-                    <div className="mt-8 space-y-4">
-                      {currentQ.question.options.map((opt, idx) => {
-                        if (!opt.explanation || opt.explanation.trim() === '') return null;
-                        const letter = String.fromCharCode(65 + idx);
-                        const isCorrectOpt = opt.isCorrect;
-                        return (
-                          <div key={opt.id} className={`p-4 rounded-md border ${isCorrectOpt ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
-                            <div className={`font-bold mb-1 ${isCorrectOpt ? 'text-emerald-800' : 'text-red-800'}`}>
-                              Option {letter} {isCorrectOpt ? '(Correct)' : '(Incorrect)'}
-                            </div>
-                            <div 
-                              className="prose max-w-none text-sm text-slate-700" 
-                              dangerouslySetInnerHTML={{ __html: opt.explanation }}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    
-                  </div>
-                </div>
-
-                {/* BOTTOM MEDIA */}
-                {currentQ.question.media && currentQ.question.media.filter(m => m.placement === 'BOTTOM').length > 0 && (
-                  <div className="mb-6 flex flex-col gap-4 items-center">
-                    {currentQ.question.media.filter(m => m.placement === 'BOTTOM').map(m => (
-                      <MediaRenderer key={m.id} media={m} setZoomImage={setZoomImage} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
             
-            <div className="h-32"></div> {/* Bottom padding */}
-          </div>
-        </main>
+          </header>
+
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto p-4 flex flex-col relative" style={{ fontSize: `${settings.fontSize}px` }}>
+            
+            <div className="flex items-center mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={currentQ.isFlagged}
+                  onChange={() => updateCurrentQuestionState({ isFlagged: !currentQ.isFlagged })}
+                  className="w-4 h-4 accent-red-600 cursor-pointer"
+                />
+                <Flag size={16} className="fill-red-600 text-red-600" />
+                <span className="text-[13px] font-bold hover:underline">Mark Question</span>
+              </label>
+            </div>
+
+            <div className="flex flex-1">
+              
+              {/* Question & Options Side */}
+              <div className="flex flex-col flex-1 pr-6 max-w-3xl">
+                <div 
+                  ref={questionContentRef}
+                  className="leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit]"
+                  dangerouslySetInnerHTML={{ __html: currentQ.highlightedQuestionText || currentQ.question.questionText }}
+                />
+                
+                {/* Options List */}
+                <div className="space-y-4 max-w-xl">
+                  {(() => {
+                    const showFeedback = (session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review';
+                    return (
+                      <fieldset className="border border-[#003366] p-4 bg-white">
+                        {currentQ.question.options.map((opt, i) => {
+                          const isSelected = currentQ.selectedOptionId === opt.id;
+                          const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
+                          
+                          let bgClass = "bg-transparent";
+                          if (showFeedback && opt.isCorrect) bgClass = isDark ? 'bg-green-900' : 'bg-[#008000] text-white';
+                          else if (showFeedback && isSelected) bgClass = isDark ? 'bg-red-900' : 'bg-[#f8d7da]';
+
+                          return (
+                            <div key={opt.id} className={`flex items-start justify-between group ${bgClass} p-1`}>
+                              <div className="flex items-start flex-1">
+                                <input 
+                                  type="radio" 
+                                  name={`q-${currentQ.id}`}
+                                  checked={isSelected}
+                                  onChange={() => handleOptionSelect(opt.id)}
+                                  disabled={!!showFeedback}
+                                  className="mt-1 w-4 h-4 cursor-pointer accent-black shrink-0"
+                                />
+                                <div className={`ml-3 flex-1 flex ${isStruckThrough ? 'line-through text-gray-400' : ''}`}>
+                                  <span className="mr-2">{String.fromCharCode(65 + i)}.</span>
+                                  <span className="leading-snug">{opt.text}</span>
+                                </div>
+                              </div>
+                              
+                              {/* Strikethrough icon button on the right */}
+                              <button 
+                                onClick={(e) => { if(!showFeedback) toggleStrikethrough(e, opt.id); }}
+                                className="ml-4 opacity-0 group-hover:opacity-50 hover:opacity-100 transition-opacity"
+                                title="Strike out option"
+                              >
+                                <Strikethrough size={16} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </fieldset>
+                    );
+                  })()}
+                  
+                  {(() => {
+                    const showFeedback = (session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review';
+                    if (showFeedback) {
+                      return (
+                        <div className={`mt-8 pt-4 border-t ${borderCol}`}>
+                          <div className="font-bold mb-2 uppercase text-[13px]">Explanation:</div>
+                          <div 
+                            ref={explanationContentRef}
+                            className="leading-relaxed [&_*]:text-[length:inherit]"
+                            dangerouslySetInnerHTML={{ __html: currentQ.highlightedExplanation || currentQ.question.explanation || '' }}
+                          />
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+                
+                {/* Proceed Button */}
+                <div className="mt-8 pb-10">
+                  <button onClick={handleNext} className="bg-[#0066cc] text-white px-5 py-2 text-[14px] font-bold rounded-md shadow-sm hover:bg-[#0052a3] hover:shadow-md transition-all">
+                    Proceed to Next Item
+                  </button>
+                </div>
+              </div>
+              
+              {/* Media Side */}
+              {currentQ.question.media && currentQ.question.media.length > 0 && (
+                <div className="w-[400px] shrink-0 pl-4">
+                  <div className="border border-gray-400 shadow-[4px_4px_10px_rgba(0,0,0,0.2)] bg-white p-1 flex">
+                    {/* Media Toolbar */}
+                    <div className="w-12 flex flex-col items-center gap-4 py-2 border-r border-gray-200 mr-2 shrink-0">
+                      <button className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full">
+                        <div className="w-5 h-5 bg-black rounded-sm flex items-center justify-center text-white text-[12px] transform rotate-45 mb-1">◩</div>
+                        <span className="text-[10px]">Invert</span>
+                      </button>
+                      <button className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full">
+                        <div className="text-[18px] mb-1">☼</div>
+                        <span className="text-[10px]">Contrast</span>
+                      </button>
+                      <button className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full">
+                        <div className="text-[18px] mb-1">⊕</div>
+                        <span className="text-[10px]">Zoom</span>
+                      </button>
+                    </div>
+                    {/* Image */}
+                    <div className="flex-1 flex items-center justify-center bg-[#0000ff] min-h-[300px]">
+                      {currentQ.question.media.map(m => (
+                        <MediaRenderer key={m.id} media={m} setZoomImage={setZoomImage} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+            </div>
+            
+      
+      {showTutorial && (
+        <TestTutorial onComplete={() => {
+          setShowTutorial(false);
+          localStorage.setItem('tutorial-seen-' + session.id, 'true');
+        }} />
+      )}
+    </main>
+        </div>
       </div>
 
-      {/* Footer Navigation bar */}
-      <footer className="bg-white text-black h-12 shrink-0 flex justify-between items-center px-4 z-10 border-t border-gray-200 select-none">
-        <div className="flex items-center h-full">
-           {(session.mode === 'timed' || (session.mode === 'tutor' && settings.showTimer)) && (
-             <div className="flex flex-col justify-center px-4 border-r border-gray-200 h-full font-bold text-xs text-black">
-               <span className="text-gray-400 text-[10px] uppercase tracking-wider">
-                 {session.mode === 'timed' ? 'Block Time Remaining' : 'Block Time Elapsed'}
-               </span>
-               <TimerDisplay 
-                 initialTimeLeft={session.durationSec} 
-                 initialElapsed={initialElapsed} 
-                 isTimed={session.mode === 'timed'} 
-                 onTimeUp={handleTimeUp}
-               />
-             </div>
-           )}
+      {/* Bottom Footer */}
+      <footer className={`relative h-[32px] flex items-center justify-between px-4 shrink-0 select-none w-full ${headerFooterBg} ${headerFooterText} border-t ${borderCol}`}>
+        <div className={`flex flex-col text-[10px] font-bold leading-none border ${isDark ? 'border-[#00e5ff]' : 'border-white'} px-1.5 py-0.5 gap-0.5 justify-center h-[26px]`}>
+          <div className="flex items-center gap-1">
+            <span>Block Time Remaining:</span>
+            <TimerDisplay 
+              initialElapsed={0} 
+              initialTimeLeft={session.durationSec ? Math.max(0, session.durationSec - initialElapsed) : null} 
+              isTimed={true} 
+              onTimeUp={handleEndBlock} 
+              type="remaining"
+              className="text-[10px] font-bold"
+            />
+          </div>
+          <div>Day Time Remaining: 3:29:04</div>
         </div>
-
-        <div className="flex gap-2">
-          {session.mode === 'timed' && (
-             <button
-             onClick={() => finishSession(questions)}
-             disabled={submitting}
-             className="px-6 h-8 text-xs font-bold text-black bg-white border border-gray-300 hover:bg-gray-100 rounded-none transition-colors mr-4 flex items-center"
-           >
-             Suspend Block
-           </button>
-          )}
-          {session.mode === 'review' && (
-             <button
-             onClick={() => window.location.href = `/dashboard/${session.qbankSlug}/session/${session.id}/results`}
-             className="px-6 h-8 text-xs font-bold text-black bg-white border border-gray-300 hover:bg-gray-100 rounded-none transition-colors mr-4 flex items-center"
-           >
-             Back to Results
-           </button>
-          )}
-          <button
-            onClick={currentIndex === questions.length - 1 ? handleEndBlock : handleNext}
-            disabled={submitting}
-            className={`px-8 h-8 text-xs font-bold text-white bg-black border border-black hover:bg-gray-800 rounded-none transition-colors flex items-center`}
-          >
-            {currentIndex === questions.length - 1 ? 'End Block' : 'Next'}
-          </button>
-        </div>
+        
+        <button onClick={handleSuspend} className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center hover:bg-yellow-500/20 px-4 h-full rounded transition-colors">
+          <svg className="mb-0.5 w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          <span className="text-[10px] font-bold uppercase tracking-wider">Suspend</span>
+        </button>
+        
+        <button onClick={handleEndBlock} className="flex flex-col items-center justify-center hover:bg-red-600/30 px-2 h-full rounded">
+          <XCircle size={14} className="text-red-500 mb-0.5" />
+          <span className="text-[10px] font-bold">End Block</span>
+        </button>
       </footer>
 
-      {/* Omission Warning Modal */}
-      {omissionWarning && (
-        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded shadow-xl w-full max-w-md overflow-hidden">
-            <div className="bg-[#003b5c] text-white font-bold p-3 px-4 flex justify-between items-center">
-              <span>Warning</span>
-              <button onClick={() => setOmissionWarning(null)} className="text-white hover:text-slate-200"><HelpCircle className="w-4 h-4" /></button>
-            </div>
-            <div className="p-6 text-center text-slate-800 text-[15px] font-medium">
-              You have not answered all questions in this block. Are you sure you want to proceed?
-            </div>
-            <div className="bg-slate-100 p-3 flex justify-end gap-3 border-t border-slate-200">
-              <button onClick={() => setOmissionWarning(null)} className="px-5 py-1.5 font-bold text-slate-700 bg-white border border-slate-300 rounded shadow-sm hover:bg-slate-50">
-                Cancel
-              </button>
-              <button onClick={() => { omissionWarning(); setOmissionWarning(null); }} className="px-5 py-1.5 font-bold text-white bg-blue-600 rounded shadow-sm hover:bg-blue-700">
-                Proceed
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Modals */}
+      {contextMenu.show && (
+        <SmartContextMenu 
+          top={contextMenu.top} 
+          left={contextMenu.left} 
+          onHighlight={applyHighlight} 
+          onNote={handleAddToNotebook} 
+          onFlashcard={handleAddToFlashcard}
+          onClose={() => setContextMenu(prev => ({ ...prev, show: false }))}
+          settings={settings}
+        />
       )}
-
-      {/* Anti-Cheat Overlay */}
-      {isObscured && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-          <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md border border-slate-200">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Focus Lost</h2>
-            <p className="text-slate-600 mb-8">Test content is hidden while this window is inactive or when attempting to screenshot/switch tabs. This ensures test integrity.</p>
-            <button 
-              onClick={() => setIsObscured(false)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-sm"
-            >
-              Resume Test
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modals & Overlays */}
+      
       {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
       {showLabValues && <LabValuesModal onClose={() => setShowLabValues(false)} />}
-      {showSettings && <SettingsSidebar onClose={() => setShowSettings(false)} />}
-      {showNotes && <NotesModal initialNotes={currentQ.notes || ''} onClose={() => setShowNotes(false)} onSave={handleSaveNotes} />}
-      <LightboxWrapper
-        open={!!zoomImage}
-        close={() => setZoomImage(null)}
-        slides={zoomImage ? [{ src: zoomImage }] : []}
-      />
+      {settingsAnchorEl && <SettingsDropdown anchorEl={settingsAnchorEl} onClose={() => setSettingsAnchorEl(null)} />}
+      {showNotes && <NotebookModal 
+        isOpen={showNotes} 
+        onClose={() => { setShowNotes(false); setNotebookAppendText(null); }} 
+        notes={notebook} 
+        onUpdateNotes={setNotebook} 
+        appendContent={notebookAppendText}
+      />}
+      {zoomImage && (
+        <ExhibitDisplay 
+          mediaUrl={zoomImage} 
+          onClose={() => setZoomImage(null)} 
+          onAddToNotes={() => {
+            // we will hook this up to notes system in phase 4
+            setShowNotes(true);
+          }}
+        />
+      )}
+      
+      {showFlashcardModal && session.qbankSlug && (
+        <FlashcardModal 
+          isOpen={showFlashcardModal} 
+          onClose={() => setShowFlashcardModal(false)} 
+          questionId={currentQ.question.id} 
+          qbankSlug={session.qbankSlug} 
+          initialFront={flashcardPrefillText}
+        />
+      )}
+
+      {omissionWarning && (
+        <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">
+          <div className={`${mainBg} ${mainText} border ${borderCol} w-[400px] shadow-[4px_4px_0px_rgba(0,0,0,0.2)]`}>
+            <div className={`${headerFooterBg} ${headerFooterText} font-bold p-2 text-[14px]`}>
+              Warning
+            </div>
+            <div className="p-8 text-center text-[14px]">
+              You have not answered all questions in this block. Are you sure you want to proceed?
+            </div>
+            <div className={`bg-[#f0f0f0] text-black p-3 flex justify-end gap-2 border-t border-gray-300`}>
+              <button onClick={() => setOmissionWarning(null)} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">Cancel</button>
+              <button onClick={() => { omissionWarning(); setOmissionWarning(null); }} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">Proceed</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

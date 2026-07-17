@@ -7,8 +7,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "U-Micro | High-Yield Medical QBanks",
-  description: "Topic-specific USMLE question banks tailored for Step 1 and Step 2 CK.",
+  title: "Micro Q Bank | Premium Question Banks",
+  description: "Topic-specific question banks tailored for medical excellence.",
 };
 
 export default function RootLayout({

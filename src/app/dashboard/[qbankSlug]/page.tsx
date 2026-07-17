@@ -7,6 +7,12 @@ import Link from 'next/link';
 import { SubtopicChart } from '@/components/SubtopicChart';
 import { BibliographyChart } from '@/components/BibliographyChart';
 import { getCachedOrFetch } from '@/lib/redis';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Tag } from '@/components/ui/Tag';
+import { StatBlock } from '@/components/ui/StatBlock';
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import { Clock, GraduationCap, ChevronRight, FileText, LayoutTemplate, Brain, ChevronLeft } from 'lucide-react';
 
 export default async function QBankDashboardPage(
   props: { 
@@ -84,11 +90,19 @@ export default async function QBankDashboardPage(
   });
 
   // Calculate stats
-  const uniqueQuestionsAttempted = new Set(progress.map((p) => p.questionId)).size;
+  let uniqueQuestionsAttempted = new Set(progress.map((p) => p.questionId)).size;
+  // Cap at totalQuestions in case database is out of sync with seed data
+  if (uniqueQuestionsAttempted > qbank.totalQuestions) {
+    uniqueQuestionsAttempted = qbank.totalQuestions;
+  }
+  
   const correctAttempts = progress.filter((p) => p.isCorrect).length;
   const totalAttempts = progress.length;
   const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
   const flaggedCount = progress.filter((p) => p.flagged).length;
+  
+  let completionPercentage = qbank.totalQuestions > 0 ? (uniqueQuestionsAttempted / qbank.totalQuestions) * 100 : 0;
+  if (completionPercentage > 100) completionPercentage = 100;
 
   // Calculate subtopic performance
   const subtopicMap: Record<string, { attempts: number; correct: number }> = {};
@@ -129,92 +143,135 @@ export default async function QBankDashboardPage(
       tag,
       accuracy: Math.round((stats.correct / stats.attempts) * 100),
     }))
-    // Optional: filter out "Untagged" if you want, or just sort
     .sort((a, b) => b.accuracy - a.accuracy);
 
   return (
-    <div className="container mx-auto py-12 px-4 md:px-6 max-w-5xl">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="container mx-auto py-10 px-4 md:px-8 max-w-[1600px] animate-page-enter">
+      {/* Header Section */}
+      <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <Link href="/dashboard" className="text-sm text-blue-600 hover:underline mb-2 inline-block">&larr; Back to Dashboard</Link>
-          <h1 className="text-3xl font-bold">{qbank.title} Dashboard</h1>
-        </div>
-        <span className="inline-flex items-center border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-black">
-          Purchased
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white border border-gray-200 p-6 rounded-none">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Overall Progress</h3>
-          <div className="flex items-end gap-2 mb-2">
-            <span className="text-3xl font-bold">{uniqueQuestionsAttempted}</span>
-            <span className="text-gray-500 mb-1">/ {qbank.totalQuestions}</span>
+          <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:text-primary transition-colors mb-4">
+            <ChevronLeft className="w-4 h-4" /> Back to Library
+          </Link>
+          <div className="flex items-center gap-4">
+            <h1 className="text-scale-xl text-primary tracking-tight">{qbank.title}</h1>
+            <Tag variant="success" size="sm">Active Subscription</Tag>
           </div>
-          <div className="w-full bg-gray-100 h-1">
-            <div className="bg-black h-1" style={{ width: `${qbank.totalQuestions > 0 ? (uniqueQuestionsAttempted / qbank.totalQuestions) * 100 : 0}%` }}></div>
-          </div>
+          <p className="text-secondary text-scale-sm mt-2 max-w-2xl">
+            Track your performance, review your notes, or start a new practice session to master this material.
+          </p>
         </div>
         
-        <div className="bg-white border border-gray-200 p-6 rounded-none">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Overall Accuracy</h3>
-          <div className="flex items-end gap-2">
-            <span className="text-3xl font-bold">{accuracy}%</span>
-          </div>
-          <p className="text-xs text-gray-400 mt-2">Based on all attempts</p>
-        </div>
-
-        <div className="bg-white border border-gray-200 p-6 rounded-none">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Flagged Questions</h3>
-          <div className="flex items-end gap-2">
-            <span className="text-3xl font-bold">{flaggedCount}</span>
-          </div>
-          <p className="text-xs text-gray-400 mt-2">Questions marked for review</p>
+        <div className="flex gap-3 shrink-0">
+          <Link href={`/dashboard/${qbank.slug}/setup?mode=tutor`}>
+            <Button variant="secondary" className="gap-2">
+              <GraduationCap className="w-4 h-4" /> Tutor Mode
+            </Button>
+          </Link>
+          <Link href={`/dashboard/${qbank.slug}/setup?mode=timed`}>
+            <Button variant="primary" className="gap-2 shadow-sm">
+              <Clock className="w-4 h-4" /> Timed Mode
+            </Button>
+          </Link>
         </div>
       </div>
 
+      {/* Top Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <Card elevation="subtle" className="p-6">
+          <h3 className="text-scale-sm font-semibold text-secondary mb-3">Overall Progress</h3>
+          <div className="flex items-end gap-2 mb-4">
+            <span className="text-[32px] font-bold tracking-tight text-primary leading-none">{uniqueQuestionsAttempted}</span>
+            <span className="text-scale-sm font-medium text-muted mb-1">/ {qbank.totalQuestions} Questions</span>
+          </div>
+          <ProgressBar progress={completionPercentage} />
+        </Card>
+        
+        <StatBlock 
+          label="Overall Accuracy" 
+          value={`${accuracy}%`} 
+          subValue="all attempts"
+        />
+
+        <StatBlock 
+          label="Questions to Review" 
+          value={flaggedCount} 
+          subValue="flagged items"
+        />
+      </div>
+
+      {/* Analytics Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-        <div className="bg-white border border-gray-200 p-6 rounded-none">
-          <h2 className="text-xl font-bold mb-4">Performance by Subtopic</h2>
-          <SubtopicChart data={subtopicData} />
-        </div>
+        <Card elevation="subtle" className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-scale-lg text-primary tracking-tight">Performance by Topic</h2>
+            <Button variant="ghost" size="sm">View All</Button>
+          </div>
+          <div className="flex-1 min-h-[300px]">
+            <SubtopicChart data={subtopicData} />
+          </div>
+        </Card>
 
-        <div className="bg-white border border-gray-200 p-6 rounded-none">
-          <h2 className="text-xl font-bold mb-4">Performance by Bibliography</h2>
-          <BibliographyChart data={bibliographyData} />
-        </div>
+        <Card elevation="subtle" className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-scale-lg text-primary tracking-tight">Performance by Bibliography</h2>
+            <Button variant="ghost" size="sm">View All</Button>
+          </div>
+          <div className="flex-1 min-h-[300px]">
+            <BibliographyChart data={bibliographyData} />
+          </div>
+        </Card>
       </div>
 
-      <h2 className="text-2xl font-bold mb-6 border-t border-gray-200 pt-8">Practice</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 p-6 flex flex-col h-full rounded-none">
-          <div className="flex items-center mb-4 text-black">
-            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <h3 className="text-xl font-bold">Timed Mode</h3>
-          </div>
-          <p className="text-gray-500 mb-6 flex-1">Simulate exam conditions with a strict countdown timer. Explanations are shown at the end of the block.</p>
-          <Link
-            href={`/dashboard/${qbank.slug}/setup?mode=timed`}
-            className="flex w-full items-center justify-center text-sm font-medium transition-colors bg-black text-white hover:bg-gray-800 h-10 px-4 py-2 rounded-none"
-          >
-            Start Timed Block
-          </Link>
-        </div>
+      {/* Study Tools */}
+      <h2 className="text-scale-lg text-primary tracking-tight mb-4">Study Tools</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <Link href={`/dashboard/${qbank.slug}/notes`} className="group">
+          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-[#CBD5E1] group-hover:-translate-y-1">
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </div>
+            <h3 className="text-[18px] font-bold text-primary mb-2">My Notes</h3>
+            <p className="text-scale-sm text-secondary">Review personal notes linked to specific questions and concepts.</p>
+          </Card>
+        </Link>
+        
+        <Link href={`/dashboard/${qbank.slug}/flashcards`} className="group">
+          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-[#CBD5E1] group-hover:-translate-y-1">
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <Brain className="w-6 h-6" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-purple-50 group-hover:text-purple-600 transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </div>
+            <h3 className="text-[18px] font-bold text-primary mb-2">Flashcards</h3>
+            <p className="text-scale-sm text-secondary">Master concepts using spaced-repetition flashcards you've created.</p>
+          </Card>
+        </Link>
 
-        <div className="bg-white border border-gray-200 p-6 flex flex-col h-full rounded-none">
-          <div className="flex items-center mb-4 text-black">
-            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
-            <h3 className="text-xl font-bold">Tutor Mode</h3>
-          </div>
-          <p className="text-gray-500 mb-6 flex-1">Learn as you go. No strict timer, and you receive immediate feedback and explanations after each question.</p>
-          <Link
-            href={`/dashboard/${qbank.slug}/setup?mode=tutor`}
-            className="flex w-full items-center justify-center text-sm font-medium transition-colors border border-gray-200 bg-white text-black hover:bg-gray-100 h-10 px-4 py-2 rounded-none"
-          >
-            Start Tutor Block
-          </Link>
-        </div>
+        <Link href={`/dashboard/${qbank.slug}/previous`} className="group">
+          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-[#CBD5E1] group-hover:-translate-y-1">
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <LayoutTemplate className="w-6 h-6" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </div>
+            <h3 className="text-[18px] font-bold text-primary mb-2">Previous Blocks</h3>
+            <p className="text-scale-sm text-secondary">Review your performance on past blocks and resume suspended sessions.</p>
+          </Card>
+        </Link>
       </div>
+
     </div>
   );
 }

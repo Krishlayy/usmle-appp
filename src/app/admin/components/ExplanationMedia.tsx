@@ -227,22 +227,16 @@ export default function ExplanationMedia({ media, onChange }: ExplanationMediaPr
 
     for (const file of files) {
       try {
+        const formData = new FormData();
+        formData.append('file', file);
+
         const res = await fetch('/api/admin/upload-image', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, contentType: file.type }),
+          body: formData,
         });
 
-        if (!res.ok) throw new Error('Failed to get upload URL');
-        const { presignedUrl, publicUrl } = await res.json();
-
-        const uploadRes = await fetch(presignedUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': file.type },
-          body: file,
-        });
-
-        if (!uploadRes.ok) throw new Error('Failed to upload image');
+        if (!res.ok) throw new Error('Failed to upload image');
+        const { publicUrl } = await res.json();
 
         newItems.push({
           id: crypto.randomUUID(),

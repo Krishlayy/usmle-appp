@@ -9,24 +9,24 @@ type DataPoint = {
 
 export function BibliographyChart({ data }: { data: DataPoint[] }) {
   if (data.length === 0) {
-    return <div className="text-gray-500 text-sm py-10 text-center">Not enough data to display. Complete some questions first!</div>;
+    return <div className="text-secondary text-sm py-10 text-center flex h-full items-center justify-center">Not enough data to display. Complete some questions first!</div>;
   }
 
-  // Calculate height dynamically based on number of tags to ensure bars don't get squished
-  const chartHeight = Math.max(250, data.length * 45);
+  // Only show the top 10 tags to keep the dashboard card compact and readable
+  const chartData = data.slice(0, 10);
 
   return (
-    <div className="w-full" style={{ height: `${chartHeight}px` }}>
+    <div className="w-full h-full min-h-[350px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={data}
+          data={chartData}
           layout="vertical"
-          margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
+          margin={{ top: 10, right: 30, left: 10, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
+          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E5E7EB" />
           <XAxis 
             type="number"
-            tick={{ fontSize: 12, fill: '#6b7280' }} 
+            tick={{ fontSize: 12, fill: '#64748B' }} 
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => `${value}%`}
@@ -35,21 +35,22 @@ export function BibliographyChart({ data }: { data: DataPoint[] }) {
           <YAxis 
             type="category"
             dataKey="tag" 
-            tick={{ fontSize: 12, fill: '#6b7280' }} 
+            tick={{ fontSize: 12, fill: '#64748B' }} 
             tickLine={false}
             axisLine={false}
-            width={120} // fixed width for long tags
+            width={140}
+            tickFormatter={(value) => value.length > 20 ? `${value.substring(0, 18)}...` : value}
           />
           <Tooltip 
-            cursor={{ fill: '#f3f4f6' }}
-            contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}
+            cursor={{ fill: '#F8FAFC' }}
+            contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
             formatter={(value) => [`${value}%`, 'Accuracy']}
           />
           <Bar 
             dataKey="accuracy" 
-            fill="#10b981" // Emerald green for tags
+            fill="#10B981" // Emerald green to contrast with the blue subtopics
             radius={[0, 4, 4, 0]} 
-            barSize={20}
+            barSize={16}
           />
         </BarChart>
       </ResponsiveContainer>
