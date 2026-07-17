@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 export async function POST(req: Request) {
   try {
@@ -22,25 +21,41 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create unique filename
-    const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    
-    // Ensure public/uploads directory exists
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    try {
-      await mkdir(uploadsDir, { recursive: true });
-    } catch (e) {
-      // Ignore if exists
+    // If AWS credentials are not set, fall back to base64 encoding (not recommended for production, but prevents crashes)
+    if (!process.env.AWS_S3_BUCKET_NAME || !process.env.AWS_REGION || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      console.warn("AWS S3 environment variables are missing! Falling back to Base64 data URI (WARNING: Can cause payload too large errors on Vercel if image is huge).");
+      const base64Str = buffer.toString('base64');
+      const publicUrl = `data:${file.type};base64,${base64Str}`;
+      return NextResponse.json({ publicUrl });
     }
 
-    const filepath = path.join(uploadsDir, filename);
-    await writeFile(filepath, buffer);
+    const s3Client = new S3Client({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
 
-    const publicUrl = `/uploads/${filename}`;
+    const extension = file.name.split('.').pop() || 'png';
+    const filename = `uploads/${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: filename,
+      Body: buffer,
+      ContentType: file.type,
+      ACL: 'public-read', // Ensure your bucket allows public read ACLs, or remove this and use a bucket policy
+    });
+
+    await s3Client.send(command);
+
+    const publicUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${filename}`;
 
     return NextResponse.json({ publicUrl });
   } catch (error: any) {
-    console.error('[LOCAL_UPLOAD_ERROR]', error);
-    return new NextResponse('Internal server error', { status: 500 });
+    console.error('[IMAGE_UPLOAD_ERROR]', error);
+    return new NextResponse('Internal server error: ' + error.message, { status: 500 });
   }
 }
+
