@@ -4,9 +4,11 @@ import { ShieldAlert, AlertTriangle } from 'lucide-react';
 
 interface TestSecurityWarningProps {
   onAccept: () => void;
+  userEmail?: string;
+  userIp?: string;
 }
 
-export function TestSecurityWarning({ onAccept }: TestSecurityWarningProps) {
+export function TestSecurityWarning({ onAccept, userEmail = 'Unknown', userIp = 'Unknown' }: TestSecurityWarningProps) {
   return (
     <div className="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-8 border-t-8 border-red-600">
@@ -34,8 +36,12 @@ export function TestSecurityWarning({ onAccept }: TestSecurityWarningProps) {
           </ul>
         </div>
 
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-8 text-sm font-semibold border border-red-200">
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-4 text-sm font-semibold border border-red-200">
           WARNING: 3 violations will result in an immediate and permanent account suspension. You will be locked out of the dashboard.
+        </div>
+
+        <div className="bg-slate-100 p-4 rounded-lg mb-8 text-sm text-slate-600 border border-slate-200">
+          Your IP Address (<strong>{userIp}</strong>) and Email (<strong>{userEmail}</strong>) will be visibly watermarked on the test and recorded if any violations occur.
         </div>
 
         <div className="flex justify-end gap-4">

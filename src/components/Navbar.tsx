@@ -38,7 +38,7 @@ export default function Navbar() {
                 Dashboard
               </Link>
               
-              {session.user?.role === 'ADMIN' && (
+              {['ADMIN', 'SUPERADMIN'].includes(session.user?.role) && (
                 <Link 
                   href="/admin" 
                   className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/admin') ? 'text-black' : 'text-gray-500'}`}

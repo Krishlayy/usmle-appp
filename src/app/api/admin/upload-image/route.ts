@@ -21,9 +21,11 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    const bucketName = process.env.AWS_BUCKET_NAME || process.env.AWS_S3_BUCKET_NAME;
+
     // If AWS credentials are not set, fall back to base64 encoding (not recommended for production, but prevents crashes)
-    if (!process.env.AWS_S3_BUCKET_NAME || !process.env.AWS_REGION || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      console.warn("AWS S3 environment variables are missing! Falling back to Base64 data URI (WARNING: Can cause payload too large errors on Vercel if image is huge).");
+    if (!bucketName || !process.env.AWS_REGION || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      console.warn("AWS S3 environment variables are missing! Falling back to Base64 data URI.");
       const base64Str = buffer.toString('base64');
       const publicUrl = `data:${file.type};base64,${base64Str}`;
       return NextResponse.json({ publicUrl });
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
     const filename = `uploads/${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
 
     const command = new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Bucket: bucketName,
       Key: filename,
       Body: buffer,
       ContentType: file.type,
@@ -49,12 +51,12 @@ export async function POST(req: Request) {
 
     await s3Client.send(command);
 
-    const publicUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${filename}`;
+    const publicUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${filename}`;
 
     return NextResponse.json({ publicUrl });
   } catch (error: any) {
     console.error('[IMAGE_UPLOAD_ERROR]', error);
-    return new NextResponse('Internal server error: ' + error.message, { status: 500 });
+    return new NextResponse('Internal server error: ' + (error.message || 'Unknown error'), { status: 500 });
   }
 }
 

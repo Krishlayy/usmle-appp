@@ -12,6 +12,7 @@ datasource db {
 enum Role {
   STUDENT
   ADMIN
+  SUPERADMIN
 }
 
 model User {
@@ -29,6 +30,7 @@ model User {
   progress      UserProgress[]
   testSessions  TestSession[]
   flashcards    Flashcard[]
+  editedQBanks  QBank[]    @relation("QBankLastEditedBy")
 }
 
 model QBank {
@@ -52,6 +54,10 @@ model QBank {
   questions       Question[]
   purchases       Purchase[]
   bibliographyTags String[]   @default([])
+
+  lastEditedById  String?
+  lastEditedBy    User?      @relation("QBankLastEditedBy", fields: [lastEditedById], references: [id])
+  lastEditedAt    DateTime?
 
   @@index([isActive])
 }

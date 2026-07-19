@@ -5,7 +5,7 @@ export default withAuth(
   function middleware(req) {
     // If the route is an admin route, check role
     if (req.nextUrl.pathname.startsWith('/admin')) {
-      if (req.nextauth.token?.role !== 'ADMIN') {
+      if (!['ADMIN', 'SUPERADMIN'].includes(req.nextauth.token?.role as string)) {
         // Redirect non-admins to dashboard
         return NextResponse.redirect(new URL('/dashboard', req.url));
       }

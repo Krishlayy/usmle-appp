@@ -11,33 +11,36 @@ export default async function AdminLayout({
 }) {
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
+  if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
     redirect('/dashboard');
   }
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">
       {/* Admin Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex-shrink-0 border-r border-slate-700 hidden md:flex flex-col">
-        <div className="p-6 border-b border-slate-800">
-          <h2 className="text-lg font-bold text-slate-100 uppercase tracking-widest">Admin Control</h2>
+      <aside className="w-64 bg-white text-slate-800 flex-shrink-0 border-r border-slate-200 hidden md:flex flex-col">
+        <div className="p-6 border-b border-slate-100 flex items-center h-[72px]">
+          <h2 className="text-sm font-black text-slate-900 tracking-[0.2em] uppercase">Admin</h2>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
-          <a href="/admin" className="block px-4 py-3 rounded-md hover:bg-slate-800 transition-colors text-sm font-medium text-slate-300 hover:text-white">
+        <nav className="flex-1 p-4 space-y-1">
+          <a href="/admin" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900">
             Dashboard Overview
           </a>
-          <a href="/admin/qbanks" className="block px-4 py-3 rounded-md hover:bg-slate-800 transition-colors text-sm font-medium text-slate-300 hover:text-white">
+          <a href="/admin/qbanks" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900">
             Manage QBanks
           </a>
-          <a href="/admin/users" className="block px-4 py-3 rounded-md hover:bg-slate-800 transition-colors text-sm font-medium text-slate-300 hover:text-white">
+          <a href="/admin/students" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900">
+            Student Directory
+          </a>
+          <a href="/admin/users" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900">
             User Directory
           </a>
-          <a href="/admin/purchases" className="block px-4 py-3 rounded-md hover:bg-slate-800 transition-colors text-sm font-medium text-slate-300 hover:text-white">
+          <a href="/admin/purchases" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900">
             Purchases & Refunds
           </a>
         </nav>
-        <div className="p-4 border-t border-slate-800 space-y-3">
-          <Link href="/dashboard" className="block w-full px-4 py-2 text-center rounded-md border border-slate-700 hover:bg-slate-800 transition-colors text-sm font-medium text-slate-300 hover:text-white">
+        <div className="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
+          <Link href="/dashboard" className="block w-full px-4 py-2.5 text-center rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors text-[13px] font-bold text-slate-700 bg-white">
             Go to Dashboard
           </Link>
           <AdminLogoutButton />

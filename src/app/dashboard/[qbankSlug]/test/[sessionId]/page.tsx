@@ -3,6 +3,8 @@ import { authOptions } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { TestPlayer } from '@/components/TestPlayer';
+import { TestSecurityOverlay } from '@/components/TestSecurityOverlay';
+import { headers } from 'next/headers';
 
 export default async function TestSessionPage(
   props: { params: Promise<{ qbankSlug: string, sessionId: string }>, searchParams: Promise<{ mode?: string, item?: string }> }
@@ -79,6 +81,14 @@ export default async function TestSessionPage(
   };
 
   const initialIndex = searchParams.item ? parseInt(searchParams.item, 10) : 0;
+  
+  const headersList = await headers();
+  const ip = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'Unknown IP';
+  const email = session.user.email || 'Unknown Email';
 
-  return <TestPlayer session={mappedSession} initialIndex={!isNaN(initialIndex) ? initialIndex : 0} />;
+  return (
+    <TestSecurityOverlay userEmail={email} userIp={ip}>
+      <TestPlayer session={mappedSession} initialIndex={!isNaN(initialIndex) ? initialIndex : 0} userEmail={email} userIp={ip} />
+    </TestSecurityOverlay>
+  );
 }

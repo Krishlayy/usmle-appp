@@ -1,13 +1,19 @@
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 export default async function AdminQBanksPage() {
+  const session = await getServerSession(authOptions);
+  const isSuperadmin = session?.user?.role === 'SUPERADMIN';
+
   const qbanks = await prisma.qBank.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       _count: {
         select: { questions: true, purchases: true }
-      }
+      },
+      lastEditedBy: { select: { name: true, email: true } }
     }
   });
 
@@ -29,6 +35,7 @@ export default async function AdminQBanksPage() {
               <th className="p-4">Price</th>
               <th className="p-4">Questions</th>
               <th className="p-4">Sales</th>
+              <th className="p-4">Last Edited</th>
               <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -59,6 +66,16 @@ export default async function AdminQBanksPage() {
                 <td className="p-4 text-slate-600">
                   {qbank._count.purchases}
                 </td>
+                <td className="p-4 text-slate-600 text-sm">
+                  {qbank.lastEditedBy ? (
+                    <div>
+                      <div>{qbank.lastEditedBy.name || qbank.lastEditedBy.email}</div>
+                      <div className="text-xs text-slate-400">{qbank.lastEditedAt?.toLocaleDateString()}</div>
+                    </div>
+                  ) : (
+                    <span className="text-slate-400 italic">None</span>
+                  )}
+                </td>
                 <td className="p-4 text-right">
                   <Link href={`/admin/qbanks/${qbank.id}/edit`} className="text-blue-600 hover:text-blue-800 font-medium text-sm">
                     Edit &rarr;
@@ -69,7 +86,7 @@ export default async function AdminQBanksPage() {
             
             {qbanks.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-500">
+                <td colSpan={7} className="p-8 text-center text-slate-500">
                   No Question Banks found.
                 </td>
               </tr>

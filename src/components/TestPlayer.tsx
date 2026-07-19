@@ -6,7 +6,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import dynamic from 'next/dynamic';
 import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark, X, Clock, FlaskConical, PenLine, ArrowLeftCircle, ArrowRightCircle, Lock, XCircle, Flag, Strikethrough } from 'lucide-react';
 import { MediaRenderer } from '@/components/MediaRenderer';
-import { NotebookModal, NoteItem } from './NotebookModal';
+import { QuestionNotesModal } from './QuestionNotesModal';
 import { TestSettingsProvider, useTestSettings, TestSettings } from '@/components/TestSettingsProvider';
 import { Button } from '@/components/ui/Button';
 import { TestSecurityWarning } from '@/components/TestSecurityWarning';
@@ -170,15 +170,15 @@ function TimerDisplay({
   );
 }
 
-export function TestPlayer({ session, initialIndex }: { session: TestSession, initialIndex?: number }) {
+export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
   return (
     <TestSettingsProvider>
-      <TestPlayerInner session={session} initialIndex={initialIndex} />
+      <TestPlayerInner session={session} initialIndex={initialIndex} userEmail={userEmail} userIp={userIp} />
     </TestSettingsProvider>
   );
 }
 
-function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, initialIndex?: number }) {
+function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
   const router = useRouter();
   const { settings } = useTestSettings();
   
@@ -317,7 +317,6 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
   const [flashcardPrefillText, setFlashcardPrefillText] = useState('');
   const [omissionWarning, setOmissionWarning] = useState<(() => void) | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
-  const [notebook, setNotebook] = useState<NoteItem[]>([]);
   const [notebookAppendText, setNotebookAppendText] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
   
@@ -328,7 +327,7 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
     }
   }, [session.id]);
   
-  const [showSecurityWarning, setShowSecurityWarning] = useState(false); // Bypassed for review
+  const [showSecurityWarning, setShowSecurityWarning] = useState(session.mode !== 'review');
 
   const handleSecurityViolation = async (reason: string) => {
     if (session.mode === 'review') return;
@@ -338,6 +337,10 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: reason })
       });
+      if (!res.ok) {
+        console.error('Security violation endpoint failed');
+        return;
+      }
       const data = await res.json();
       if (data.blocked) {
         alert('SECURITY VIOLATION MAXIMUM REACHED. Your account has been permanently suspended. You are being logged out.');
@@ -715,29 +718,79 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
   };
 
 
-  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    if (target.tagName.toLowerCase() === 'img') {
-      setZoomImage((target as HTMLImageElement).src);
-    }
-  };
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent | TouchEvent) => {
+      let target = e.target as HTMLElement;
+      
+      if (!target) return;
+      if (target.nodeType === 3) {
+        target = target.parentElement as HTMLElement;
+      }
+      if (!target) return;
 
+      // Ignore clicks inside ExhibitDisplay
+      if (target.closest('#exhibit-display-root')) return;
+
+      // Only intercept if clicked inside the rich text areas (question or explanation)
+      // MediaRenderer handles its own clicks.
+      if (!target.closest('.vignette-text') && !target.closest('.leading-relaxed')) {
+        return;
+      }
+
+      let imgElement: HTMLImageElement | null = null;
+      let tableElement: HTMLTableElement | null = null;
+      
+      if (target.tagName && target.tagName.toLowerCase() === 'img') {
+        imgElement = target as HTMLImageElement;
+      } else if (typeof target.closest === 'function') {
+        const closestImg = target.closest('img');
+        if (closestImg) imgElement = closestImg as HTMLImageElement;
+      }
+
+      if (target.tagName && target.tagName.toLowerCase() === 'table') {
+        tableElement = target as HTMLTableElement;
+      } else if (typeof target.closest === 'function') {
+        const closestTable = target.closest('table') || target.closest('.table');
+        if (closestTable) tableElement = closestTable as HTMLTableElement;
+      }
+      
+      if (imgElement && imgElement.src) {
+        console.log("EXHIBIT CLICK DETECTED (IMAGE):", imgElement.src);
+        e.preventDefault();
+        e.stopPropagation();
+        setZoomImage(imgElement.src);
+      } else if (tableElement) {
+        console.log("EXHIBIT CLICK DETECTED (TABLE):", tableElement);
+        e.preventDefault();
+        e.stopPropagation();
+        setZoomImage(tableElement.outerHTML);
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick, { capture: true });
+    document.addEventListener('contextmenu', handleGlobalClick, { capture: true });
+    
+    return () => {
+      document.removeEventListener('click', handleGlobalClick, { capture: true });
+      document.removeEventListener('contextmenu', handleGlobalClick, { capture: true });
+    };
+  }, []);
 
   if (showSecurityWarning && session.mode !== 'review') {
-    return <TestSecurityWarning onAccept={() => setShowSecurityWarning(false)} />;
+    return <TestSecurityWarning onAccept={() => setShowSecurityWarning(false)} userEmail={userEmail} userIp={userIp} />;
   }
 
   const isDark = settings.colorTheme === 'dark';
   
   // Theme variables based on exact screenshots
-  const mainBg = isDark ? 'bg-black' : 'bg-white';
-  const mainText = isDark ? 'text-[#00e5ff]' : 'text-black';
-  const headerFooterBg = isDark ? 'bg-black border-[#00e5ff]' : 'bg-[#003366] border-transparent';
-  const headerFooterText = isDark ? 'text-[#00e5ff]' : 'text-white';
-  const sidebarBg = isDark ? 'bg-black' : 'bg-[#f0f0f0]';
-  const sidebarItemBg = isDark ? 'bg-black text-[#00e5ff]' : 'bg-white text-black';
-  const sidebarActiveBg = isDark ? 'bg-[#003366] text-[#00e5ff]' : 'bg-[#003366] text-white';
-  const borderCol = isDark ? 'border-[#00e5ff]' : 'border-[#808080]';
+  const mainBg = isDark ? 'bg-slate-950' : 'bg-white';
+  const mainText = isDark ? 'text-slate-200' : 'text-slate-900';
+  const headerFooterBg = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
+  const headerFooterText = isDark ? 'text-slate-300' : 'text-slate-700';
+  const sidebarBg = isDark ? 'bg-slate-900' : 'bg-slate-50';
+  const sidebarItemBg = isDark ? 'bg-transparent text-slate-400' : 'bg-transparent text-slate-500';
+  const sidebarActiveBg = isDark ? 'bg-slate-800 text-slate-100 shadow-sm rounded-md mx-1' : 'bg-white text-slate-900 shadow-sm border border-slate-200 rounded-md mx-1';
+  const borderCol = isDark ? 'border-slate-800' : 'border-slate-200';
 
   return (
     <div className={`flex flex-col h-screen overflow-hidden font-sans ${mainBg} ${mainText}`} style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
@@ -762,15 +815,15 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
                 <div 
                   key={q.id}
                   onClick={() => navigateToIndex(idx)}
-                  className={`flex items-center pl-2 py-0.5 border-b border-gray-300 text-[12px] font-bold cursor-pointer hover:bg-blue-100 ${itemClass}`}
+                  className={`flex items-center pl-2 py-1.5 my-0.5 border-b border-transparent text-[12px] font-bold cursor-pointer transition-colors ${itemClass} hover:bg-slate-100`}
                 >
                   <div className="w-[14px] flex justify-center mr-1">
                     {isFlagged ? (
-                      <Flag size={10} className="fill-red-600 text-red-600" />
+                      <Flag size={10} className="fill-red-500 text-red-500" />
                     ) : isAnswered ? (
-                      <div className="w-1.5 h-1.5 rounded-full bg-black"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
                     ) : (
-                      <div className="w-1 h-1 rounded-full bg-black"></div>
+                      <div className="w-1 h-1 rounded-full bg-slate-300"></div>
                     )}
                   </div>
                   {idx + 1}
@@ -784,12 +837,12 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
         <div className="flex-1 flex flex-col overflow-hidden">
           
           {/* Top Header */}
-          <header className={`h-[45px] flex items-center justify-between px-3 shrink-0 select-none ${headerFooterBg} ${headerFooterText}`}>
+          <header className={`h-[56px] flex items-center justify-between px-4 shrink-0 select-none border-b ${headerFooterBg} ${headerFooterText}`}>
             
             {/* Left Block Info */}
-            <div className={`flex flex-col text-[12px] font-bold leading-tight border ${isDark ? 'border-[#00e5ff]' : 'border-white'} px-2 py-0.5`}>
-              <div>Item: {currentIndex + 1} of {session.questions.length}</div>
-              <div>Block: 1 of 1</div>
+            <div className={`flex flex-col text-[12px] font-semibold leading-tight px-2`}>
+              <div className="text-slate-500 text-[10px] uppercase tracking-wider">Item {currentIndex + 1} of {session.questions.length}</div>
+              <div className="text-slate-700">Block 1</div>
             </div>
             
             {/* Center Navigation */}
@@ -826,9 +879,9 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
               ].map(tool => {
                 const isActive = tool.active;
                 const toolBg = isActive 
-                  ? (isDark ? 'bg-[#1a3a4a] border-t border-l border-r border-[#00e5ff] text-[#00e5ff]' : 'bg-white text-black border-t border-l border-r border-black')
-                  : 'text-white border-transparent';
-                const toolBorder = isDark && !isActive ? 'border-transparent' : '';
+                  ? (isDark ? 'bg-slate-800 border-t border-l border-r border-slate-700 text-slate-100' : 'bg-slate-50 text-slate-900 border-t border-l border-r border-slate-200 rounded-t-lg')
+                  : (isDark ? 'text-slate-400 border-transparent hover:text-slate-200' : 'text-slate-500 border-transparent hover:text-slate-900 hover:bg-slate-50 rounded-t-lg');
+                const toolBorder = '';
 
                 return (
                   <button 
@@ -847,7 +900,10 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
           </header>
 
           {/* Main Content Area */}
-          <main className="flex-1 overflow-y-auto p-4 flex flex-col relative" style={{ fontSize: `${settings.fontSize}px` }}>
+          <main 
+            className="flex-1 overflow-y-auto p-4 flex flex-col relative" 
+            style={{ fontSize: `${settings.fontSize}px` }}
+          >
             
             <div className="flex items-center mb-4">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -865,19 +921,19 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
             <div className="flex flex-1">
               
               {/* Question & Options Side */}
-              <div className="flex flex-col flex-1 pr-6 max-w-3xl">
+              <div className="flex flex-col flex-1 pr-6">
                 <div 
                   ref={questionContentRef}
-                  className="leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit]"
+                  className="vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit]"
                   dangerouslySetInnerHTML={{ __html: currentQ.highlightedQuestionText || currentQ.question.questionText }}
                 />
                 
                 {/* Options List */}
-                <div className="space-y-4 max-w-xl">
+                <div className="space-y-4">
                   {(() => {
                     const showFeedback = (session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review';
                     return (
-                      <fieldset className="border border-[#003366] p-4 bg-white">
+                      <fieldset className={`border ${borderCol} p-5 rounded-xl ${isDark ? 'bg-slate-900' : 'bg-white'} shadow-sm`}>
                         {currentQ.question.options.map((opt, i) => {
                           const isSelected = currentQ.selectedOptionId === opt.id;
                           const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
@@ -897,9 +953,16 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
                                   disabled={!!showFeedback}
                                   className="mt-1 w-4 h-4 cursor-pointer accent-black shrink-0"
                                 />
-                                <div className={`ml-3 flex-1 flex ${isStruckThrough ? 'line-through text-gray-400' : ''}`}>
-                                  <span className="mr-2">{String.fromCharCode(65 + i)}.</span>
-                                  <span className="leading-snug">{opt.text}</span>
+                                <div className="ml-3 flex-1 flex flex-col">
+                                  <div className={`flex ${isStruckThrough ? 'line-through text-gray-400' : ''}`}>
+                                    <span className="mr-2">{String.fromCharCode(65 + i)}.</span>
+                                    <span className="leading-snug" dangerouslySetInnerHTML={{ __html: opt.text }} />
+                                  </div>
+                                  {showFeedback && (opt as any).explanation && (
+                                    <div className="mt-2 text-[13px] text-gray-800 bg-gray-50 p-2 rounded border border-gray-200">
+                                      <span dangerouslySetInnerHTML={{ __html: (opt as any).explanation }} />
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               
@@ -938,7 +1001,7 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
                 
                 {/* Proceed Button */}
                 <div className="mt-8 pb-10">
-                  <button onClick={handleNext} className="bg-[#0066cc] text-white px-5 py-2 text-[14px] font-bold rounded-md shadow-sm hover:bg-[#0052a3] hover:shadow-md transition-all">
+                  <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
                     Proceed to Next Item
                   </button>
                 </div>
@@ -950,15 +1013,36 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
                   <div className="border border-gray-400 shadow-[4px_4px_10px_rgba(0,0,0,0.2)] bg-white p-1 flex">
                     {/* Media Toolbar */}
                     <div className="w-12 flex flex-col items-center gap-4 py-2 border-r border-gray-200 mr-2 shrink-0">
-                      <button className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full">
+                      <button 
+                        className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        onClick={() => {
+                          if (currentQ.question.media && currentQ.question.media.length > 0) {
+                            setZoomImage(currentQ.question.media[0].url);
+                          }
+                        }}
+                      >
                         <div className="w-5 h-5 bg-black rounded-sm flex items-center justify-center text-white text-[12px] transform rotate-45 mb-1">◩</div>
                         <span className="text-[10px]">Invert</span>
                       </button>
-                      <button className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full">
+                      <button 
+                        className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        onClick={() => {
+                          if (currentQ.question.media && currentQ.question.media.length > 0) {
+                            setZoomImage(currentQ.question.media[0].url);
+                          }
+                        }}
+                      >
                         <div className="text-[18px] mb-1">☼</div>
                         <span className="text-[10px]">Contrast</span>
                       </button>
-                      <button className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full">
+                      <button 
+                        className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        onClick={() => {
+                          if (currentQ.question.media && currentQ.question.media.length > 0) {
+                            setZoomImage(currentQ.question.media[0].url);
+                          }
+                        }}
+                      >
                         <div className="text-[18px] mb-1">⊕</div>
                         <span className="text-[10px]">Zoom</span>
                       </button>
@@ -986,21 +1070,19 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
         </div>
       </div>
 
-      {/* Bottom Footer */}
-      <footer className={`relative h-[32px] flex items-center justify-between px-4 shrink-0 select-none w-full ${headerFooterBg} ${headerFooterText} border-t ${borderCol}`}>
-        <div className={`flex flex-col text-[10px] font-bold leading-none border ${isDark ? 'border-[#00e5ff]' : 'border-white'} px-1.5 py-0.5 gap-0.5 justify-center h-[26px]`}>
-          <div className="flex items-center gap-1">
-            <span>Block Time Remaining:</span>
+      <footer className={`relative h-[40px] flex items-center justify-between px-4 shrink-0 select-none w-full ${headerFooterBg} ${headerFooterText} border-t ${borderCol}`}>
+        <div className={`flex flex-col text-[11px] font-semibold leading-none px-1.5 py-0.5 justify-center h-full`}>
+          <div className="flex items-center gap-2">
+            <span className="text-slate-500 uppercase tracking-wider text-[9px]">Block Time</span>
             <TimerDisplay 
               initialElapsed={0} 
               initialTimeLeft={session.durationSec ? Math.max(0, session.durationSec - initialElapsed) : null} 
               isTimed={true} 
               onTimeUp={handleEndBlock} 
               type="remaining"
-              className="text-[10px] font-bold"
+              className="text-[12px] font-mono font-bold text-slate-700"
             />
           </div>
-          <div>Day Time Remaining: 3:29:04</div>
         </div>
         
         <button onClick={handleSuspend} className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center hover:bg-yellow-500/20 px-4 h-full rounded transition-colors">
@@ -1030,11 +1112,11 @@ function TestPlayerInner({ session, initialIndex = 0 }: { session: TestSession, 
       {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
       {showLabValues && <LabValuesModal onClose={() => setShowLabValues(false)} />}
       {settingsAnchorEl && <SettingsDropdown anchorEl={settingsAnchorEl} onClose={() => setSettingsAnchorEl(null)} />}
-      {showNotes && <NotebookModal 
+      {showNotes && <QuestionNotesModal 
         isOpen={showNotes} 
         onClose={() => { setShowNotes(false); setNotebookAppendText(null); }} 
-        notes={notebook} 
-        onUpdateNotes={setNotebook} 
+        initialNotes={currentQ.notes || ''} 
+        onSave={handleSaveNotes} 
         appendContent={notebookAppendText}
       />}
       {zoomImage && (

@@ -44,20 +44,23 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
     // Update all TestSessionQuestion records
     // Also, we need to log to UserProgress to maintain global history
 
-    // Batch all updates into a single transaction to prevent N+1 query exhaustions
-    const updatePromises = questions.map((q: { id: string; selectedOptionId: string; isCorrect: boolean; isFlagged: boolean; timeTakenSec: number }) =>
-      prisma.userProgress.update({
-        where: { id: q.id },
-        data: {
-          selectedAnswer: q.selectedOptionId,
-          isCorrect: q.isCorrect,
-          flagged: q.isFlagged,
-          timeTakenSec: q.timeTakenSec,
-        },
-      })
-    );
-
-    await prisma.$transaction(updatePromises);
+    // Batch all updates into a sequential loop to prevent deadlocks with pending autosaves
+    // We catch individual errors so that a single failed update (e.g. lock timeout) doesn't crash the submission
+    for (const q of questions) {
+      try {
+        await prisma.userProgress.update({
+          where: { id: q.id },
+          data: {
+            selectedAnswer: q.selectedOptionId ?? null,
+            isCorrect: q.isCorrect ?? null,
+            flagged: q.isFlagged ?? false,
+            timeTakenSec: q.timeTakenSec ?? 0,
+          },
+        });
+      } catch (err) {
+        console.warn(`Failed to update UserProgress ${q.id} during submit:`, err);
+      }
+    }
 
     // Mark session as completed
     await prisma.testSession.update({

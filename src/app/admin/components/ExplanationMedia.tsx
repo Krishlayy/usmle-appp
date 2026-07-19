@@ -43,10 +43,12 @@ function SortableMediaItem({
   item,
   updateItem,
   removeItem,
+  onPreview,
 }: {
   item: QuestionMediaItem;
   updateItem: (id: string, updates: Partial<QuestionMediaItem>) => void;
   removeItem: (id: string) => void;
+  onPreview?: (url: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
 
@@ -71,7 +73,10 @@ function SortableMediaItem({
       </div>
 
       {/* Preview Thumbnail */}
-      <div className="w-full sm:w-32 h-24 bg-slate-100 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center relative border border-slate-200">
+      <div 
+        className={`w-full sm:w-32 h-24 bg-slate-100 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center relative border border-slate-200 ${item.type === 'IMAGE' ? 'cursor-zoom-in' : ''}`}
+        onClick={() => { if (item.type === 'IMAGE' && onPreview) onPreview(item.url); }}
+      >
         {item.type === 'IMAGE' ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.url} alt="Preview" className="w-full h-full object-cover" />
@@ -146,9 +151,12 @@ function SortableMediaItem({
   );
 }
 
+import { ExhibitDisplay } from '@/components/ExhibitDisplay';
+
 export default function ExplanationMedia({ media, onChange }: ExplanationMediaProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [previewImage, setPreviewImage] = React.useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -302,6 +310,7 @@ export default function ExplanationMedia({ media, onChange }: ExplanationMediaPr
                   item={item}
                   updateItem={updateItem}
                   removeItem={removeItem}
+                  onPreview={setPreviewImage}
                 />
               ))}
             </div>
@@ -354,6 +363,13 @@ export default function ExplanationMedia({ media, onChange }: ExplanationMediaPr
 
       {renderSortableList(topMedia, 'TOP', 'Top Media (Renders above text)')}
       {renderSortableList(bottomMedia, 'BOTTOM', 'Bottom Media (Renders below text)')}
+
+      {previewImage && (
+        <ExhibitDisplay 
+          mediaUrl={previewImage} 
+          onClose={() => setPreviewImage(null)} 
+        />
+      )}
     </div>
   );
 }

@@ -51,7 +51,16 @@ test.describe('E2E User Journey', () => {
 
     // 2. Go to QBank Dashboard
     await page.goto(`/dashboard/${qbankSlug}`);
-    await expect(page.locator('h1')).toContainText('Dashboard');
+    await expect(page.locator('h1')).toContainText('QBank');
+
+    // Bypass tutorial for E2E tests
+    await page.addInitScript(() => {
+      const originalGetItem = Storage.prototype.getItem;
+      Storage.prototype.getItem = function(key) {
+        if (key && key.startsWith('tutorial-seen-')) return 'true';
+        return originalGetItem.call(this, key);
+      };
+    });
 
     // 3. Start a Timed Block
     await page.goto(`/dashboard/${qbankSlug}/setup?mode=timed`);
@@ -59,11 +68,19 @@ test.describe('E2E User Journey', () => {
 
     // Wait for TestPlayer to load
     await expect(page).toHaveURL(/.*\/test\/.*/, { timeout: 30000 });
+    
+    // Handle security warning overlay
+    const securityBtn = page.locator('button:has-text("I Understand & Agree")');
+    await securityBtn.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+    if (await securityBtn.isVisible()) {
+      await securityBtn.click();
+    }
+
     await expect(page.locator('text="What is 2 + 2?"')).toBeVisible({ timeout: 30000 });
 
     // 4. Select an answer
     // Wait for options to render
-    const option = page.locator('button:has-text("4")');
+    const option = page.locator('text="4"');
     await expect(option).toBeVisible();
     await option.click();
     
@@ -71,8 +88,15 @@ test.describe('E2E User Journey', () => {
     // (Our autosave happens in background, finish block button submits)
     
     // 5. Submit the test
-    const finishButton = page.locator('button:text-is("End Block")');
+    page.on('dialog', async dialog => await dialog.accept());
+    const finishButton = page.locator('button', { hasText: 'End Block' }).first();
     await finishButton.click();
+    
+    // Handle omission warning overlay if it appears
+    const proceedBtn = page.locator('button:text-is("Proceed")').first();
+    if (await proceedBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await proceedBtn.click();
+    }
 
     // Wait for results
     await expect(page).toHaveURL(/.*\/results/, { timeout: 30000 });

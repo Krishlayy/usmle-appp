@@ -17,6 +17,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   List, ListOrdered, Table as TableIcon, ImageIcon, Trash2, Rows, Columns, Move
 } from 'lucide-react';
+import { ExhibitDisplay } from './ExhibitDisplay';
 
 const ResizableImageNode = (props: any) => {
   const { node, updateAttributes, selected } = props;
@@ -82,8 +83,14 @@ const ResizableImageNode = (props: any) => {
         src={node.attrs.src}
         alt={node.attrs.alt}
         style={{ width: isResizing ? width : node.attrs.width }}
-        className="max-w-full h-auto rounded-sm"
+        className="max-w-full h-auto rounded-sm cursor-zoom-in"
         draggable={false}
+        onClick={(e) => {
+          if (!isResizing) {
+            // Dispatch custom event to tell parent editor to open ExhibitDisplay
+            document.dispatchEvent(new CustomEvent('open-exhibit', { detail: node.attrs.src }));
+          }
+        }}
       />
       
       {/* Bottom-Right Resize Handle */}
@@ -132,6 +139,18 @@ export default function RichTextEditor({
   value: string; 
   onChange: (value: string) => void; 
 }) {
+  const [zoomImage, setZoomImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleOpenExhibit = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setZoomImage(customEvent.detail);
+    };
+    document.addEventListener('open-exhibit', handleOpenExhibit);
+    return () => {
+      document.removeEventListener('open-exhibit', handleOpenExhibit);
+    };
+  }, []);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -344,9 +363,16 @@ export default function RichTextEditor({
         </div>
       )}
 
-      <div className="prose-wrapper [&_table]:w-full [&_table]:border-collapse [&_th]:border-2 [&_th]:border-slate-400 [&_th]:p-2 [&_th]:bg-slate-100 [&_td]:border-2 [&_td]:border-slate-400 [&_td]:p-2 [&_td]:min-w-[50px] [&_td]:min-h-[25px] [&_img]:inline-block">
+      <div className="prose-wrapper [&_table]:w-full [&_table]:border-collapse [&_th]:border-2 [&_th]:border-slate-400 [&_th]:p-2 [&_th]:bg-slate-100 [&_td]:border-2 [&_td]:border-slate-400 [&_td]:p-2 [&_td]:min-w-[50px] [&_td]:min-h-[25px] [&_img]:inline-block" onClick={() => editor?.commands.focus()}>
         <EditorContent editor={editor} />
       </div>
+
+      {zoomImage && (
+        <ExhibitDisplay 
+          mediaUrl={zoomImage} 
+          onClose={() => setZoomImage(null)} 
+        />
+      )}
     </div>
   );
 }

@@ -28,7 +28,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
   const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || session.user.role !== 'ADMIN') {
+    if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
@@ -59,40 +59,38 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     const sanitizedQuestionText = sanitizeHtml(data.questionText || '', sanitizeConfig);
     const sanitizedExplanation = sanitizeHtml(data.explanation || '', sanitizeConfig);
 
-    const question = await prisma.$transaction(async (tx) => {
-      await tx.questionMedia.deleteMany({
-        where: { questionId: id }
-      });
+    await prisma.questionMedia.deleteMany({
+      where: { questionId: id }
+    });
 
-      return await tx.question.update({
-        where: { id },
-        data: {
-          questionText: sanitizedQuestionText,
-          options: data.options,
-          correctAnswer: data.correctAnswer,
-          acceptableAnswers: data.acceptableAnswers,
-          tags: data.tags,
-          explanation: sanitizedExplanation,
-          difficulty: data.difficulty,
-          subtopic: data.subtopic || null,
-          media: data.media && data.media.length > 0 ? {
-            create: data.media.map(m => ({
-              type: m.type,
-              url: m.url,
-              caption: m.caption,
-              placement: m.placement,
-              displaySize: m.displaySize,
-              order: m.order,
-            }))
-          } : undefined,
-        }
-      });
+    const question = await prisma.question.update({
+      where: { id },
+      data: {
+        questionText: sanitizedQuestionText,
+        options: data.options,
+        correctAnswer: data.correctAnswer,
+        acceptableAnswers: data.acceptableAnswers,
+        tags: data.tags,
+        explanation: sanitizedExplanation,
+        difficulty: data.difficulty,
+        subtopic: data.subtopic || null,
+        media: data.media && data.media.length > 0 ? {
+          create: data.media.map(m => ({
+            type: m.type,
+            url: m.url,
+            caption: m.caption,
+            placement: m.placement,
+            displaySize: m.displaySize,
+            order: m.order,
+          }))
+        } : undefined,
+      }
     });
 
     return NextResponse.json(question);
-  } catch (error) {
+  } catch (error: any) {
     console.error('[QUESTION_UPDATE_ERROR]', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new NextResponse(`Error: ${error.message}\n${error.stack}`, { status: 500 });
   }
 }
 
@@ -100,7 +98,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
   const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || session.user.role !== 'ADMIN') {
+    if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
@@ -113,15 +111,14 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
       return new NextResponse('Not found', { status: 404 });
     }
 
-    await prisma.$transaction([
-      prisma.question.delete({
-        where: { id: params.id }
-      }),
-      prisma.qBank.update({
-        where: { id: question.qbankId },
-        data: { totalQuestions: { decrement: 1 } }
-      })
-    ]);
+    await prisma.question.delete({
+      where: { id: params.id }
+    });
+
+    await prisma.qBank.update({
+      where: { id: question.qbankId },
+      data: { totalQuestions: { decrement: 1 } }
+    });
 
     return new NextResponse('OK', { status: 200 });
   } catch (error) {

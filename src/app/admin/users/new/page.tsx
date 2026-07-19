@@ -1,127 +1,112 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { createAdminUser } from './actions';
+import { ShieldCheck, UserPlus, ArrowLeft } from 'lucide-react';
 
-export default function CreateUserPage() {
+export default function NewAdminUserPage() {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'STUDENT',
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setError('');
-    setSuccess(false);
 
-    try {
-      const res = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+    const formData = new FormData(e.currentTarget);
+    const result = await createAdminUser(formData);
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Failed to create user');
-      }
-
-      setSuccess(true);
-      setTimeout(() => {
-        router.push('/admin/users');
-        router.refresh();
-      }, 1500);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally {
+    if (result?.error) {
+      setError(result.error);
       setLoading(false);
+    } else if (result?.success) {
+      router.push('/admin/users');
+      router.refresh();
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Create New User</h1>
-        <Link href="/admin/users" className="text-slate-500 hover:text-slate-700">
-          &larr; Back to Directory
-        </Link>
-      </div>
+      <Link href="/admin/users" className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors mb-6">
+        <ArrowLeft size={16} />
+        Back to User Directory
+      </Link>
 
       <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+          <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <UserPlus size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900">Create Admin User</h1>
+            <p className="text-sm text-slate-500 mt-1">Add a new employee to manage the QBank platform.</p>
+          </div>
+        </div>
+
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md border border-red-100">
+          <div className="bg-red-50 text-red-600 p-4 rounded-md text-sm font-medium mb-6 border border-red-100 flex items-start gap-2">
+            <ShieldCheck size={18} className="mt-0.5 shrink-0" />
             {error}
           </div>
         )}
-        {success && (
-          <div className="mb-6 p-4 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-100">
-            User created successfully! Redirecting...
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
-            <input
-              type="text"
+            <label className="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
+            <input 
+              type="text" 
+              name="name" 
               required
-              className="w-full p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={formData.name}
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              placeholder="e.g., Jane Doe"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm font-medium text-slate-900"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
-            <input
-              type="email"
+            <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+            <input 
+              type="email" 
+              name="email" 
               required
-              className="w-full p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={formData.email}
-              onChange={e => setFormData({ ...formData, email: e.target.value })}
+              placeholder="jane@microqbank.com"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm font-medium text-slate-900"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
-            <input
-              type="password"
+            <label className="block text-sm font-bold text-slate-700 mb-2">Temporary Password</label>
+            <input 
+              type="password" 
+              name="password" 
               required
               minLength={6}
-              className="w-full p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={formData.password}
-              onChange={e => setFormData({ ...formData, password: e.target.value })}
+              placeholder="Minimum 6 characters"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm font-medium text-slate-900"
             />
+            <p className="text-xs text-slate-500 mt-2 font-medium">The employee can reset this later.</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Role</label>
-            <select
-              className="w-full p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={formData.role}
-              onChange={e => setFormData({ ...formData, role: e.target.value })}
+            <label className="block text-sm font-bold text-slate-700 mb-2">Role Level</label>
+            <select 
+              name="role" 
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm font-bold text-slate-900"
             >
-              <option value="STUDENT">Student</option>
-              <option value="ADMIN">Admin</option>
+              <option value="ADMIN">Admin (Content Manager)</option>
+              <option value="SUPERADMIN">Superadmin (Full Access)</option>
             </select>
           </div>
 
-          <div className="pt-4">
-            <button
-              type="submit"
-              disabled={loading || success}
-              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+          <div className="pt-4 border-t border-slate-100">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating...' : 'Create User'}
+              {loading ? 'Creating...' : 'Create Employee Account'}
             </button>
           </div>
         </form>

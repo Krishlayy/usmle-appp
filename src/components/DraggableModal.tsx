@@ -22,7 +22,10 @@ export function DraggableModal({
   title,
   children,
   icon,
-  defaultPosition = { x: window.innerWidth / 2 - 400, y: window.innerHeight / 2 - 300 },
+  defaultPosition = { 
+    x: typeof window !== 'undefined' ? Math.max(0, window.innerWidth / 2 - 400) : 100, 
+    y: typeof window !== 'undefined' ? Math.max(0, window.innerHeight / 2 - 300) : 100 
+  },
   width = '800px',
   height = '600px',
   minWidth = '400px',
@@ -34,10 +37,12 @@ export function DraggableModal({
 
   useEffect(() => {
     if (isOpen) {
+      const widthPx = width.includes('vw') ? window.innerWidth * (parseInt(width) / 100) : parseInt(width);
+      const heightPx = height.includes('vh') ? window.innerHeight * (parseInt(height) / 100) : parseInt(height);
       // Center if defaultPosition wasn't provided well
       setPosition({
-        x: Math.max(0, window.innerWidth / 2 - parseInt(width) / 2),
-        y: Math.max(0, window.innerHeight / 2 - parseInt(height) / 2),
+        x: Math.max(0, window.innerWidth / 2 - widthPx / 2),
+        y: Math.max(0, window.innerHeight / 2 - heightPx / 2),
       });
     }
   }, [isOpen, width, height]);

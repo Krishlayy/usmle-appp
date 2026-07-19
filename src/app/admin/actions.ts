@@ -28,7 +28,7 @@ const updateQBankSchema = z.object({
 export async function createQBank(formData: FormData) {
   const session = await getServerSession(authOptions);
   
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
+  if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
     throw new Error('Unauthorized');
   }
 
@@ -64,6 +64,8 @@ export async function createQBank(formData: FormData) {
       description: parsed.data.description || '',
       price: Math.round(parsed.data.price * 100), // Convert to cents
       specialtyTag: 'general', // Default placeholder to satisfy schema
+      lastEditedById: session.user.id,
+      lastEditedAt: new Date(),
     }
   });
 
@@ -74,7 +76,7 @@ export async function createQBank(formData: FormData) {
 export async function updateQBank(formData: FormData) {
   const session = await getServerSession(authOptions);
   
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
+  if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
     throw new Error('Unauthorized');
   }
 
@@ -99,6 +101,8 @@ export async function updateQBank(formData: FormData) {
       price: Math.round(parsed.data.price * 100),
       isActive: parsed.data.isActive,
       bibliographyTags: parsed.data.bibliographyTags,
+      lastEditedById: session.user.id,
+      lastEditedAt: new Date(),
     }
   });
 
@@ -109,7 +113,7 @@ export async function updateQBank(formData: FormData) {
 export async function deleteQBank(formData: FormData) {
   const session = await getServerSession(authOptions);
   
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
+  if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
     throw new Error('Unauthorized');
   }
 
@@ -152,7 +156,7 @@ export async function deleteQBank(formData: FormData) {
 export async function unblockUser(userId: string) {
   const session = await getServerSession(authOptions);
   
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
+  if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
     throw new Error('Unauthorized');
   }
 

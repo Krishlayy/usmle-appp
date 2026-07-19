@@ -101,16 +101,16 @@
 
 /* TipTap Editor Prose Styling */
 .prose table {
-  @apply border-collapse table-auto w-full text-sm my-6 border border-[#E5E7EB] shadow-sm rounded-md overflow-hidden;
+  @apply border-collapse table-auto w-full text-sm my-6 border border-[#0F172A] shadow-sm rounded-md overflow-hidden;
 }
 
 .prose table th,
 .prose table td {
-  @apply border border-[#E5E7EB] p-3 text-left min-w-[120px] relative;
+  @apply border border-[#0F172A] p-3 text-left min-w-[120px] relative;
 }
 
 .prose table th {
-  @apply bg-[#F8FAFC] font-semibold text-[#0F172A] text-xs uppercase tracking-wider;
+  @apply bg-[#0F172A] font-bold text-white text-xs uppercase tracking-wider;
 }
 
 .prose table td {
@@ -121,6 +121,26 @@
   @apply my-0;
 }
 
-.prose img {
-  @apply rounded-md border border-[#E5E7EB] shadow-sm max-w-full h-auto my-4 cursor-zoom-in transition-transform hover:opacity-90 mx-auto block;
+.prose img, .vignette-text img, .leading-relaxed img {
+  @apply rounded-md border border-[#E5E7EB] shadow-sm max-w-full h-auto my-4 cursor-pointer transition-transform hover:opacity-90 mx-auto block;
+}
+
+/* Tiptap Resizing Handle */
+.ProseMirror .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(200, 200, 255, 0.4);
+  pointer-events: none;
+}
+
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: #3b82f6;
+  pointer-events: none;
 }

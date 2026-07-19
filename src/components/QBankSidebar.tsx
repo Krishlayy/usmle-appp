@@ -68,10 +68,7 @@ export function QBankSidebar({ qbankSlug }: QBankSidebarProps) {
 
         <NavItem href={`/dashboard/${qbankSlug}`} icon={FileText} label="Create Test" isActive={isActive(`/dashboard/${qbankSlug}`)} />
         <NavItem href={`/dashboard/${qbankSlug}/previous`} icon={History} label="Previous Tests" isActive={isActive(`/dashboard/${qbankSlug}/previous`)} />
-        <NavItem href={`/dashboard/${qbankSlug}/flashcards`} icon={FileBarChart} label="Flashcards" isActive={isActive(`/dashboard/${qbankSlug}/flashcards`)} />
-        <NavItem href={`/dashboard/${qbankSlug}/notebook`} icon={Activity} label="My Notebook" isActive={isActive(`/dashboard/${qbankSlug}/notebook`)} />
         <NavItem href={`/dashboard/${qbankSlug}/notes`} icon={FileText} label="Notes" isActive={isActive(`/dashboard/${qbankSlug}/notes`)} />
-        <NavItem href={`/dashboard/${qbankSlug}/search`} icon={Search} label="Search" isActive={isActive(`/dashboard/${qbankSlug}/search`)} />
         <NavItem href={`/dashboard/${qbankSlug}/help`} icon={PlusCircle} label="Help" isActive={isActive(`/dashboard/${qbankSlug}/help`)} />
       </nav>
     </div>

@@ -5,58 +5,62 @@ export default async function AdminDashboardPage() {
   const qbankCount = await prisma.qBank.count();
   const purchaseCount = await prisma.purchase.count({ where: { status: 'active' } });
   
-  const purchases = await prisma.purchase.findMany({
+  const revenueResult = await prisma.purchase.aggregate({
     where: { status: 'active' },
-    select: { amountPaidCents: true, purchasedAt: true, qbankId: true, qbank: { select: { title: true } } },
+    _sum: { amountPaidCents: true },
   });
-  
-  const totalRevenueCents = purchases.reduce((sum, p) => sum + p.amountPaidCents, 0);
+  const totalRevenueCents = revenueResult._sum.amountPaidCents || 0;
 
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
   
-  const recentPurchases = purchases.filter(p => p.purchasedAt >= oneWeekAgo).length;
+  const recentPurchases = await prisma.purchase.count({
+    where: {
+      status: 'active',
+      purchasedAt: { gte: oneWeekAgo },
+    },
+  });
 
-  const qbankSales: Record<string, { title: string, count: number }> = {};
-  purchases.forEach(p => {
-    if (!qbankSales[p.qbankId]) {
-      qbankSales[p.qbankId] = { title: p.qbank.title, count: 0 };
-    }
-    qbankSales[p.qbankId].count++;
+  const topSelling = await prisma.purchase.groupBy({
+    by: ['qbankId'],
+    where: { status: 'active' },
+    _count: { qbankId: true },
+    orderBy: { _count: { qbankId: 'desc' } },
+    take: 1,
   });
 
   let topSellingQbank = 'None';
-  let maxSales = 0;
-  Object.values(qbankSales).forEach(q => {
-    if (q.count > maxSales) {
-      maxSales = q.count;
-      topSellingQbank = q.title;
-    }
-  });
+  if (topSelling.length > 0) {
+    const topQbank = await prisma.qBank.findUnique({
+      where: { id: topSelling[0].qbankId },
+      select: { title: true },
+    });
+    topSellingQbank = topQbank?.title || 'None';
+  }
 
   return (
     <div>
       <h1 className="text-3xl font-bold text-slate-900 mb-8">Platform Overview</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-          <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Total Users</span>
-          <span className="text-4xl font-extrabold text-slate-900">{userCount}</span>
+        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Users</span>
+          <span className="text-3xl font-black text-slate-800">{userCount}</span>
         </div>
         
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-          <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Active QBanks</span>
-          <span className="text-4xl font-extrabold text-blue-600">{qbankCount}</span>
+        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Active QBanks</span>
+          <span className="text-3xl font-black text-slate-800">{qbankCount}</span>
         </div>
         
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-          <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Total Sales</span>
-          <span className="text-4xl font-extrabold text-emerald-600">{purchaseCount}</span>
+        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Sales</span>
+          <span className="text-3xl font-black text-slate-800">{purchaseCount}</span>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-          <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Revenue (USD)</span>
-          <span className="text-4xl font-extrabold text-slate-900">${(totalRevenueCents / 100).toFixed(2)}</span>
+        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Revenue (USD)</span>
+          <span className="text-3xl font-black text-slate-800">${(totalRevenueCents / 100).toFixed(2)}</span>
         </div>
 
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">

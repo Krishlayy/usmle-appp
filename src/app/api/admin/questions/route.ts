@@ -28,7 +28,7 @@ const questionSchema = z.object({
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || session.user.role !== 'ADMIN') {
+    if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 

@@ -11,11 +11,14 @@ export const dynamic = 'force-dynamic';
 export default async function AdminUsersPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
+  if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {
     redirect('/dashboard');
   }
 
   const users = await prisma.user.findMany({
+    where: {
+      role: { in: ['ADMIN', 'SUPERADMIN'] }
+    },
     orderBy: { createdAt: 'desc' },
     include: {
       _count: {
@@ -28,9 +31,11 @@ export default async function AdminUsersPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-slate-900">User Directory</h1>
-        <Link href="/admin/users/new" className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors shadow-sm">
-          + Create New User
-        </Link>
+        {session.user.role === 'SUPERADMIN' && (
+          <Link href="/admin/users/new" className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors shadow-sm">
+            + Create New User
+          </Link>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">

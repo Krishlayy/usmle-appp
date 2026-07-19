@@ -5,6 +5,7 @@ import { updateQBank } from '@/app/admin/actions';
 import { DeleteQuestionButton } from '@/app/admin/components/DeleteQuestionButton';
 import { DeleteQBankButton } from '@/app/admin/components/DeleteQBankButton';
 import { TagInput } from '@/app/admin/components/TagInput';
+import { AdminImageZoom } from '@/components/AdminImageZoom';
 
 export default async function EditQBankPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -97,26 +98,28 @@ export default async function EditQBankPage(props: { params: Promise<{ id: strin
             </div>
 
             <div className="space-y-4">
-              {qbank.questions.map((q) => (
-                <div key={q.id} className="border border-slate-200 rounded-lg p-4 flex justify-between items-start hover:border-blue-300 transition-colors">
-                  <div className="flex-1 pr-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded font-mono">ID: {q.id.slice(-6)}</span>
-                      {q.youtubeId && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded flex items-center gap-1">📺 Video</span>}
+              <AdminImageZoom>
+                {qbank.questions.map((q) => (
+                  <div key={q.id} className="border border-slate-200 rounded-lg p-4 flex justify-between items-start hover:border-blue-300 transition-colors mb-4">
+                    <div className="flex-1 pr-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded font-mono">ID: {q.id.slice(-6)}</span>
+                        {q.youtubeId && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded flex items-center gap-1">📺 Video</span>}
+                      </div>
+                      <div 
+                        className="text-slate-800 text-sm line-clamp-2 prose prose-sm max-w-none" 
+                        dangerouslySetInnerHTML={{ __html: q.questionText }} 
+                      />
                     </div>
-                    <div 
-                      className="text-slate-800 text-sm line-clamp-2 prose prose-sm max-w-none" 
-                      dangerouslySetInnerHTML={{ __html: q.questionText }} 
-                    />
+                    <div className="flex gap-2 shrink-0">
+                      <Link href={`/admin/qbanks/${qbank.id}/questions/${q.id}/edit`} className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded text-sm font-medium hover:bg-slate-200">
+                        Edit
+                      </Link>
+                      <DeleteQuestionButton questionId={q.id} />
+                    </div>
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    <Link href={`/admin/qbanks/${qbank.id}/questions/${q.id}/edit`} className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded text-sm font-medium hover:bg-slate-200">
-                      Edit
-                    </Link>
-                    <DeleteQuestionButton questionId={q.id} />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </AdminImageZoom>
               
               {qbank.questions.length === 0 && (
                 <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-300">

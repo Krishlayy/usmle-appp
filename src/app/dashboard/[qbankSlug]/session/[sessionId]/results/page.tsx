@@ -45,9 +45,44 @@ export default async function SessionResultsPage(props: { params: Promise<{ qban
 
   const scorePercentage = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
 
+  const previousSession = await prisma.testSession.findFirst({
+    where: {
+      userId: session.user.id,
+      qbankId: qbank.id,
+      status: 'completed',
+      completedAt: { lt: testSession.completedAt || new Date() },
+      id: { not: testSession.id }
+    },
+    orderBy: { completedAt: 'desc' },
+    include: { progress: true }
+  });
+
+  let previousScorePercentage: number | null = null;
+  if (previousSession && previousSession.progress.length > 0) {
+    const prevTotal = previousSession.progress.length;
+    const prevCorrect = previousSession.progress.filter(p => p.isCorrect).length;
+    previousScorePercentage = Math.round((prevCorrect / prevTotal) * 100);
+  }
+
   const timeTakenTotal = testSession.progress.reduce((sum, p) => sum + (p.timeTakenSec || 0), 0);
   const timeTakenMinutes = Math.floor(timeTakenTotal / 60);
   const timeTakenSeconds = timeTakenTotal % 60;
+
+  // Calculate subtopic statistics
+  const subtopicStats: Record<string, { total: number, correct: number, incorrect: number, omitted: number }> = {};
+  
+  testSession.progress.forEach(p => {
+    const subtopic = p.question.subtopic || 'Uncategorized';
+    if (!subtopicStats[subtopic]) {
+      subtopicStats[subtopic] = { total: 0, correct: 0, incorrect: 0, omitted: 0 };
+    }
+    subtopicStats[subtopic].total += 1;
+    if (!p.selectedAnswer) subtopicStats[subtopic].omitted += 1;
+    else if (p.isCorrect) subtopicStats[subtopic].correct += 1;
+    else subtopicStats[subtopic].incorrect += 1;
+  });
+
+  const sortedSubtopics = Object.keys(subtopicStats).sort((a, b) => subtopicStats[b].incorrect - subtopicStats[a].incorrect);
 
   return (
     <div className="min-h-screen bg-[#f4f7f9] font-sans">
@@ -62,6 +97,11 @@ export default async function SessionResultsPage(props: { params: Promise<{ qban
           <div className="bg-white rounded-md p-6 shadow-sm border border-slate-200 text-center flex flex-col justify-center h-[120px]">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Score</h3>
             <div className="text-[32px] font-black text-[#001738] leading-none">{scorePercentage}%</div>
+            {previousScorePercentage !== null && (
+              <div className={`text-xs font-bold mt-2 ${scorePercentage >= previousScorePercentage ? 'text-emerald-600' : 'text-red-500'}`}>
+                {scorePercentage >= previousScorePercentage ? '▲' : '▼'} {Math.abs(scorePercentage - previousScorePercentage)}% vs previous test
+              </div>
+            )}
           </div>
           
           <div className="bg-white rounded-md p-6 shadow-sm border border-slate-200 text-center flex flex-col justify-center h-[120px]">
@@ -83,7 +123,7 @@ export default async function SessionResultsPage(props: { params: Promise<{ qban
         </div>
 
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[22px] font-extrabold text-[#001738]">Review Questions</h2>
+          <h2 className="text-[22px] font-extrabold text-[#001738]">Test Analysis</h2>
           <a 
             href={`/dashboard/${params.qbankSlug}/test/${params.sessionId}?mode=review`}
             className="px-6 py-2 bg-[#003b5c] text-white font-bold text-sm rounded shadow hover:bg-[#004f7a] transition-colors"
@@ -92,86 +132,42 @@ export default async function SessionResultsPage(props: { params: Promise<{ qban
           </a>
         </div>
         
-        <div className="space-y-6">
-          {testSession.progress.map((p, index) => {
-            let borderColor = 'border-slate-200';
-            let labelBadge = null;
-            
-            if (!p.selectedAnswer) {
-              borderColor = 'border-slate-300';
-              labelBadge = <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">Omitted</span>;
-            } else if (p.isCorrect) {
-              borderColor = 'border-emerald-400';
-              labelBadge = <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Correct</span>;
-            } else {
-              borderColor = 'border-red-400';
-              labelBadge = <span className="text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200">Incorrect</span>;
-            }
-
-            const timeMins = Math.floor((p.timeTakenSec || 0) / 60);
-            const timeSecs = (p.timeTakenSec || 0) % 60;
-
-            const tags = p.question.tags as string[] || [];
-            
-            return (
-              <div key={p.id} className={`bg-white rounded-md overflow-hidden border-2 shadow-sm ${borderColor}`}>
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-slate-900 flex items-center gap-3">
-                      Question {index + 1}
-                      <span className="text-xs font-mono text-slate-400 font-semibold tracking-wider">[{p.question.qid}]</span>
-                      {labelBadge}
-                    </h3>
-                    <div className="text-sm font-medium text-slate-500">
-                      Time: {timeMins}:{timeSecs.toString().padStart(2, '0')}
-                    </div>
-                  </div>
-
-                  {tags.length > 0 && (
-                    <div className="flex gap-2 mb-6">
-                      {tags.map((tag: string) => (
-                        <span key={tag} className="bg-slate-100 text-slate-500 text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider font-bold border border-slate-200">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div 
-                    className="text-[15px] font-medium text-slate-800 mb-8 leading-relaxed max-w-none"
-                    dangerouslySetInnerHTML={{ __html: p.question.questionText }}
-                  />
-
-                  <div className="space-y-3">
-                    {(p.question.options as { id: string; text: string }[]).map((opt, optIdx) => {
-                      const isSelected = p.selectedAnswer === opt.id;
-                      const isCorrect = opt.id === p.question.correctAnswer;
-                      
-                      let optStyle = 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50';
-                      let letterStyle = 'border-slate-300 bg-white text-slate-500';
-                      
-                      if (isCorrect) {
-                        optStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium z-10 relative';
-                        letterStyle = 'border-emerald-500 bg-emerald-500 text-white';
-                      } else if (isSelected) {
-                        optStyle = 'border-red-500 bg-red-50 text-red-900 font-medium z-10 relative';
-                        letterStyle = 'border-red-500 bg-red-500 text-white';
-                      }
-
-                      return (
-                        <div key={opt.id} className={`p-3.5 border rounded-md flex items-start transition-colors ${optStyle}`}>
-                          <span className={`w-6 h-6 rounded-full border flex items-center justify-center mr-4 shrink-0 text-[13px] font-bold ${letterStyle}`}>
-                            {String.fromCharCode(65 + optIdx)}
-                          </span>
-                          <span className="text-[15px] pt-0.5 leading-snug">{opt.text}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="bg-white rounded-md p-6 shadow-sm border border-slate-200">
+          <h3 className="text-lg font-bold text-[#001738] mb-4">Performance by Subtopic</h3>
+          {sortedSubtopics.length === 0 ? (
+            <div className="text-slate-500 text-sm">No topic data available for this block.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-slate-200 bg-slate-50">
+                    <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase">Subtopic</th>
+                    <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-center">Total</th>
+                    <th className="py-3 px-4 text-xs font-bold text-emerald-600 uppercase text-center">Correct</th>
+                    <th className="py-3 px-4 text-xs font-bold text-red-600 uppercase text-center">Incorrect</th>
+                    <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-center">Omitted</th>
+                    <th className="py-3 px-4 text-xs font-bold text-[#001738] uppercase text-center">% Correct</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {sortedSubtopics.map(tag => {
+                    const stats = subtopicStats[tag];
+                    const percent = Math.round((stats.correct / stats.total) * 100);
+                    return (
+                      <tr key={tag} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-3 px-4 text-sm font-bold text-slate-700 uppercase">{tag}</td>
+                        <td className="py-3 px-4 text-sm font-medium text-slate-600 text-center">{stats.total}</td>
+                        <td className="py-3 px-4 text-sm font-bold text-emerald-600 text-center">{stats.correct}</td>
+                        <td className="py-3 px-4 text-sm font-bold text-red-600 text-center">{stats.incorrect > 0 ? stats.incorrect : '-'}</td>
+                        <td className="py-3 px-4 text-sm font-medium text-slate-500 text-center">{stats.omitted > 0 ? stats.omitted : '-'}</td>
+                        <td className="py-3 px-4 text-sm font-black text-[#001738] text-center">{percent}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

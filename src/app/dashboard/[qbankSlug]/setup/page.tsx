@@ -39,8 +39,12 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to create test session');
+        try {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to create test session');
+        } catch(e) {
+          throw new Error('Server returned an error');
+        }
       }
 
       const { sessionId } = await res.json();
