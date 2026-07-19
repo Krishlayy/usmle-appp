@@ -1,19 +1,21 @@
 import { Redis } from '@upstash/redis'
 import { Ratelimit } from '@upstash/ratelimit'
 
+const isMock = process.env.CI === 'true' || !process.env.UPSTASH_REDIS_REST_URL;
+
 export const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || 'http://localhost:8079', // Fallback for dev if needed
   token: process.env.UPSTASH_REDIS_REST_TOKEN || 'dummy',
 })
 
 // Create a new ratelimiter, that allows 10 requests per 10 seconds per IP/User
-export const testSubmitRateLimiter = new Ratelimit({
+export const testSubmitRateLimiter = isMock ? { limit: async () => ({ success: true }) } as any : new Ratelimit({
   redis: redis,
   limiter: Ratelimit.slidingWindow(10, "10 s"),
   analytics: true,
 });
 
-export const webhookRateLimiter = new Ratelimit({
+export const webhookRateLimiter = isMock ? { limit: async () => ({ success: true }) } as any : new Ratelimit({
   redis: redis,
   limiter: Ratelimit.slidingWindow(5, "10 s"),
   analytics: true,
@@ -30,6 +32,10 @@ export async function getCachedOrFetch<T>(
   fetcher: () => Promise<T>,
   ttlSeconds: number = 3600
 ): Promise<T> {
+  if (isMock) {
+    return fetcher();
+  }
+
   try {
     const cached = await redis.get<T>(key);
     if (cached !== null) {
