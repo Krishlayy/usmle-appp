@@ -23,6 +23,7 @@ const questionSchema = z.object({
   acceptableAnswers: z.array(z.string()).optional().default([]),
   tags: z.array(z.string()).optional().default([]),
   options: z.array(z.any()).min(2),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional().default('PUBLISHED'),
 });
 
 export async function POST(req: Request) {
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
         acceptableAnswers: data.acceptableAnswers,
         tags: data.tags,
         options: data.options,
+        status: data.status,
         media: data.media && data.media.length > 0 ? {
           create: data.media.map(m => ({
             type: m.type,

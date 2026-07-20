@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface FlashcardModalProps {
   isOpen: boolean;
@@ -102,19 +103,19 @@ export function FlashcardModal({ isOpen, onClose, questionId, qbankSlug, initial
         </div>
 
         <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-          <button 
+          <Button 
             onClick={onClose}
-            className="px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+            variant="secondary"
           >
             Cancel
-          </button>
-          <button 
+          </Button>
+          <Button 
             onClick={handleSave}
-            disabled={isSaving}
-            className="px-6 py-2 text-sm font-bold text-white bg-black border border-black rounded hover:bg-gray-800 transition-colors flex items-center justify-center min-w-[100px]"
+            isLoading={isSaving}
+            variant="primary"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Card'}
-          </button>
+            Save Card
+          </Button>
         </div>
       </div>
     </div>

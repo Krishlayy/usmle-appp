@@ -12,9 +12,11 @@ export function MediaRenderer({ media, setZoomImage }: { media: { id: string; ty
   if (media.type === 'IMAGE') {
     return (
       <div className={`flex flex-col items-center ${widthClass}`}>
-        <div 
-          className="p-2 bg-slate-50 border border-slate-200 rounded-sm cursor-zoom-in hover:bg-slate-100 transition-colors w-full flex justify-center relative min-h-[200px]"
+        <button 
+          type="button"
+          className="exhibit-trigger p-2 bg-slate-50 border border-slate-200 rounded-sm cursor-zoom-in hover:bg-slate-100 transition-colors w-full flex justify-center relative min-h-[200px] block"
           onClick={() => setZoomImage?.(media.url)}
+          data-url={media.url}
           title={setZoomImage ? "Click to zoom" : undefined}
         >
           <Image 
@@ -23,8 +25,9 @@ export function MediaRenderer({ media, setZoomImage }: { media: { id: string; ty
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-contain" 
+            unoptimized={media.url.startsWith('data:')}
           />
-        </div>
+        </button>
         {media.caption && <p className="text-sm text-slate-500 mt-2 font-medium text-center">{media.caption}</p>}
       </div>
     );

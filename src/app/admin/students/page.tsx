@@ -7,7 +7,8 @@ import PurchaseSearch from '../purchases/PurchaseSearch';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminStudentsPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function AdminStudentsPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {

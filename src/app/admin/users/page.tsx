@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import RoleSelector from './RoleSelector';
 import UnblockButton from './UnblockButton';
 
 export const dynamic = 'force-dynamic';
@@ -33,7 +32,7 @@ export default async function AdminUsersPage() {
         <h1 className="text-3xl font-bold text-slate-900">User Directory</h1>
         {session.user.role === 'SUPERADMIN' && (
           <Link href="/admin/users/new" className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors shadow-sm">
-            + Create New User
+            + Create Admin
           </Link>
         )}
       </div>
@@ -58,11 +57,11 @@ export default async function AdminUsersPage() {
                   <div className="text-sm text-slate-500">{user.email}</div>
                 </td>
                 <td className="p-4">
-                  <RoleSelector 
-                    userId={user.id} 
-                    currentRole={user.role} 
-                    disabled={user.id === session.user.id} 
-                  />
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                    user.role === 'SUPERADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {user.role}
+                  </span>
                 </td>
                 <td className="p-4 text-slate-600">
                   {new Date(user.createdAt).toLocaleDateString()}

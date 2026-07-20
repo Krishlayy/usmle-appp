@@ -22,7 +22,7 @@ export function QBankSidebar({ qbankSlug }: QBankSidebarProps) {
   const NavItem = ({ href, icon: Icon, label, isActive }: { href: string, icon: any, label: string, isActive: boolean }) => (
     <Link 
       href={href}
-      className={`flex items-center gap-4 px-5 py-3 transition-colors ${isActive ? 'bg-[#293c52] text-white border-l-4 border-blue-400 font-bold' : 'text-[#a1b0cb] hover:bg-[#202f41] hover:text-white border-l-4 border-transparent font-semibold'}`}
+      className={`flex items-center gap-3 px-5 py-3.5 transition-colors ${isActive ? 'bg-[#293c52] text-white border-l-4 border-blue-400 font-bold' : 'text-[#a1b0cb] hover:bg-[#202f41] hover:text-white border-l-4 border-transparent font-semibold'}`}
     >
       <Icon className="w-5 h-5" strokeWidth={2} />
       <span className="text-[14px]">{label}</span>
@@ -45,12 +45,12 @@ export function QBankSidebar({ qbankSlug }: QBankSidebarProps) {
         </div>
       </div>
 
-      <nav className="flex-1 py-4 flex flex-col">
+      <nav className="flex-1 pt-6 pb-4 flex flex-col gap-1">
         {/* Performance Accordion */}
         <div className="flex flex-col mb-1">
           <button 
             onClick={() => setIsPerformanceOpen(!isPerformanceOpen)}
-            className={`flex items-center gap-4 px-5 py-3 transition-colors hover:bg-[#202f41] hover:text-white w-full text-left font-semibold border-l-4 ${isPerformanceOpen || pathname.includes('/performance') ? 'border-blue-400 bg-[#293c52] text-white' : 'border-transparent text-[#a1b0cb]'}`}
+            className={`flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[#202f41] hover:text-white w-full text-left font-semibold border-l-4 ${isPerformanceOpen || pathname.includes('/performance') ? 'border-blue-400 bg-[#293c52] text-white' : 'border-transparent text-[#a1b0cb]'}`}
           >
             <PieChart className="w-5 h-5" strokeWidth={2} />
             <span className="text-[14px] flex-1">Performance</span>

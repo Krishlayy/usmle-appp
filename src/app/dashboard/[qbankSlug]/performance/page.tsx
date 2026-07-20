@@ -2,6 +2,9 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import { Card } from '@/components/ui/Card';
+import Link from 'next/link';
+import { ArrowLeft, Printer, Search } from 'lucide-react';
 
 export default async function PerformanceOverallPage(props: { params: Promise<{ qbankSlug: string }> }) {
   const params = await props.params;
@@ -68,6 +71,11 @@ export default async function PerformanceOverallPage(props: { params: Promise<{ 
     // Mock P-Rank between 40th and 99th based on correctPct
     const pRank = correctPct > 0 ? Math.min(99, Math.max(40, correctPct + Math.floor(Math.random() * 10))) : 0;
 
+    // Determine performance tier color
+    let barColor = 'bg-[var(--color-error)]';
+    if (correctPct >= 70) barColor = 'bg-[var(--color-success)]';
+    else if (correctPct >= 50) barColor = 'bg-[var(--color-warning)]';
+
     return {
       name: subtopic,
       total,
@@ -77,82 +85,101 @@ export default async function PerformanceOverallPage(props: { params: Promise<{ 
       incorrectPct,
       omittedPct,
       pRank,
+      barColor,
     };
   }).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="p-8 bg-white min-h-full font-sans text-slate-800">
-      <div className="flex gap-8 border-b border-blue-500 mb-8 pb-1">
-        <button className="text-blue-500 font-bold border-b-2 border-blue-500 pb-2 px-1 -mb-[5px]">Subjects</button>
-        <button className="text-slate-400 hover:text-slate-600 font-bold pb-2 px-1">Systems</button>
-        <button className="text-slate-400 hover:text-slate-600 font-bold pb-2 px-1">Topics</button>
-      </div>
+    <div className="min-h-full bg-[var(--background)] p-4 md:p-8 font-sans animate-page-enter">
+      <div className="max-w-7xl mx-auto">
+        <Link href={`/dashboard/${qbank.slug}`} className="inline-flex items-center gap-2 text-scale-sm text-secondary hover:text-primary mb-6 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to {qbank.title}
+        </Link>
 
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-4">
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <span>Show:</span>
-            <select className="border-b border-slate-300 bg-transparent text-slate-700 outline-none pb-1 font-medium">
-              <option>Score</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <select className="border-b border-slate-300 bg-transparent text-slate-700 outline-none pb-1 font-medium">
-              <option>Correct Only</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="text-blue-500 flex items-center gap-1 text-sm font-bold">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            Print
-          </button>
-          <div className="relative">
-            <input type="text" placeholder="Search" className="border-b border-slate-300 pb-1 w-48 text-sm outline-none" />
-            <svg className="w-4 h-4 text-slate-400 absolute right-0 top-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          </div>
-        </div>
-      </div>
+        <h1 className="text-scale-2xl text-primary mb-8 tracking-tight">Performance Analytics</h1>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-[13px]">
-          <thead>
-            <tr className="text-slate-400 uppercase tracking-wider font-bold border-b border-slate-200">
-              <th className="pb-4 pt-2 font-bold min-w-[200px]">Name</th>
-              <th className="pb-4 pt-2 font-bold text-center">Usage</th>
-              <th className="pb-4 pt-2 font-bold text-center">Correct Q</th>
-              <th className="pb-4 pt-2 font-bold text-center">Incorrect Q</th>
-              <th className="pb-4 pt-2 font-bold text-center">Omitted Q</th>
-              <th className="pb-4 pt-2 font-bold text-center">P-Rank</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {rows.map((row) => (
-              <tr key={row.name} className="hover:bg-slate-50 transition-colors">
-                <td className="py-5">
-                  <div className="font-medium text-slate-700 mb-2">{row.name}</div>
-                  <div className="w-48 h-1.5 bg-slate-200 rounded-full overflow-hidden flex">
-                    <div className="bg-emerald-500 h-full" style={{ width: `${(row.attempted / row.total) * 100}%` }}></div>
-                  </div>
-                </td>
-                <td className="py-5 text-center text-slate-500 font-medium">{row.attempted}/{row.total}</td>
-                <td className="py-5 text-center">
-                  <span className="text-slate-700 font-bold">{row.correct}</span>
-                  <span className="text-slate-400 ml-1">({row.correctPct}%)</span>
-                </td>
-                <td className="py-5 text-center">
-                  <span className="text-slate-700 font-bold">{row.incorrect}</span>
-                  <span className="text-slate-400 ml-1">({row.incorrectPct}%)</span>
-                </td>
-                <td className="py-5 text-center">
-                  <span className="text-slate-700 font-bold">{row.omitted}</span>
-                  <span className="text-slate-400 ml-1">({row.omittedPct}%)</span>
-                </td>
-                <td className="py-5 text-center text-slate-500 font-medium">{row.pRank ? `${row.pRank}${row.pRank > 90 ? 'th' : 'st'}` : '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Card elevation="elevated" className="overflow-hidden bg-white">
+          <div className="p-6 border-b border-[var(--color-border-subtle)]">
+            <div className="flex gap-8 border-b border-[var(--color-border-subtle)] pb-1 mb-6">
+              <button className="text-primary font-bold border-b-2 border-primary pb-2 px-1 -mb-[5px] text-scale-sm">Subjects</button>
+              <button className="text-secondary hover:text-primary font-bold pb-2 px-1 text-scale-sm transition-colors">Systems</button>
+              <button className="text-secondary hover:text-primary font-bold pb-2 px-1 text-scale-sm transition-colors">Topics</button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2 text-scale-sm text-secondary">
+                  <span>Show:</span>
+                  <select className="border-b border-[var(--color-border-subtle)] bg-transparent text-primary outline-none pb-1 font-semibold focus:border-primary transition-colors">
+                    <option>Score</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2 text-scale-sm text-secondary">
+                  <select className="border-b border-[var(--color-border-subtle)] bg-transparent text-primary outline-none pb-1 font-semibold focus:border-primary transition-colors">
+                    <option>Correct Only</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <button className="text-secondary hover:text-primary transition-colors flex items-center gap-1.5 text-scale-sm font-bold">
+                  <Printer className="w-4 h-4 stroke-[2px]" />
+                  Print
+                </button>
+                <div className="relative flex-1 sm:flex-none">
+                  <input type="text" placeholder="Search topics..." className="w-full sm:w-56 border-b border-[var(--color-border-subtle)] pb-1.5 text-scale-sm outline-none focus:border-primary transition-colors bg-transparent text-primary placeholder-muted" />
+                  <Search className="w-4 h-4 text-muted absolute right-0 top-0.5" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-scale-sm whitespace-nowrap">
+              <thead>
+                <tr className="text-secondary uppercase tracking-wider font-semibold border-b border-[var(--color-border-subtle)] bg-[var(--color-surface-subtle)]">
+                  <th className="px-6 py-4 min-w-[240px]">Topic Name</th>
+                  <th className="px-6 py-4 text-center">Usage</th>
+                  <th className="px-6 py-4 text-center">Correct</th>
+                  <th className="px-6 py-4 text-center">Incorrect</th>
+                  <th className="px-6 py-4 text-center">Omitted</th>
+                  <th className="px-6 py-4 text-center">P-Rank</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border-subtle)]">
+                {rows.map((row) => (
+                  <tr key={row.name} className="hover:bg-[var(--color-surface-subtle)] transition-colors group">
+                    <td className="px-6 py-5">
+                      <div className="font-semibold text-primary mb-2.5">{row.name}</div>
+                      <div className="w-full max-w-[200px] h-1.5 bg-[var(--color-border-subtle)] rounded-full overflow-hidden flex">
+                        <div className={`h-full transition-all duration-700 ease-out ${row.barColor}`} style={{ width: `${(row.attempted / row.total) * 100}%` }}></div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 text-center text-secondary font-medium">{row.attempted} / {row.total}</td>
+                    <td className="px-6 py-5 text-center">
+                      <span className="text-primary font-bold">{row.correct}</span>
+                      <span className="text-secondary ml-1.5 text-scale-xs">({row.correctPct}%)</span>
+                    </td>
+                    <td className="px-6 py-5 text-center">
+                      <span className="text-primary font-bold">{row.incorrect}</span>
+                      <span className="text-secondary ml-1.5 text-scale-xs">({row.incorrectPct}%)</span>
+                    </td>
+                    <td className="px-6 py-5 text-center">
+                      <span className="text-primary font-bold">{row.omitted}</span>
+                      <span className="text-secondary ml-1.5 text-scale-xs">({row.omittedPct}%)</span>
+                    </td>
+                    <td className="px-6 py-5 text-center text-secondary font-semibold">
+                      {row.pRank ? (
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded bg-[var(--color-border-subtle)] text-primary">
+                          {row.pRank}{row.pRank > 90 ? 'th' : 'st'}
+                        </span>
+                      ) : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       </div>
     </div>
   );

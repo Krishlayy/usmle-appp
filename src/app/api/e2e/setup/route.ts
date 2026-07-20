@@ -26,6 +26,7 @@ export async function POST(req: Request) {
         qid: `E2E-Q1-${Date.now()}`,
         qbankId: qbank.id,
         questionText: 'What is 2 + 2?',
+        media: { create: [{ url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', caption: 'Test Exhibit', type: 'IMAGE' }] },
         options: [
           { id: 'A', text: '3' },
           { id: 'B', text: '4' },
@@ -39,6 +40,14 @@ export async function POST(req: Request) {
         tags: ['Math: Addition']
       }
     });
+  } else {
+    const q = await prisma.question.findFirst({ where: { qbankId: qbank.id, questionText: 'What is 2 + 2?' } });
+    if (q) {
+      await prisma.questionMedia.deleteMany({ where: { questionId: q.id } });
+      await prisma.questionMedia.create({
+        data: { questionId: q.id, url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', caption: 'Test Exhibit', type: 'IMAGE' }
+      });
+    }
   }
 
   const passwordHash = await bcrypt.hash(password, 10);

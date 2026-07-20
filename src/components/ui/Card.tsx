@@ -13,7 +13,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       elevated: 'surface-elevated',
     };
 
-    const combinedClasses = `rounded-xl overflow-hidden ${elevations[elevation]} ${className}`;
+    const combinedClasses = `rounded-lg overflow-hidden ${elevations[elevation]} ${className}`;
 
     return (
       <div ref={ref} className={combinedClasses} {...props}>

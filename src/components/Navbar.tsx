@@ -17,15 +17,17 @@ export default function Navbar() {
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
             </svg>
           </div>
-          <span className="font-bold text-xl tracking-tight text-slate-800">U-Micro</span>
+          <span className="font-bold text-xl tracking-tight text-slate-800">Micro Q Bank</span>
         </Link>
         <nav className="flex items-center gap-6">
-          <Link 
-            href="/store" 
-            className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/store') ? 'text-black' : 'text-gray-500'}`}
-          >
-            Store
-          </Link>
+          {(!session || !['ADMIN', 'SUPERADMIN'].includes(session.user?.role)) && (
+            <Link 
+              href="/store" 
+              className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/store') ? 'text-black' : 'text-gray-500'}`}
+            >
+              Store
+            </Link>
+          )}
           
           {status === 'loading' ? (
             <div className="w-20 h-8 animate-pulse bg-gray-100 rounded-none"></div>

@@ -30,6 +30,7 @@ model User {
   progress      UserProgress[]
   testSessions  TestSession[]
   flashcards    Flashcard[]
+  issues        QuestionIssue[]
   editedQBanks  QBank[]    @relation("QBankLastEditedBy")
 }
 
@@ -81,12 +82,32 @@ model Question {
   youtubeId         String?   // Deprecated in favor of videoUrl
   explanationImages QuestionImage[]
   media             QuestionMedia[]
+  status            String    @default("PUBLISHED") // DRAFT | PUBLISHED | ARCHIVED
   createdAt         DateTime  @default(now())
   progress          UserProgress[]
   flashcards        Flashcard[]
+  issues            QuestionIssue[]
 
   @@index([qbankId])
   @@index([qbankId, subtopic])
+  @@index([status])
+}
+
+model QuestionIssue {
+  id          String    @id @default(cuid())
+  questionId  String
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issueType   String    // typo, outdated, incorrect, other
+  description String
+  status      String    @default("OPEN") // OPEN, RESOLVED
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  
+  @@index([status])
+  @@index([questionId])
 }
 
 model QuestionImage {

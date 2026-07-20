@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Sun, Moon, ZoomIn, ZoomOut, RotateCcw, FileText, X } from 'lucide-react';
 
 interface ExhibitDisplayProps {
@@ -66,8 +67,8 @@ export function ExhibitDisplay({ mediaUrl, onClose, onAddToNotes }: ExhibitDispl
 
   const toolbarBtnClass = "p-2 hover:bg-slate-100 rounded text-slate-700 transition-colors";
 
-  return (
-    <div id="exhibit-display-root" className="fixed inset-0 z-[99999] bg-slate-900/90 flex flex-col backdrop-blur-sm animate-in fade-in duration-200">
+  const content = (
+    <div id="exhibit-display-root" className="fixed inset-0 z-[99999] bg-slate-900/90 flex flex-col backdrop-blur-sm animate-in fade-in duration-200 pointer-events-auto select-auto">
       {/* Header Bar */}
       <div className="h-14 bg-white flex items-center justify-between px-6 shadow-sm shrink-0 z-10 border-b border-slate-200">
         <h2 className="text-lg font-bold text-slate-800 tracking-tight">Exhibit Viewer</h2>
@@ -153,4 +154,11 @@ export function ExhibitDisplay({ mediaUrl, onClose, onAddToNotes }: ExhibitDispl
       </div>
     </div>
   );
+
+  // Use createPortal to mount it directly to document.body
+  // This bypasses any parent pointer-events:none or z-index constraints (e.g. from TestSecurityOverlay)
+  if (typeof document !== 'undefined') {
+    return createPortal(content, document.body);
+  }
+  return null;
 }

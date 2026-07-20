@@ -7,38 +7,38 @@ import { ArrowRight, BookOpen, BarChart2, ShieldCheck } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-[#F8FAFC] text-primary font-sans animate-page-enter">
-      <main className="flex-1 flex flex-col items-center justify-center px-4">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-[var(--background)] text-primary font-sans animate-page-enter">
+      <main className="flex-1 flex flex-col items-center justify-center px-6">
         
         {/* HERO SECTION */}
-        <div className="max-w-[1280px] w-full mx-auto text-center space-y-8 py-32 flex flex-col items-center">
+        <div className="max-w-5xl w-full mx-auto text-center space-y-8 py-32 flex flex-col items-center">
           
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-semibold mb-4 animate-fade-slide-up" style={{ animationDelay: '100ms' }}>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] text-sm font-medium mb-6 animate-fade-slide-up" style={{ animationDelay: '100ms' }}>
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent)] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent)]"></span>
             </span>
-            Now Available: System-Based Micro QBanks
+            The New Standard in Clinical Education
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] animate-fade-slide-up text-slate-900" style={{ animationDelay: '200ms' }}>
+          <h1 className="text-scale-3xl md:text-[72px] leading-[1.05] animate-fade-slide-up text-primary" style={{ animationDelay: '200ms' }}>
             Master Medical Concepts,<br/>
-            <span className="text-[#2563EB]">One Topic at a Time.</span>
+            <span className="text-accent italic">One Topic at a Time.</span>
           </h1>
           
-          <p className="mx-auto max-w-2xl text-lg md:text-xl text-secondary font-medium leading-relaxed animate-fade-slide-up" style={{ animationDelay: '300ms' }}>
-            Stop paying for bloated subscriptions. Build your own curriculum with premium, high-yield question banks tailored precisely for your weak spots.
+          <p className="mx-auto max-w-2xl text-scale-lg text-secondary leading-relaxed animate-fade-slide-up mt-8" style={{ animationDelay: '300ms' }}>
+            Stop paying for bloated subscriptions. Build your own curriculum with premium, high-yield question banks tailored precisely for your clinical weak spots.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8 animate-fade-slide-up w-full sm:w-auto" style={{ animationDelay: '400ms' }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-10 animate-fade-slide-up w-full sm:w-auto" style={{ animationDelay: '400ms' }}>
             <Link href="/store" className="w-full sm:w-auto">
-              <Button variant="primary" size="lg" className="w-full sm:w-auto h-14 px-8 text-[16px] shadow-lg shadow-blue-500/20 gap-2">
-                Explore Question Banks <ArrowRight className="w-5 h-5" />
+              <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-md gap-2">
+                Explore Question Banks <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
             
             <Link href="/signup" className="w-full sm:w-auto">
-              <Button variant="secondary" size="lg" className="w-full sm:w-auto h-14 px-8 text-[16px] bg-white border-2">
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto">
                 Create Free Account
               </Button>
             </Link>
@@ -46,38 +46,38 @@ export default function Home() {
         </div>
 
         {/* FEATURES GRID */}
-        <div className="max-w-[1280px] w-full mx-auto py-24">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-            <Card elevation="elevated" className="p-8 hover:-translate-y-1 transition-transform duration-300">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-6">
-                <BookOpen className="w-6 h-6" />
+        <div className="max-w-6xl w-full mx-auto py-24 border-t border-[var(--color-border-subtle)]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
+            <div className="flex flex-col hover:-translate-y-1 transition-transform duration-300">
+              <div className="text-[var(--color-primary)] mb-6 border-b border-[var(--color-border-subtle)] pb-4 inline-flex items-center gap-3">
+                <BookOpen className="w-5 h-5 stroke-[1.5px]" />
+                <h3 className="text-scale-lg text-primary m-0 p-0">High-Yield Content</h3>
               </div>
-              <h3 className="text-scale-lg text-primary mb-3">High-Yield Content</h3>
-              <p className="text-secondary leading-relaxed font-medium">Questions crafted by top scorers, focusing on the concepts most frequently tested on the boards. No low-yield fluff.</p>
-            </Card>
+              <p className="text-secondary leading-relaxed text-scale-base">Questions crafted by top scorers, focusing on the concepts most frequently tested on the boards. No low-yield fluff.</p>
+            </div>
 
-            <Card elevation="elevated" className="p-8 hover:-translate-y-1 transition-transform duration-300" style={{ animationDelay: '100ms' }}>
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-6">
-                <BarChart2 className="w-6 h-6" />
+            <div className="flex flex-col hover:-translate-y-1 transition-transform duration-300" style={{ animationDelay: '100ms' }}>
+              <div className="text-[var(--color-primary)] mb-6 border-b border-[var(--color-border-subtle)] pb-4 inline-flex items-center gap-3">
+                <BarChart2 className="w-5 h-5 stroke-[1.5px]" />
+                <h3 className="text-scale-lg text-primary m-0 p-0">Advanced Analytics</h3>
               </div>
-              <h3 className="text-scale-lg text-primary mb-3">Advanced Analytics</h3>
-              <p className="text-secondary leading-relaxed font-medium">Track your performance across micro-topics to identify weaknesses and optimize your study time efficiently.</p>
-            </Card>
+              <p className="text-secondary leading-relaxed text-scale-base">Track your performance across micro-topics to identify weaknesses and optimize your study time efficiently.</p>
+            </div>
 
-            <Card elevation="elevated" className="p-8 hover:-translate-y-1 transition-transform duration-300" style={{ animationDelay: '200ms' }}>
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
-                <ShieldCheck className="w-6 h-6" />
+            <div className="flex flex-col hover:-translate-y-1 transition-transform duration-300" style={{ animationDelay: '200ms' }}>
+              <div className="text-[var(--color-primary)] mb-6 border-b border-[var(--color-border-subtle)] pb-4 inline-flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 stroke-[1.5px]" />
+                <h3 className="text-scale-lg text-primary m-0 p-0">Pay Per Module</h3>
               </div>
-              <h3 className="text-scale-lg text-primary mb-3">Pay Per Module</h3>
-              <p className="text-secondary leading-relaxed font-medium">Zero subscriptions. Lifetime access to the modules you buy. A fair marketplace built for medical students.</p>
-            </Card>
+              <p className="text-secondary leading-relaxed text-scale-base">Zero subscriptions. Lifetime access to the modules you buy. A fair marketplace built for medical students.</p>
+            </div>
           </div>
         </div>
       </main>
 
-      <footer className="bg-white border-t border-[#E5E7EB] py-12 text-center text-secondary">
-        <p className="mb-2 font-medium">© 2026 Micro Q Bank.</p>
-        <p className="text-[13px] text-muted">Micro Q Bank is an independent educational platform.</p>
+      <footer className="bg-white border-t border-[var(--color-border-subtle)] py-12 text-center text-secondary">
+        <p className="mb-2 font-medium">© {new Date().getFullYear()} Micro Q-Bank.</p>
+        <p className="text-scale-xs text-muted">Micro Q-Bank is an independent clinical educational platform.</p>
       </footer>
     </div>
   );

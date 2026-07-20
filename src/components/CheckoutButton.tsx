@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 
 export function CheckoutButton({ qbankId }: { qbankId: string }) {
   const [loading, setLoading] = useState(false);
@@ -42,13 +43,14 @@ export function CheckoutButton({ qbankId }: { qbankId: string }) {
   };
 
   return (
-    <button
+    <Button
       type="button"
+      variant="secondary"
       onClick={handleCheckout}
-      disabled={loading}
-      className="flex w-full items-center justify-center rounded-none text-base font-medium transition-colors bg-black text-white hover:bg-gray-800 h-12 px-8 mb-4 disabled:opacity-50"
+      isLoading={loading}
+      className="w-full h-11"
     >
       {loading ? 'Processing...' : 'Buy Now'}
-    </button>
+    </Button>
   );
 }

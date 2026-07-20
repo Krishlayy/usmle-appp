@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 import { unblockUser } from '@/app/admin/actions';
-import { Loader2 } from 'lucide-react';
+import { Loader } from '@/components/ui/Loader';
+import { Button } from '@/components/ui/Button';
 
 export default function UnblockButton({ userId }: { userId: string }) {
   const [isPending, setIsPending] = useState(false);
 
   return (
-    <button 
+    <Button 
+      variant="secondary"
+      size="sm"
       onClick={async () => {
         setIsPending(true);
         try {
@@ -19,11 +22,10 @@ export default function UnblockButton({ userId }: { userId: string }) {
           setIsPending(false);
         }
       }}
-      disabled={isPending}
-      className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md text-sm font-semibold transition-colors flex items-center gap-2"
+      isLoading={isPending}
+      className="!bg-red-50 !text-red-700 !border-red-200 hover:!bg-red-100 hover:!border-red-300"
     >
-      {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
       Unblock Account
-    </button>
+    </Button>
   );
 }

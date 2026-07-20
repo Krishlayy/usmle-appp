@@ -17,6 +17,7 @@ export default async function EditQBankPage(props: { params: Promise<{ id: strin
           id: true,
           youtubeId: true,
           questionText: true,
+          status: true,
           createdAt: true
         },
         orderBy: { createdAt: 'desc' }
@@ -104,6 +105,9 @@ export default async function EditQBankPage(props: { params: Promise<{ id: strin
                     <div className="flex-1 pr-4">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded font-mono">ID: {q.id.slice(-6)}</span>
+                        {q.status === 'DRAFT' && <span className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded font-medium">DRAFT</span>}
+                        {q.status === 'PUBLISHED' && <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-medium">PUBLISHED</span>}
+                        {q.status === 'ARCHIVED' && <span className="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded font-medium">ARCHIVED</span>}
                         {q.youtubeId && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded flex items-center gap-1">📺 Video</span>}
                       </div>
                       <div 

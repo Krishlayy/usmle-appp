@@ -152,6 +152,7 @@ function SortableMediaItem({
 }
 
 import { ExhibitDisplay } from '@/components/ExhibitDisplay';
+import { Button } from '@/components/ui/Button';
 
 export default function ExplanationMedia({ media, onChange }: ExplanationMediaProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -328,19 +329,16 @@ export default function ExplanationMedia({ media, onChange }: ExplanationMediaPr
           <p className="text-sm text-slate-500">Add images and videos separately from the text explanation.</p>
         </div>
         <div className="flex gap-3">
-          <button
+          <Button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium text-sm transition-colors disabled:opacity-50"
+            isLoading={isUploading}
+            variant="secondary"
+            className="flex items-center gap-2"
           >
-            {isUploading ? (
-              <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
-            ) : (
-              <ImageIcon className="w-4 h-4" />
-            )}
+            {!isUploading && <ImageIcon className="w-4 h-4" />}
             Add Image
-          </button>
+          </Button>
           <button
             type="button"
             onClick={handleAddVideo}

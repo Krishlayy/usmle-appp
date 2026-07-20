@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Clock, GraduationCap, CheckCircle2, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { ProgressBar } from '@/components/ui/ProgressBar';
+import { Loader } from '@/components/ui/Loader';
 
 type SetupTestFormProps = {
   qbankSlug: string;
@@ -71,7 +72,7 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
               <h3 className="text-[16px] font-bold text-primary">
                 {completedQuestions > 0 ? "Resume Practice" : "Start Practice"}
               </h3>
-              <span className="text-[14px] font-bold text-primary bg-blue-50 px-2.5 py-1 rounded-md text-blue-700">
+              <span className="text-[14px] font-bold text-primary bg-[var(--color-surface-subtle)] border border-[var(--color-border-subtle)] px-2.5 py-1 rounded-md text-primary">
                 {Math.round(progressPercentage)}% Complete
               </span>
             </div>
@@ -90,7 +91,7 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button 
                 onClick={() => setMode('tutor')}
-                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${mode === 'tutor' ? 'border-[var(--color-primary)] bg-blue-50/50 shadow-sm' : 'border-[var(--color-border-subtle)] hover:border-[#CBD5E1] bg-white'}`}
+                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${mode === 'tutor' ? 'border-[var(--color-primary)] bg-[var(--color-surface-subtle)] shadow-sm' : 'border-[var(--color-border-subtle)] hover:border-[var(--color-primary)] bg-white'}`}
               >
                 <div className="flex items-center gap-3 mb-2">
                   <GraduationCap className={`w-5 h-5 ${mode === 'tutor' ? 'text-[var(--color-primary)]' : 'text-slate-400'}`} />
@@ -103,7 +104,7 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
 
               <button 
                 onClick={() => setMode('timed')}
-                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${mode === 'timed' ? 'border-[var(--color-primary)] bg-blue-50/50 shadow-sm' : 'border-[var(--color-border-subtle)] hover:border-[#CBD5E1] bg-white'}`}
+                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${mode === 'timed' ? 'border-[var(--color-primary)] bg-[var(--color-surface-subtle)] shadow-sm' : 'border-[var(--color-border-subtle)] hover:border-[var(--color-primary)] bg-white'}`}
               >
                 <div className="flex items-center gap-3 mb-2">
                   <Clock className={`w-5 h-5 ${mode === 'timed' ? 'text-[var(--color-primary)]' : 'text-slate-400'}`} />
@@ -126,11 +127,11 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
         {/* Footer Action */}
         <div className="bg-[var(--color-surface-subtle)] border-t border-[var(--color-border-subtle)] px-8 py-5 flex items-center justify-between">
           <p className="text-[13px] text-secondary flex items-center gap-1.5 font-medium">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Auto-saves progress
+            <CheckCircle2 className="w-4 h-4 text-[var(--color-success)]" /> Auto-saves progress
           </p>
           <Button 
             size="lg" 
-            className="w-48 text-[15px] shadow-sm font-bold" 
+            className="w-48 text-[15px] shadow-sm font-bold gap-2" 
             onClick={handleStart} 
             isLoading={loading}
           >
@@ -162,7 +163,7 @@ function SetupTestWrapper({ qbankSlug }: { qbankSlug: string }) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2563EB]"></div>
+        <Loader size="lg" />
       </div>
     );
   }
@@ -184,19 +185,19 @@ function SetupTestWrapper({ qbankSlug }: { qbankSlug: string }) {
 export default function SetupTestPage(props: { params: Promise<{ qbankSlug: string }> }) {
   const params = use(props.params);
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen bg-[var(--background)] animate-page-enter">
       <div className="bg-white border-b border-[var(--color-border-subtle)] sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 md:px-8 h-16 flex items-center gap-4">
+        <div className="container mx-auto px-4 md:px-8 h-16 flex items-center gap-4 max-w-[1280px]">
           <Link href={`/dashboard/${params.qbankSlug}`} className="text-secondary hover:text-primary transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-scale-lg font-bold text-primary">Start Practice</h1>
+          <h1 className="text-scale-lg font-bold text-primary tracking-tight">Start Practice</h1>
         </div>
       </div>
       <div className="container mx-auto py-10 px-4 md:px-8 max-w-[1280px]">
         <Suspense fallback={
           <div className="flex items-center justify-center h-64 text-secondary">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2563EB]"></div>
+            <Loader size="lg" />
           </div>
         }>
           <SetupTestWrapper qbankSlug={params.qbankSlug} />

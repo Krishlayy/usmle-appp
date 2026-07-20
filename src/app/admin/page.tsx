@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { SalesAnalyticsClient } from './components/SalesAnalyticsClient';
 
 export default async function AdminDashboardPage() {
   const userCount = await prisma.user.count();
@@ -37,6 +38,55 @@ export default async function AdminDashboardPage() {
     });
     topSellingQbank = topQbank?.title || 'None';
   }
+
+  // --- New Sales Analytics Data ---
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const allRecentPurchases = await prisma.purchase.findMany({
+    where: {
+      status: 'active',
+      purchasedAt: { gte: thirtyDaysAgo }
+    },
+    select: { amountPaidCents: true, purchasedAt: true }
+  });
+
+  const revenueByDate: Record<string, number> = {};
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    revenueByDate[dateStr] = 0;
+  }
+
+  allRecentPurchases.forEach(p => {
+    const dateStr = p.purchasedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (revenueByDate[dateStr] !== undefined) {
+      revenueByDate[dateStr] += (p.amountPaidCents / 100);
+    }
+  });
+
+  const revenueData = Object.entries(revenueByDate).map(([date, revenue]) => ({
+    date,
+    revenue,
+    subscriptions: 0 // Mocked subscriptions for now
+  }));
+
+  const qbanksForSales = await prisma.qBank.findMany({ select: { id: true, title: true } });
+  const salesByQbank = await prisma.purchase.groupBy({
+    by: ['qbankId'],
+    where: { status: 'active' },
+    _count: { qbankId: true }
+  });
+
+  const qbankData = salesByQbank.map(sq => {
+    const qb = qbanksForSales.find(q => q.id === sq.qbankId);
+    return {
+      name: qb ? (qb.title.length > 15 ? qb.title.substring(0, 15) + '...' : qb.title) : 'Unknown',
+      sales: sq._count.qbankId
+    };
+  }).sort((a, b) => b.sales - a.sales).slice(0, 5); // Top 5
+
 
   return (
     <div>
@@ -82,6 +132,8 @@ export default async function AdminDashboardPage() {
           No recent activity to display.
         </div>
       </div>
+      
+      <SalesAnalyticsClient revenueData={revenueData} qbankData={qbankData} />
     </div>
   );
 }

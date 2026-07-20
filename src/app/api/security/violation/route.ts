@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     const newViolations = user.securityViolations + 1;
-    const isNowBlocked = newViolations >= 4;
+    const isNowBlocked = newViolations >= 3;
 
     await prisma.user.update({
       where: { id: session.user.id },

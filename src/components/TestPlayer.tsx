@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import dynamic from 'next/dynamic';
-import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark, X, Clock, FlaskConical, PenLine, ArrowLeftCircle, ArrowRightCircle, Lock, XCircle, Flag, Strikethrough } from 'lucide-react';
+import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark, X, Clock, FlaskConical, PenLine, ArrowLeftCircle, ArrowRightCircle, Lock, XCircle, Flag, Strikethrough, AlertTriangle } from 'lucide-react';
 import { MediaRenderer } from '@/components/MediaRenderer';
 import { QuestionNotesModal } from './QuestionNotesModal';
 import { TestSettingsProvider, useTestSettings, TestSettings } from '@/components/TestSettingsProvider';
@@ -182,6 +182,11 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   const router = useRouter();
   const { settings } = useTestSettings();
   
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportType, setReportType] = useState('TYPO');
+  const [reportDescription, setReportDescription] = useState('');
+  const [reportStatus, setReportStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [questions, setQuestions] = useState<SessionQuestion[]>(() => {
     try {
@@ -329,91 +334,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   
   const [showSecurityWarning, setShowSecurityWarning] = useState(session.mode !== 'review');
 
-  const handleSecurityViolation = async (reason: string) => {
-    if (session.mode === 'review') return;
-    try {
-      const res = await fetch('/api/security/violation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: reason })
-      });
-      if (!res.ok) {
-        console.error('Security violation endpoint failed');
-        return;
-      }
-      const data = await res.json();
-      if (data.blocked) {
-        alert('SECURITY VIOLATION MAXIMUM REACHED. Your account has been permanently suspended. You are being logged out.');
-        window.location.href = '/blocked';
-      } else {
-        alert(`SECURITY VIOLATION: ${reason}.\nWarning ${data.violations} of 3. Your test has been suspended.`);
-        router.push(`/dashboard/${session.qbankSlug}`);
-      }
-    } catch (e) {
-      console.error('Failed to log violation', e);
-      router.push(`/dashboard/${session.qbankSlug}`);
-    }
-  };
 
-  useEffect(() => {
-    // TEMPORARY BYPASS: Disable all anti-cheat listeners so screenshots can be taken safely
-    return;
-    
-    if (showSecurityWarning || session.mode === 'review') return;
-
-    const handleCopyPaste = (e: ClipboardEvent) => {
-      e.preventDefault();
-      handleSecurityViolation('Copy/Paste attempted');
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        handleSecurityViolation('Tab switched or minimized');
-      }
-    };
-
-    const handleBlur = () => {
-      setTimeout(() => {
-        if (!document.hasFocus()) {
-          handleSecurityViolation('Window lost focus');
-        }
-      }, 200);
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-      if (e.key === 'Meta' || e.metaKey || (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x'))) {
-        e.preventDefault();
-        handleSecurityViolation('Prohibited keyboard shortcut or OS key');
-        return;
-      }
-      const allowedKeys = [
-        'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter',
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
-      ];
-      if (!allowedKeys.includes(e.key) && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        handleSecurityViolation(`Prohibited key pressed: ${e.key}`);
-      }
-    };
-
-    document.addEventListener('copy', handleCopyPaste);
-    document.addEventListener('paste', handleCopyPaste);
-    document.addEventListener('cut', handleCopyPaste);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleBlur);
-    document.addEventListener('keydown', handleKeyDown, true);
-
-    return () => {
-      document.removeEventListener('copy', handleCopyPaste);
-      document.removeEventListener('paste', handleCopyPaste);
-      document.removeEventListener('cut', handleCopyPaste);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleBlur);
-      document.removeEventListener('keydown', handleKeyDown, true);
-    };
-  }, [showSecurityWarning, session.mode, session.qbankSlug]);
 
   const [contextMenu, setContextMenu] = useState<{
     top: number;
@@ -731,6 +652,15 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       // Ignore clicks inside ExhibitDisplay
       if (target.closest('#exhibit-display-root')) return;
 
+      // Check if they clicked a media sidebar item with exhibit-trigger
+      const trigger = target.closest('.exhibit-trigger') as HTMLElement;
+      if (trigger && trigger.dataset.url) {
+        e.preventDefault();
+        e.stopPropagation();
+        setZoomImage(trigger.dataset.url);
+        return;
+      }
+
       // Only intercept if clicked inside the rich text areas (question or explanation)
       // MediaRenderer handles its own clicks.
       if (!target.closest('.vignette-text') && !target.closest('.leading-relaxed')) {
@@ -791,6 +721,32 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   const sidebarItemBg = isDark ? 'bg-transparent text-slate-400' : 'bg-transparent text-slate-500';
   const sidebarActiveBg = isDark ? 'bg-slate-800 text-slate-100 shadow-sm rounded-md mx-1' : 'bg-white text-slate-900 shadow-sm border border-slate-200 rounded-md mx-1';
   const borderCol = isDark ? 'border-slate-800' : 'border-slate-200';
+
+  const handleReportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setReportStatus('submitting');
+    try {
+      const res = await fetch(`/api/test-sessions/${session.id}/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionId: currentQ.question.id,
+          issueType: reportType,
+          description: reportDescription,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to submit report');
+      setReportStatus('success');
+      setTimeout(() => {
+        setShowReportModal(false);
+        setReportStatus('idle');
+        setReportDescription('');
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      setReportStatus('error');
+    }
+  };
 
   return (
     <div className={`flex flex-col h-screen overflow-hidden font-sans ${mainBg} ${mainText}`} style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
@@ -872,6 +828,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             {/* Right Tools */}
             <div className="flex items-center gap-1 h-full pt-1">
               {[
+                { name: 'Report Issue', icon: <AlertTriangle size={18} />, action: (e: any) => setShowReportModal(true), active: showReportModal },
                 { name: 'Lab Values', icon: <FlaskConical size={18} />, action: (e: any) => setShowLabValues(true), active: showLabValues },
                 { name: 'Notes', icon: <PenLine size={18} />, action: (e: any) => setShowNotes(true), active: showNotes },
                 { name: 'Calculator', icon: <CalcIcon size={18} />, action: (e: any) => setShowCalculator(true), active: showCalculator },
@@ -1014,7 +971,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     {/* Media Toolbar */}
                     <div className="w-12 flex flex-col items-center gap-4 py-2 border-r border-gray-200 mr-2 shrink-0">
                       <button 
-                        className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        className="exhibit-trigger flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        data-url={currentQ.question.media && currentQ.question.media.length > 0 ? currentQ.question.media[0].url : ''}
                         onClick={() => {
                           if (currentQ.question.media && currentQ.question.media.length > 0) {
                             setZoomImage(currentQ.question.media[0].url);
@@ -1025,7 +983,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         <span className="text-[10px]">Invert</span>
                       </button>
                       <button 
-                        className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        className="exhibit-trigger flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        data-url={currentQ.question.media && currentQ.question.media.length > 0 ? currentQ.question.media[0].url : ''}
                         onClick={() => {
                           if (currentQ.question.media && currentQ.question.media.length > 0) {
                             setZoomImage(currentQ.question.media[0].url);
@@ -1036,7 +995,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         <span className="text-[10px]">Contrast</span>
                       </button>
                       <button 
-                        className="flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        className="exhibit-trigger flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
+                        data-url={currentQ.question.media && currentQ.question.media.length > 0 ? currentQ.question.media[0].url : ''}
                         onClick={() => {
                           if (currentQ.question.media && currentQ.question.media.length > 0) {
                             setZoomImage(currentQ.question.media[0].url);
@@ -1153,6 +1113,65 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               <button onClick={() => setOmissionWarning(null)} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">Cancel</button>
               <button onClick={() => { omissionWarning(); setOmissionWarning(null); }} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">Proceed</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full shadow-2xl overflow-hidden text-slate-900">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <AlertTriangle className="text-amber-500" size={20} />
+                Report an Issue
+              </h3>
+              <button onClick={() => setShowReportModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleReportSubmit} className="p-6">
+              {reportStatus === 'success' ? (
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mb-4">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Report Submitted!</h4>
+                  <p className="text-slate-500 text-sm">Thank you for your feedback. Our team will review this shortly.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Issue Type</label>
+                    <select 
+                      value={reportType}
+                      onChange={(e) => setReportType(e.target.value)}
+                      className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    >
+                      <option value="TYPO">Typo / Formatting</option>
+                      <option value="INCORRECT">Incorrect Answer</option>
+                      <option value="OUTDATED">Outdated Medical Info</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                    <textarea 
+                      value={reportDescription}
+                      onChange={(e) => setReportDescription(e.target.value)}
+                      className="w-full border border-slate-300 rounded p-2 h-24 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                      placeholder="Please describe the issue in detail..."
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <Button type="button" variant="secondary" onClick={() => setShowReportModal(false)}>Cancel</Button>
+                    <Button type="submit" disabled={reportStatus === 'submitting'}>
+                      {reportStatus === 'submitting' ? 'Submitting...' : 'Submit Report'}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </form>
           </div>
         </div>
       )}

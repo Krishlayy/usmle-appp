@@ -34,6 +34,7 @@ export function QuestionForm({
   const [explanation, setExplanation] = useState(initialData?.explanation as string || '');
   const [media, setMedia] = useState<QuestionMediaItem[]>(initialData?.media as QuestionMediaItem[] || []);
   const [difficulty, setDifficulty] = useState(initialData?.difficulty as string || 'medium');
+  const [status, setStatus] = useState(initialData?.status as string || 'PUBLISHED');
   const [subtopic, setSubtopic] = useState(initialData?.subtopic as string || '');
   const [tags, setTags] = useState<string[]>(initialData?.tags as string[] || []);
   const [tagInput, setTagInput] = useState('');
@@ -153,6 +154,7 @@ export function QuestionForm({
         acceptableAnswers: acceptableIds,
         tags,
         options,
+        status,
       };
 
       const res = await fetch(`/api/admin/questions${initialData ? `/${initialData.id}` : ''}`, {
@@ -185,7 +187,7 @@ export function QuestionForm({
         </div>
         <div className="space-y-4">
           
-          <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-slate-100">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Difficulty</label>
               <select 
@@ -207,6 +209,18 @@ export function QuestionForm({
                 className="w-full border border-slate-300 rounded-md p-2"
                 placeholder="e.g., Arrhythmias, Heart Failure"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+              <select 
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full border border-slate-300 rounded-md p-2 bg-white font-medium"
+              >
+                <option value="DRAFT" className="text-amber-700">DRAFT (Hidden from tests)</option>
+                <option value="PUBLISHED" className="text-emerald-700">PUBLISHED (Live)</option>
+                <option value="ARCHIVED" className="text-slate-700">ARCHIVED</option>
+              </select>
             </div>
           </div>
 

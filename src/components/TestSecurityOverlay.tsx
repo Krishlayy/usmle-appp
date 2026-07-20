@@ -74,14 +74,35 @@ export function TestSecurityOverlay({
       }
     };
 
+    const handleCopyPaste = (e: Event) => {
+      e.preventDefault();
+      triggerViolation('Copy/Paste attempted');
+    };
+
+    const handleBlur = () => {
+      setTimeout(() => {
+        if (!document.hasFocus()) {
+          triggerViolation('Window lost focus');
+        }
+      }, 200);
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('copy', handleCopyPaste);
+    document.addEventListener('paste', handleCopyPaste);
+    document.addEventListener('cut', handleCopyPaste);
+    window.addEventListener('blur', handleBlur);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('copy', handleCopyPaste);
+      document.removeEventListener('paste', handleCopyPaste);
+      document.removeEventListener('cut', handleCopyPaste);
+      window.removeEventListener('blur', handleBlur);
     };
   }, [userEmail, userIp, isProcessing]);
 
@@ -102,14 +123,14 @@ export function TestSecurityOverlay({
           <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl text-center border-t-8 border-red-600">
             <h2 className="text-2xl font-bold text-red-600 mb-2">Security Violation Detected</h2>
             <div className="inline-block bg-red-100 text-red-800 px-4 py-1 rounded-full font-bold mb-4 tracking-wide">
-              WARNING {violationCount} OF 3
+              WARNING {violationCount} OF 2
             </div>
             <p className="text-slate-700 mb-6 font-medium">
               You have performed a prohibited action (Right-Click, Screenshot, Windows Key, etc). 
             </p>
             <p className="text-slate-600 text-sm mb-6 bg-slate-100 p-3 rounded">
               Your IP Address (<strong>{realIp}</strong>) and Email (<strong>{userEmail}</strong>) have been logged. <br/><br/>
-              <strong className="text-red-600">On your 4th violation, your account will be permanently blocked.</strong>
+              <strong className="text-red-600">On your 3rd violation, your account will be permanently blocked.</strong>
             </p>
             <button 
               onClick={() => setShowViolationWarning(false)}

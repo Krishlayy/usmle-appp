@@ -70,7 +70,7 @@ test.describe('E2E User Journey', () => {
     await expect(page).toHaveURL(/.*\/test\/.*/, { timeout: 30000 });
     
     // Handle security warning overlay
-    const securityBtn = page.locator('button:has-text("I Understand & Agree")');
+    const securityBtn = page.locator('button:has-text("I Understand, Start Test")');
     await securityBtn.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
     if (await securityBtn.isVisible()) {
       await securityBtn.click();

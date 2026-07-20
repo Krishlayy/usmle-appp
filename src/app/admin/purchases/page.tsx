@@ -9,7 +9,8 @@ import UnblockButton from '../users/UnblockButton';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminPurchasesPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function AdminPurchasesPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !['ADMIN', 'SUPERADMIN'].includes(session.user.role)) {

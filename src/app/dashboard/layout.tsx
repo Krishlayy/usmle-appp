@@ -10,10 +10,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     redirect('/login');
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { isBlocked: true }
-  });
+  let user = null;
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isBlocked: true }
+    });
+  } catch (err) {
+    console.error("DashboardLayout DB Error:", err);
+  }
 
   if (user?.isBlocked) {
     redirect('/blocked');

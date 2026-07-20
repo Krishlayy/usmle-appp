@@ -1,44 +1,47 @@
 @import "tailwindcss";
 
 @theme {
-  --radius-sm: 16px;
-  --radius-md: 16px;
-  --radius-lg: 16px;
+  --radius-sm: 8px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
   --radius-xl: 16px;
-  --radius-2xl: 16px;
+  --radius-2xl: 20px;
   
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
+  --color-primary: #0A192F;
+  --color-primary-hover: #112240;
+  --color-accent: #BA7517;
   
   --color-text-primary: #0F172A;
-  --color-text-secondary: #64748B;
+  --color-text-secondary: #475569;
   --color-text-muted: #94A3B8;
 
   --color-surface: #FFFFFF;
-  --color-surface-subtle: #F8FAFC;
+  --color-surface-subtle: #FAFAFA;
   --color-surface-elevated: #FFFFFF;
   
   --color-border-subtle: #E2E8F0;
 
   --color-success: #10B981;
-  --color-warning: #F59E0B;
+  --color-warning: #BA7517;
   --color-error: #EF4444;
+
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
 }
 
 @layer base {
   :root {
-    --primary: #2563EB;
-    --background: #F8FAFC;
+    --primary: #0A192F;
+    --background: #FAFAFA;
   }
 }
 
 @layer base {
   body {
-    @apply bg-[var(--background)] text-[var(--color-text-primary)] font-sans antialiased font-medium;
+    @apply bg-[var(--background)] text-[var(--color-text-primary)] font-sans antialiased;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply text-[var(--color-text-primary)] tracking-tight font-bold;
+    @apply text-[var(--color-text-primary)] tracking-tight font-serif;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -56,14 +59,16 @@
   .text-scale-xs { @apply text-[13px] leading-tight; }
   .text-scale-sm { @apply text-[14px] leading-snug; }
   .text-scale-base { @apply text-[16px] leading-relaxed; }
-  .text-scale-lg { @apply text-[20px] font-semibold leading-snug; }
-  .text-scale-xl { @apply text-[28px] font-bold leading-tight; }
-  .text-scale-2xl { @apply text-[40px] font-extrabold leading-tight; }
+  .text-scale-lg { @apply text-[20px] leading-snug font-medium; }
+  .text-scale-xl { @apply text-[28px] leading-tight font-semibold; }
+  .text-scale-2xl { @apply text-[40px] leading-tight font-bold; }
+  .text-scale-3xl { @apply text-[56px] leading-tight font-bold tracking-tight; }
   
   /* Text Colors */
   .text-primary { @apply text-[#0F172A]; }
-  .text-secondary { @apply text-[#64748B]; }
+  .text-secondary { @apply text-[#475569]; }
   .text-muted { @apply text-[#94A3B8]; }
+  .text-accent { @apply text-[var(--color-accent)]; }
 
   /* Elevations */
   .surface-flat {
@@ -73,7 +78,7 @@
     @apply bg-white border border-[var(--color-border-subtle)] shadow-none;
   }
   .surface-elevated {
-    @apply bg-white border border-[var(--color-border-subtle)] shadow-sm transition-all duration-200 ease-out hover:shadow-md;
+    @apply bg-white border border-[var(--color-border-subtle)] shadow-[0_2px_8px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.02)] transition-shadow duration-200 ease-out hover:shadow-[0_4px_12px_rgba(15,23,42,0.06),0_12px_32px_rgba(15,23,42,0.04)];
   }
 
   /* Shared Animation Classes */
@@ -114,7 +119,7 @@
 }
 
 .prose table td {
-  @apply bg-white text-[#64748B] align-top;
+  @apply bg-white text-[#475569] align-top;
 }
 
 .prose table p {

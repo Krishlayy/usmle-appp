@@ -29,11 +29,11 @@ export async function POST(req: Request) {
     // Verify access
     await verifyQbankAccess(session.user.id, resolvedQbankId);
 
-    // Fetch all questions for this QBank, cached for 1 hour
+    // Fetch all PUBLISHED questions for this QBank, cached for 1 hour
     const questions = await getCachedOrFetch(
-      `qbank:${resolvedQbankId}:questions`,
+      `qbank:${resolvedQbankId}:questions:published`,
       () => prisma.question.findMany({
-        where: { qbankId: resolvedQbankId },
+        where: { qbankId: resolvedQbankId, status: 'PUBLISHED' },
         orderBy: { createdAt: 'asc' }
       }),
       3600

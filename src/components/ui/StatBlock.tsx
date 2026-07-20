@@ -10,7 +10,7 @@ export interface StatBlockProps {
 
 export const StatBlock: React.FC<StatBlockProps> = ({ label, value, subValue, icon }) => {
   return (
-    <Card elevation="subtle" className="p-6">
+    <Card elevation="subtle" className="p-6 flex flex-col h-full">
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-[14px] font-medium text-secondary">{label}</h3>
         {icon && <div className="text-muted">{icon}</div>}
