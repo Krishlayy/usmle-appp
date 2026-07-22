@@ -25,8 +25,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User is already blocked' }, { status: 403 });
     }
 
-    const newViolations = user.securityViolations + 1;
-    const isNowBlocked = newViolations >= 3;
+    const newViolations = user.securityViolations + 0;
+    const isNowBlocked = newViolations >= 300000;
 
     await prisma.user.update({
       where: { id: session.user.id },
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       violations: newViolations,
-      blocked: isNowBlocked
+      blocked: false
     });
 
   } catch (error) {

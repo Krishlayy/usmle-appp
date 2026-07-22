@@ -10,7 +10,6 @@ import { QuestionNotesModal } from './QuestionNotesModal';
 import { TestSettingsProvider, useTestSettings, TestSettings } from '@/components/TestSettingsProvider';
 import { Button } from '@/components/ui/Button';
 import { TestSecurityWarning } from '@/components/TestSecurityWarning';
-import { SettingsDropdown } from './SettingsDropdown';
 import { ExhibitDisplay } from './ExhibitDisplay';
 import { TestTutorial } from './TestTutorial';
 
@@ -316,7 +315,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   
   const [showCalculator, setShowCalculator] = useState(false);
   const [showLabValues, setShowLabValues] = useState(false);
-  const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLElement | null>(null);
+  const [showSettingsSidebar, setShowSettingsSidebar] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [showFlashcardModal, setShowFlashcardModal] = useState(false);
   const [flashcardPrefillText, setFlashcardPrefillText] = useState('');
@@ -456,7 +455,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-      if (!!settingsAnchorEl || omissionWarning || showCalculator) return;
+      if (showSettingsSidebar || omissionWarning || showCalculator) return;
       
       const key = e.key.toLowerCase();
       if (key === 'arrowright') handleNext();
@@ -472,7 +471,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, currentQ, questions, !!settingsAnchorEl, omissionWarning, showCalculator]);
+  }, [currentIndex, currentQ, questions, showSettingsSidebar, omissionWarning, showCalculator]);
 
   const updateCurrentQuestionState = (updates: Partial<SessionQuestion>) => {
     setQuestions(prev => prev.map((q, i) => i === currentIndex ? { ...q, ...updates } : q));
@@ -661,9 +660,9 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         return;
       }
 
-      // Only intercept if clicked inside the rich text areas (question or explanation)
+      // Only intercept if clicked inside the question content area
       // MediaRenderer handles its own clicks.
-      if (!target.closest('.vignette-text') && !target.closest('.leading-relaxed')) {
+      if (!target.closest('.question-content-area')) {
         return;
       }
 
@@ -832,7 +831,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 { name: 'Lab Values', icon: <FlaskConical size={18} />, action: (e: any) => setShowLabValues(true), active: showLabValues },
                 { name: 'Notes', icon: <PenLine size={18} />, action: (e: any) => setShowNotes(true), active: showNotes },
                 { name: 'Calculator', icon: <CalcIcon size={18} />, action: (e: any) => setShowCalculator(true), active: showCalculator },
-                { name: 'Settings', icon: <SettingsIcon size={18} />, action: (e: any) => setSettingsAnchorEl(e.currentTarget), active: !!settingsAnchorEl }
+                { name: 'Settings', icon: <SettingsIcon size={18} />, action: (e: any) => setShowSettingsSidebar(true), active: showSettingsSidebar }
               ].map(tool => {
                 const isActive = tool.active;
                 const toolBg = isActive 
@@ -878,7 +877,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             <div className="flex flex-1">
               
               {/* Question & Options Side */}
-              <div className="flex flex-col flex-1 pr-6">
+              <div className="flex flex-col flex-1 pr-6 question-content-area">
                 <div 
                   ref={questionContentRef}
                   className="vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit]"
@@ -1071,7 +1070,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       
       {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
       {showLabValues && <LabValuesModal onClose={() => setShowLabValues(false)} />}
-      {settingsAnchorEl && <SettingsDropdown anchorEl={settingsAnchorEl} onClose={() => setSettingsAnchorEl(null)} />}
+      {showSettingsSidebar && <SettingsSidebar onClose={() => setShowSettingsSidebar(false)} />}
       {showNotes && <QuestionNotesModal 
         isOpen={showNotes} 
         onClose={() => { setShowNotes(false); setNotebookAppendText(null); }} 
