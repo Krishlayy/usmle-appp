@@ -170,6 +170,59 @@ function TimerDisplay({
   );
 }
 
+// --- Question Timer -------------------------------------------------------
+// A small, self-contained ticking display, mirroring the same pattern as
+// TimerDisplay above (one interval, minimal state lifted to the parent).
+// `baseSeconds` is the already-committed accumulated time for this question
+// (the single source of truth, persisted via localStorage + autosave).
+// This component only tracks *local* seconds elapsed since it was mounted /
+// since baseSeconds last changed, and periodically asks the parent to commit
+// that local elapsed time back into baseSeconds via onCheckpoint — at which
+// point this component's local counter resets to 0 and keeps ticking from
+// the new (higher) baseSeconds. This means the parent's `questions` state
+// (and therefore localStorage + autosave) is only touched roughly once every
+// 10 seconds while idling on a question, not once per second.
+function QuestionTimerDisplay({
+  questionId,
+  baseSeconds,
+  isTicking,
+  onCheckpoint,
+  className = '',
+}: {
+  questionId: string;
+  baseSeconds: number;
+  isTicking: boolean;
+  onCheckpoint: () => void;
+  className?: string;
+}) {
+  const [localElapsed, setLocalElapsed] = useState(0);
+
+  // Keep the checkpoint callback in a ref so the effect below doesn't need
+  // to depend on it directly (it's a fresh closure every parent render).
+  const onCheckpointRef = useRef(onCheckpoint);
+  useEffect(() => { onCheckpointRef.current = onCheckpoint; }, [onCheckpoint]);
+
+  useEffect(() => {
+    setLocalElapsed(0);
+    if (!isTicking) return;
+
+    let ticks = 0;
+    const interval = setInterval(() => {
+      ticks += 1;
+      setLocalElapsed(ticks);
+      if (ticks % 10 === 0) {
+        onCheckpointRef.current();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+    // Resets (and restarts) whenever we switch questions, or whenever a
+    // checkpoint bumps baseSeconds up from the parent.
+  }, [questionId, baseSeconds, isTicking]);
+
+  return <span className={className}>{formatTime(baseSeconds + localElapsed)}</span>;
+}
+
 export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
   return (
     <TestSettingsProvider>
@@ -240,6 +293,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             }
           }
           keysToRemove.forEach(k => localStorage.removeItem(k));
+          // NOTE: kept in sync with the primary stateToSave shape above so a quota-triggered
+          // retry doesn't silently drop highlight fields while keeping strikethroughs.
           const stateToSave = questions.map(q => ({
             id: q.id,
             isFlagged: q.isFlagged,
@@ -247,7 +302,9 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             isCorrect: q.isCorrect,
             timeTakenSec: q.timeTakenSec,
             notes: q.notes,
-            strikethroughs: q.strikethroughs
+            strikethroughs: q.strikethroughs,
+            highlightedQuestionText: q.highlightedQuestionText,
+            highlightedExplanation: q.highlightedExplanation
           }));
           localStorage.setItem(`test-session-state-${session.id}`, JSON.stringify(stateToSave));
         } catch (retryErr) {
@@ -306,12 +363,67 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     return () => window.removeEventListener('online', flushSyncQueue);
   }, [flushSyncQueue]);
 
+  // --- Consolidated autosave: merges concurrent field writes per question and
+  // debounces the network call, so selecting an answer + striking an option in quick
+  // succession can no longer race each other as separate partial-payload requests. ---
+  const pendingSavesRef = useRef<Record<string, any>>({});
+  const saveTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const sendAutosave = useCallback((payload: any) => {
+    fetch(`/api/test-sessions/${session.id}/autosave`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch((err) => {
+      console.error('Save failed', err);
+      pushToSyncQueue(payload);
+    });
+  }, [session.id, pushToSyncQueue]);
+
+  const scheduleAutosave = useCallback((questionProgressId: string, fields: Record<string, any>) => {
+    const existing = pendingSavesRef.current[questionProgressId] || { questionProgressId };
+    pendingSavesRef.current[questionProgressId] = { ...existing, ...fields };
+
+    if (saveTimersRef.current[questionProgressId]) {
+      clearTimeout(saveTimersRef.current[questionProgressId]);
+    }
+
+    saveTimersRef.current[questionProgressId] = setTimeout(() => {
+      const toSend = pendingSavesRef.current[questionProgressId];
+      delete pendingSavesRef.current[questionProgressId];
+      delete saveTimersRef.current[questionProgressId];
+      sendAutosave(toSend);
+    }, 350);
+  }, [sendAutosave]);
+
+  const flushPendingSaves = useCallback(() => {
+    Object.keys(saveTimersRef.current).forEach(id => clearTimeout(saveTimersRef.current[id]));
+    saveTimersRef.current = {};
+    const pending = pendingSavesRef.current;
+    pendingSavesRef.current = {};
+    Object.values(pending).forEach(payload => sendAutosave(payload));
+  }, [sendAutosave]);
+
+  // Flush any debounced-but-unsent saves on unmount so navigating away from the
+  // player entirely never silently drops the last few seconds of edits.
+  // (Also commits any not-yet-accumulated question time — see commitElapsedTime below.)
+  useEffect(() => {
+    return () => {
+      commitElapsedTime();
+      flushPendingSaves();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flushPendingSaves]);
+
   const initialElapsed = useMemo(() => {
     return questions.reduce((acc, q) => acc + (q.timeTakenSec || 0), 0);
   }, [questions]);
 
   const [submitting, setSubmitting] = useState(false);
-  const [questionStartTime, setQuestionStartTime] = useState(Date.now());
+  // Ref-only "start of current unaccounted time interval" for the active question.
+  // Replaces the old `questionStartTime` state — nothing needs to re-render off of
+  // this value directly, it's only read/written inside commitElapsedTime.
+  const questionStartTimeRef = useRef(Date.now());
   const [isObscured, setIsObscured] = useState(false);
   
   const [showCalculator, setShowCalculator] = useState(false);
@@ -326,15 +438,12 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   const [showTutorial, setShowTutorial] = useState(false);
   
   useEffect(() => {
-    // Only show tutorial once per browser session or permanently, let's say once per test session init if not seen
     if (!localStorage.getItem('tutorial-seen-' + session.id)) {
       setShowTutorial(true);
     }
   }, [session.id]);
   
   const [showSecurityWarning, setShowSecurityWarning] = useState(session.mode !== 'review');
-
-
 
   const [contextMenu, setContextMenu] = useState<{
     top: number;
@@ -364,7 +473,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       }
 
       if (!settings.smartContextMenu) {
-        // Auto-highlight with default color if smart menu is disabled
         const colorMap: Record<string, string> = {
           'yellow': '#ffeb3b', 'pink': '#f48fb1', 'orange': '#ffb74d', 'blue': '#81d4fa', 'green': '#a5d6a7'
         };
@@ -377,7 +485,9 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
           document.execCommand('backColor', false, hex);
           targetRef.current.contentEditable = 'false';
           const newHtml = targetRef.current.innerHTML;
-          updateCurrentQuestionState(qContains ? { highlightedQuestionText: newHtml } : { highlightedExplanation: newHtml });
+          const updates = qContains ? { highlightedQuestionText: newHtml } : { highlightedExplanation: newHtml };
+          updateCurrentQuestionState(updates);
+          scheduleAutosave(currentQRef.current.id, updates);
           window.getSelection()?.removeAllRanges();
         }
         return;
@@ -406,7 +516,45 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
   const currentQ = questions[currentIndex];
 
+  // Single source of truth for "answer feedback is currently visible" — reused by the
+  // options fieldset, the explanation panel, and the strikethrough lock.
+  const showFeedback = (session.mode === 'tutor' && !!currentQ.selectedOptionId) || session.mode === 'review';
+
+  const currentIndexRef = useRef(currentIndex);
+  useEffect(() => { currentIndexRef.current = currentIndex; }, [currentIndex]);
+
+  const questionsRef = useRef(questions);
+  useEffect(() => { questionsRef.current = questions; }, [questions]);
+
+  // Kept as a ref too, purely so the mouseup handler above (and anything else declared
+  // earlier in the file) can always read the *current* question without needing to be
+  // redeclared after `currentQ` — avoids stale-closure bugs without adding dependencies.
+  const currentQRef = useRef(currentQ);
+  useEffect(() => { currentQRef.current = currentQ; }, [currentQ]);
+
+  // --- Single source of truth for question timing --------------------------------
+  // Computes how much time has elapsed since the last commit (navigation, answer
+  // selection, or a periodic checkpoint from the live QuestionTimerDisplay), adds it
+  // to the current question's timeTakenSec, persists it (state -> localStorage effect,
+  // plus a debounced autosave call), and resets the "start of interval" ref so the
+  // same elapsed seconds are never counted twice.
+  const commitElapsedTime = useCallback(() => {
+    const idx = currentIndexRef.current;
+    const q = questionsRef.current[idx];
+    const now = Date.now();
+    const deltaSec = Math.floor((now - questionStartTimeRef.current) / 1000);
+    questionStartTimeRef.current = now;
+    if (!q || deltaSec <= 0) return;
+
+    const timeTakenSec = q.timeTakenSec + deltaSec;
+    setQuestions(prev => prev.map((qq, i) => (i === idx ? { ...qq, timeTakenSec } : qq)));
+    scheduleAutosave(q.id, { timeTakenSec });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduleAutosave]);
+
   const finishSession = useCallback(async (finalQuestions: SessionQuestion[]) => {
+    commitElapsedTime();
+    flushPendingSaves();
     setSubmitting(true);
     fetch(`/api/test-sessions/${session.id}/submit`, { 
       method: 'POST', 
@@ -417,14 +565,12 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       router.push(`/dashboard/${session.qbankSlug}/session/${session.id}/results`);
       router.refresh();
     });
-  }, [session.id, session.qbankSlug, router]);
-  
-  const questionsRef = useRef(questions);
-  useEffect(() => { questionsRef.current = questions; }, [questions]);
+  }, [session.id, session.qbankSlug, router, flushPendingSaves, commitElapsedTime]);
 
   const handleTimeUp = useCallback(() => {
+    commitElapsedTime();
     finishSession(questionsRef.current);
-  }, [finishSession]);
+  }, [finishSession, commitElapsedTime]);
 
   const parentRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({
@@ -463,7 +609,9 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       else if (key === 'arrowleft') handlePrev();
       else if (key === ' ') {
         e.preventDefault();
-        updateCurrentQuestionState({ isFlagged: !currentQ.isFlagged });
+        const nextFlagged = !currentQ.isFlagged;
+        updateCurrentQuestionState({ isFlagged: nextFlagged });
+        scheduleAutosave(currentQ.id, { isFlagged: nextFlagged });
       } else if (['a', 'b', 'c', 'd', 'e', 'f', 'g'].includes(key)) {
         const optionIndex = key.charCodeAt(0) - 97;
         const option = currentQ.question.options[optionIndex];
@@ -484,42 +632,18 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
     const selectedOption = currentQ.question.options.find(o => o.id === optionId);
     const isCorrect = selectedOption?.isCorrect ?? false;
-    const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
-    
-    updateCurrentQuestionState({ 
-      selectedOptionId: optionId,
-      isCorrect,
-      timeTakenSec: currentQ.timeTakenSec + timeSpent
-    });
 
-    const payload = {
-      questionProgressId: currentQ.id,
-      selectedOptionId: optionId,
-      isCorrect,
-      timeTakenSec: currentQ.timeTakenSec + timeSpent
-    };
-
-    fetch(`/api/test-sessions/${session.id}/autosave`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).catch((err) => {
-      console.error('Save failed', err);
-      pushToSyncQueue(payload);
-    });
+    // Finalize whatever time has accumulated up to this exact moment into timeTakenSec
+    // first, so the answer-selection autosave and the timer's autosave never race
+    // each other over the same field.
+    commitElapsedTime();
+    updateCurrentQuestionState({ selectedOptionId: optionId, isCorrect });
+    scheduleAutosave(currentQ.id, { selectedOptionId: optionId, isCorrect });
   };
   
   const handleSaveNotes = (notes: string) => {
     updateCurrentQuestionState({ notes });
-    const payload = { questionProgressId: currentQ.id, notes };
-    fetch(`/api/test-sessions/${session.id}/autosave`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).catch((err) => {
-      console.error('Save failed', err);
-      pushToSyncQueue(payload);
-    });
+    scheduleAutosave(currentQ.id, { notes });
   };
 
   const navigateToIndex = (idx: number) => {
@@ -535,11 +659,9 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   };
 
   const proceedNext = () => {
-    const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
-    updateCurrentQuestionState({ timeTakenSec: currentQ.timeTakenSec + timeSpent });
+    commitElapsedTime();
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
-      setQuestionStartTime(Date.now());
     } else {
       handleEndBlock();
     }
@@ -553,6 +675,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     
     const confirmed = window.confirm("You are about to end this block. You will not be able to return to it. Do you want to proceed?");
     if (!confirmed) return;
+
+    commitElapsedTime();
     
     if (settings.confirmOmission) {
       const hasUnanswered = questions.some(q => !q.selectedOptionId);
@@ -568,21 +692,23 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     const confirmed = window.confirm("You are about to suspend this block. The timer will pause and you will be returned to the dashboard. Do you want to proceed?");
     if (!confirmed) return;
     
+    commitElapsedTime();
+    flushPendingSaves();
     router.push(`/dashboard/${session.qbankSlug}`);
   };
 
   const handlePrev = () => {
     if (currentIndex > 0) {
-      const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
-      updateCurrentQuestionState({ timeTakenSec: currentQ.timeTakenSec + timeSpent });
+      commitElapsedTime();
       setCurrentIndex(prev => prev - 1);
-      setQuestionStartTime(Date.now());
     }
   };
 
-  const toggleStrikethrough = (e: React.MouseEvent, optionId: string) => {
-    e.stopPropagation();
+  const toggleStrikethrough = (optionId: string) => {
     if (session.mode === 'review') return;
+    // Lock strike state once the answer/feedback is showing, consistent with the
+    // options themselves being disabled at that point (see `disabled={!!showFeedback}` below).
+    if (showFeedback) return;
     
     const currentStrikes = currentQ.strikethroughs || [];
     const newStrikes = currentStrikes.includes(optionId) 
@@ -590,13 +716,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       : [...currentStrikes, optionId];
       
     updateCurrentQuestionState({ strikethroughs: newStrikes });
-
-    const payload = { questionProgressId: currentQ.id, strikethroughs: newStrikes };
-    fetch(`/api/test-sessions/${session.id}/autosave`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).catch((err) => pushToSyncQueue(payload));
+    scheduleAutosave(currentQ.id, { strikethroughs: newStrikes });
   };
 
   const applyHighlight = (color: string) => {
@@ -615,6 +735,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       : { highlightedExplanation: newHtml };
       
     updateCurrentQuestionState(updates);
+    scheduleAutosave(currentQ.id, updates);
     setContextMenu(prev => ({ ...prev, show: false }));
     window.getSelection()?.removeAllRanges();
   };
@@ -638,7 +759,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     setContextMenu(prev => ({ ...prev, show: false }));
   };
 
-
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent | TouchEvent) => {
       let target = e.target as HTMLElement;
@@ -649,10 +769,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       }
       if (!target) return;
 
-      // Ignore clicks inside ExhibitDisplay
       if (target.closest('#exhibit-display-root')) return;
 
-      // Check if they clicked a media sidebar item with exhibit-trigger
       const trigger = target.closest('.exhibit-trigger') as HTMLElement;
       if (trigger && trigger.dataset.url) {
         e.preventDefault();
@@ -661,8 +779,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         return;
       }
 
-      // Only intercept if clicked inside the rich text areas (question or explanation)
-      // MediaRenderer handles its own clicks.
       if (!target.closest('.vignette-text') && !target.closest('.leading-relaxed')) {
         return;
       }
@@ -685,12 +801,10 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       }
       
       if (imgElement && imgElement.src) {
-        console.log("EXHIBIT CLICK DETECTED (IMAGE):", imgElement.src);
         e.preventDefault();
         e.stopPropagation();
         setZoomImage(imgElement.src);
       } else if (tableElement) {
-        console.log("EXHIBIT CLICK DETECTED (TABLE):", tableElement);
         e.preventDefault();
         e.stopPropagation();
         setZoomImage(tableElement.outerHTML);
@@ -712,7 +826,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
   const isDark = settings.colorTheme === 'dark';
   
-  // Theme variables based on exact screenshots
   const mainBg = isDark ? 'bg-slate-950' : 'bg-white';
   const mainText = isDark ? 'text-slate-200' : 'text-slate-900';
   const headerFooterBg = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
@@ -760,7 +873,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             Question<br/>Status
           </div>
           <div className="flex-1 overflow-y-auto bg-white">
-            {session.questions.map((q, idx) => {
+            {questions.map((q, idx) => {
               const isActive = idx === currentIndex;
               const isAnswered = !!q.selectedOptionId;
               const isFlagged = q.isFlagged;
@@ -773,13 +886,12 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   onClick={() => navigateToIndex(idx)}
                   className={`flex items-center pl-2 py-1.5 my-0.5 border-b border-transparent text-[12px] font-bold cursor-pointer transition-colors ${itemClass} hover:bg-slate-100`}
                 >
-                  <div className="w-[14px] flex justify-center mr-1">
-                    {isFlagged ? (
-                      <Flag size={10} className="fill-red-500 text-red-500" />
-                    ) : isAnswered ? (
-                      <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                    ) : (
-                      <div className="w-1 h-1 rounded-full bg-slate-300"></div>
+                  <div className="w-5 flex items-center justify-center gap-[2px] mr-1 shrink-0">
+                    {isAnswered && (
+                      <div className="w-2 h-2 rounded-full bg-black shrink-0" />
+                    )}
+                    {isFlagged && (
+                      <Flag size={10} className="fill-red-500 text-red-500 shrink-0" />
                     )}
                   </div>
                   {idx + 1}
@@ -867,7 +979,11 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 <input 
                   type="checkbox" 
                   checked={currentQ.isFlagged}
-                  onChange={() => updateCurrentQuestionState({ isFlagged: !currentQ.isFlagged })}
+                  onChange={() => {
+                    const nextFlagged = !currentQ.isFlagged;
+                    updateCurrentQuestionState({ isFlagged: nextFlagged });
+                    scheduleAutosave(currentQ.id, { isFlagged: nextFlagged });
+                  }}
                   className="w-4 h-4 accent-red-600 cursor-pointer"
                 />
                 <Flag size={16} className="fill-red-600 text-red-600" />
@@ -887,73 +1003,71 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 
                 {/* Options List */}
                 <div className="space-y-4">
-                  {(() => {
-                    const showFeedback = (session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review';
-                    return (
-                      <fieldset className={`border ${borderCol} p-5 rounded-xl ${isDark ? 'bg-slate-900' : 'bg-white'} shadow-sm`}>
-                        {currentQ.question.options.map((opt, i) => {
-                          const isSelected = currentQ.selectedOptionId === opt.id;
-                          const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
-                          
-                          let bgClass = "bg-transparent";
-                          if (showFeedback && opt.isCorrect) bgClass = isDark ? 'bg-green-900' : 'bg-[#008000] text-white';
-                          else if (showFeedback && isSelected) bgClass = isDark ? 'bg-red-900' : 'bg-[#f8d7da]';
+                  <fieldset className={`border ${borderCol} p-5 rounded-xl ${isDark ? 'bg-slate-900' : 'bg-white'} shadow-sm`}>
+                    {currentQ.question.options.map((opt, i) => {
+                      const isSelected = currentQ.selectedOptionId === opt.id;
+                      const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
+                      
+                      let bgClass = "bg-transparent";
+                      if (showFeedback && opt.isCorrect) bgClass = isDark ? 'bg-green-900' : 'bg-[#008000] text-white';
+                      else if (showFeedback && isSelected) bgClass = isDark ? 'bg-red-900' : 'bg-[#f8d7da]';
 
-                          return (
-                            <div key={opt.id} className={`flex items-start justify-between group ${bgClass} p-1`}>
-                              <div className="flex items-start flex-1">
-                                <input 
-                                  type="radio" 
-                                  name={`q-${currentQ.id}`}
-                                  checked={isSelected}
-                                  onChange={() => handleOptionSelect(opt.id)}
-                                  disabled={!!showFeedback}
-                                  className="mt-1 w-4 h-4 cursor-pointer accent-black shrink-0"
-                                />
-                                <div className="ml-3 flex-1 flex flex-col">
-                                  <div className={`flex ${isStruckThrough ? 'line-through text-gray-400' : ''}`}>
-                                    <span className="mr-2">{String.fromCharCode(65 + i)}.</span>
-                                    <span className="leading-snug" dangerouslySetInnerHTML={{ __html: opt.text }} />
-                                  </div>
-                                  {showFeedback && (opt as any).explanation && (
-                                    <div className="mt-2 text-[13px] text-gray-800 bg-gray-50 p-2 rounded border border-gray-200">
-                                      <span dangerouslySetInnerHTML={{ __html: (opt as any).explanation }} />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              {/* Strikethrough icon button on the right */}
-                              <button 
-                                onClick={(e) => { if(!showFeedback) toggleStrikethrough(e, opt.id); }}
-                                className="ml-4 opacity-0 group-hover:opacity-50 hover:opacity-100 transition-opacity"
-                                title="Strike out option"
-                              >
-                                <Strikethrough size={16} />
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </fieldset>
-                    );
-                  })()}
-                  
-                  {(() => {
-                    const showFeedback = (session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review';
-                    if (showFeedback) {
                       return (
-                        <div className={`mt-8 pt-4 border-t ${borderCol}`}>
-                          <div className="font-bold mb-2 uppercase text-[13px]">Explanation:</div>
-                          <div 
-                            ref={explanationContentRef}
-                            className="leading-relaxed [&_*]:text-[length:inherit]"
-                            dangerouslySetInnerHTML={{ __html: currentQ.highlightedExplanation || currentQ.question.explanation || '' }}
-                          />
+                        <div key={opt.id} className={`flex items-start justify-between group ${bgClass} p-1 rounded transition-colors`}>
+                          <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
+                            <input 
+                              type="radio" 
+                              name={`q-${currentQ.id}`}
+                              checked={isSelected}
+                              onChange={() => handleOptionSelect(opt.id)}
+                              disabled={!!showFeedback}
+                              className="mt-1 w-4 h-4 cursor-pointer accent-black shrink-0"
+                            />
+                            <div className="ml-3 flex-1 flex flex-col">
+                              <div className={`flex ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
+                                <span className="mr-2">{String.fromCharCode(65 + i)}.</span>
+                                <span className="leading-snug" dangerouslySetInnerHTML={{ __html: opt.text }} />
+                              </div>
+                              {showFeedback && (opt as any).explanation && (
+                                <div className="mt-2 text-[13px] text-gray-800 bg-gray-50 p-2 rounded border border-gray-200">
+                                  <span dangerouslySetInnerHTML={{ __html: (opt as any).explanation }} />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Strike Through Button */}
+                          {session.mode !== 'review' && (
+                            <button 
+                              type="button"
+                              onClick={() => toggleStrikethrough(opt.id)}
+                              disabled={showFeedback}
+                              aria-label={isStruckThrough ? `Remove strikethrough from option ${String.fromCharCode(65 + i)}` : `Strike out option ${String.fromCharCode(65 + i)}`}
+                              aria-pressed={!!isStruckThrough}
+                              className={`ml-4 p-1 rounded transition-all shrink-0 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50
+                                opacity-40 sm:opacity-0
+                                sm:group-hover:opacity-60 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:!opacity-100
+                                disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:!opacity-20 disabled:hover:bg-transparent`}
+                              title="Strike out option"
+                            >
+                              <Strikethrough size={16} />
+                            </button>
+                          )}
                         </div>
                       );
-                    }
-                    return null;
-                  })()}
+                    })}
+                  </fieldset>
+                  
+                  {showFeedback && (
+                    <div className={`mt-8 pt-4 border-t ${borderCol}`}>
+                      <div className="font-bold mb-2 uppercase text-[13px]">Explanation:</div>
+                      <div 
+                        ref={explanationContentRef}
+                        className="leading-relaxed [&_*]:text-[length:inherit]"
+                        dangerouslySetInnerHTML={{ __html: currentQ.highlightedExplanation || currentQ.question.explanation || '' }}
+                      />
+                    </div>
+                  )}
                 </div>
                 
                 {/* Proceed Button */}
@@ -968,7 +1082,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               {currentQ.question.media && currentQ.question.media.length > 0 && (
                 <div className="w-[400px] shrink-0 pl-4">
                   <div className="border border-gray-400 shadow-[4px_4px_10px_rgba(0,0,0,0.2)] bg-white p-1 flex">
-                    {/* Media Toolbar */}
                     <div className="w-12 flex flex-col items-center gap-4 py-2 border-r border-gray-200 mr-2 shrink-0">
                       <button 
                         className="exhibit-trigger flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
@@ -1007,7 +1120,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         <span className="text-[10px]">Zoom</span>
                       </button>
                     </div>
-                    {/* Image */}
                     <div className="flex-1 flex items-center justify-center bg-[#0000ff] min-h-[300px]">
                       {currentQ.question.media.map(m => (
                         <MediaRenderer key={m.id} media={m} setZoomImage={setZoomImage} />
@@ -1019,29 +1131,41 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               
             </div>
             
-      
-      {showTutorial && (
-        <TestTutorial onComplete={() => {
-          setShowTutorial(false);
-          localStorage.setItem('tutorial-seen-' + session.id, 'true');
-        }} />
-      )}
-    </main>
+            {showTutorial && (
+              <TestTutorial onComplete={() => {
+                setShowTutorial(false);
+                localStorage.setItem('tutorial-seen-' + session.id, 'true');
+              }} />
+            )}
+          </main>
         </div>
       </div>
 
       <footer className={`relative h-[40px] flex items-center justify-between px-4 shrink-0 select-none w-full ${headerFooterBg} ${headerFooterText} border-t ${borderCol}`}>
         <div className={`flex flex-col text-[11px] font-semibold leading-none px-1.5 py-0.5 justify-center h-full`}>
-          <div className="flex items-center gap-2">
-            <span className="text-slate-500 uppercase tracking-wider text-[9px]">Block Time</span>
-            <TimerDisplay 
-              initialElapsed={0} 
-              initialTimeLeft={session.durationSec ? Math.max(0, session.durationSec - initialElapsed) : null} 
-              isTimed={true} 
-              onTimeUp={handleEndBlock} 
-              type="remaining"
-              className="text-[12px] font-mono font-bold text-slate-700"
-            />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 uppercase tracking-wider text-[9px]">Block Time</span>
+              <TimerDisplay 
+                initialElapsed={0} 
+                initialTimeLeft={session.durationSec ? Math.max(0, session.durationSec - initialElapsed) : null} 
+                isTimed={true} 
+                onTimeUp={handleEndBlock} 
+                type="remaining"
+                className="text-[12px] font-mono font-bold text-slate-700"
+              />
+            </div>
+            <div className="flex items-center gap-2 border-l border-slate-300 pl-4">
+              <span className="text-slate-500 uppercase tracking-wider text-[9px]">Question Time</span>
+              <QuestionTimerDisplay
+                key={currentQ.id}
+                questionId={currentQ.id}
+                baseSeconds={currentQ.timeTakenSec}
+                isTicking={session.mode !== 'review'}
+                onCheckpoint={commitElapsedTime}
+                className="text-[12px] font-mono font-bold text-slate-700"
+              />
+            </div>
           </div>
         </div>
         
@@ -1084,7 +1208,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
           mediaUrl={zoomImage} 
           onClose={() => setZoomImage(null)} 
           onAddToNotes={() => {
-            // we will hook this up to notes system in phase 4
             setShowNotes(true);
           }}
         />
