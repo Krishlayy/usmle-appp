@@ -5,9 +5,7 @@ import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import { CheckoutButton } from '@/components/CheckoutButton';
 import { getCachedOrFetch } from '@/lib/redis';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { ArrowRight, Lock, Unlock } from 'lucide-react';
+import { ArrowRight, Bell, CircleUserRound, Lock, ShieldCheck, Unlock } from 'lucide-react';
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -50,18 +48,17 @@ export default async function DashboardPage() {
 
   const availableQbanks = allActiveQbanks.filter(qb => !purchasedQbankIds.includes(qb.id));
 
-  // Calculate real analytics for purchased QBanks
   const userProgress = await prisma.userProgress.findMany({
     where: {
       userId: session.user.id,
       qbankId: { in: purchasedQbankIds },
-      selectedAnswer: { not: null }, // Only count attempted questions
+      selectedAnswer: { not: null },
     },
     select: { qbankId: true, questionId: true, isCorrect: true },
   });
 
   const analyticsMap: Record<string, { attempted: Set<string>; correct: Set<string> }> = {};
-  
+
   purchasedQbankIds.forEach(id => {
     analyticsMap[id] = { attempted: new Set(), correct: new Set() };
   });
@@ -75,106 +72,167 @@ export default async function DashboardPage() {
     }
   });
 
+  const displayName = session.user.name || session.user.email?.split('@')[0] || 'there';
+  const brand = 'Micro Q Bank';
+  const navItems = [
+    { label: 'Dashboard', href: '/dashboard' },
+    ...(isAdmin ? [{ label: 'Admin', href: '/admin' }] : []),
+    { label: 'Log Out', href: '/login' },
+  ];
+  const utilityItems = [
+    { label: 'Alerts', href: '#' },
+    { label: 'Account', href: '#' },
+  ];
+  const footerLinks = [
+    { label: 'Privacy Policy', href: '#' },
+    { label: 'Support', href: '#' },
+    { label: 'Contact', href: '#' },
+  ];
+
   return (
-    <div className="container mx-auto py-12 px-4 md:px-8 max-w-7xl animate-page-enter">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4">
-        <div>
-          <h1 className="text-scale-2xl text-primary mb-2">My Dashboard</h1>
-          <p className="text-scale-base text-secondary font-medium">Welcome back, {session.user.name || session.user.email?.split('@')[0]}</p>
-        </div>
-      </div>
-
-      <section className="mb-12">
-        <div className="flex items-center gap-3 mb-6 border-b border-[var(--color-border-subtle)] pb-4">
-          <Unlock className="w-5 h-5 text-primary" />
-          <h2 className="text-scale-lg text-primary tracking-tight m-0">Active Subscriptions</h2>
-        </div>
-        
-        {purchases.length === 0 ? (
-          <Card elevation="subtle" className="p-12 text-center flex flex-col items-center justify-center bg-[var(--color-surface-subtle)]">
-            <Lock className="w-12 h-12 text-muted mb-4 stroke-[1.5px]" />
-            <h3 className="text-scale-lg text-primary mb-2">No active QBanks</h3>
-            <p className="text-scale-base text-secondary max-w-md">You haven&apos;t unlocked any question banks yet. Browse the store below to start practicing.</p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {purchases.map(({ qbank }) => {
-              const attemptedCount = analyticsMap[qbank.id]?.attempted.size || 0;
-              const totalCount = qbank.totalQuestions || 1; // avoid div by 0
-              const percentage = Math.round((attemptedCount / totalCount) * 100);
-              const displayPercentage = Math.min(percentage, 100);
-
-              return (
-              <Card key={qbank.id} elevation="elevated" className="group flex flex-col hover:-translate-y-1 transition-transform duration-300">
-                <div className="p-6 flex flex-col flex-1">
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="text-scale-lg font-bold text-primary group-hover:text-accent transition-colors">{qbank.title}</h3>
-                    <span className="inline-flex items-center rounded-md bg-[var(--color-surface-subtle)] px-2.5 py-1 text-scale-xs font-semibold text-secondary border border-[var(--color-border-subtle)]">
-                      {qbank.specialtyTag}
-                    </span>
-                  </div>
-                  
-                  <div className="mt-auto">
-                    <div className="flex justify-between text-scale-sm mb-3 font-semibold">
-                      <span className="text-secondary">Completion</span>
-                      <span className="text-primary">{displayPercentage}%</span>
-                    </div>
-                    <div className="w-full bg-[var(--color-border-subtle)] h-2 rounded-full overflow-hidden">
-                      <div className="bg-[var(--color-primary)] h-full transition-all duration-1000 ease-out rounded-full" style={{ width: `${displayPercentage}%` }}></div>
-                    </div>
-                    <p className="text-scale-xs text-muted mt-3 text-right font-medium">{attemptedCount} / {qbank.totalQuestions} Questions</p>
-                  </div>
-                </div>
-                <div className="px-6 py-5 border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-subtle)] mt-auto">
-                  <Link href={`/dashboard/${qbank.slug}`} className="w-full block">
-                    <Button variant="primary" className="w-full gap-2">
-                      Go to Analytics & Practice <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
-            )})}
+    <div className="min-h-screen bg-[#F5F5F5] text-[#1a1a1a] flex flex-col">
+      <header className="border-b border-[#E8E8E8] bg-white shadow-sm">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-semibold tracking-tight text-[#1a1a1a]">{brand}</span>
           </div>
-        )}
-      </section>
 
-      <section className="mb-12">
-        <div className="flex items-center gap-3 mb-6 border-b border-[var(--color-border-subtle)] pb-4">
-          <Lock className="w-5 h-5 text-primary" />
-          <h2 className="text-scale-lg text-primary tracking-tight m-0">Available to Unlock</h2>
-        </div>
-        
-        {availableQbanks.length === 0 ? (
-          <Card elevation="subtle" className="p-8 text-center text-secondary bg-[var(--color-surface-subtle)] font-medium">
-            You own all available question banks!
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {availableQbanks.map((qbank) => (
-              <Card key={qbank.id} elevation="subtle" className="flex flex-col hover:border-[var(--color-primary)] transition-colors duration-200">
-                <div className="p-6 flex flex-col flex-1">
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="text-scale-lg font-bold text-primary">{qbank.title}</h3>
-                    <span className="inline-flex items-center rounded-md bg-[var(--color-surface-subtle)] px-2.5 py-1 text-scale-xs font-semibold text-secondary border border-[var(--color-border-subtle)]">
-                      {qbank.specialtyTag}
-                    </span>
-                  </div>
-                  <p className="text-secondary text-scale-sm mt-auto mb-2 line-clamp-3 leading-relaxed">
-                    {qbank.description}
-                  </p>
-                </div>
-                <div className="px-6 py-5 border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-subtle)] flex flex-col gap-4 mt-auto">
-                  <div className="flex items-center justify-between">
-                    <span className="text-scale-sm font-semibold text-secondary">{qbank.totalQuestions} Questions</span>
-                    <span className="text-scale-xl font-bold text-primary">${(qbank.price / 100).toFixed(2)}</span>
-                  </div>
-                  <CheckoutButton qbankId={qbank.id} />
-                </div>
-              </Card>
+          <nav aria-label="Main navigation" className="flex flex-wrap items-center justify-center gap-4 text-sm text-[#666]">
+            {navItems.map((item) => (
+              <Link key={item.label} href={item.href} className="transition-colors hover:text-[#1a1a1a]">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center justify-end gap-3">
+            {utilityItems.map((item) => (
+              <Link key={item.label} href={item.href} className="flex items-center gap-2 rounded-full border border-[#E8E8E8] bg-[#FAFAFA] px-3 py-2 text-sm text-[#999] transition-colors hover:text-[#1a1a1a]">
+                {item.label === 'Alerts' ? <Bell className="h-4 w-4" /> : <CircleUserRound className="h-4 w-4" />}
+                <span>{item.label}</span>
+              </Link>
             ))}
           </div>
-        )}
-      </section>
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 py-10 md:px-8 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8">
+          <section className="flex flex-col gap-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-[#1a1a1a]">My Dashboard</h1>
+            <p className="text-[#666]">Welcome back, {displayName}</p>
+          </section>
+
+          <section className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-[#E8E8E8] pb-3">
+              <Unlock className="h-5 w-5 text-[#999]" />
+              <h2 className="m-0 text-sm font-semibold uppercase tracking-[0.2em] text-[#999]">Active Subscriptions</h2>
+            </div>
+
+            {purchases.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#E8E8E8] bg-white p-10 text-center">
+                <Lock className="mb-4 h-12 w-12 stroke-[1.5px] text-[#CCC]" />
+                <h3 className="mb-2 text-xl font-semibold text-[#1a1a1a]">No active QBanks</h3>
+                <p className="max-w-md text-[#666]">You haven&apos;t unlocked any question banks yet. Browse the store below to start practicing.</p>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {purchases.map(({ qbank }, index) => {
+                  const attemptedCount = analyticsMap[qbank.id]?.attempted.size || 0;
+                  const totalCount = qbank.totalQuestions || 1;
+                  const percentage = Math.round((attemptedCount / totalCount) * 100);
+                  const displayPercentage = Math.min(percentage, 100);
+
+                  return (
+                    <article
+                      key={qbank.id}
+                      className="flex flex-col gap-4 rounded-2xl border border-[#E8E8E8] bg-white p-6 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <h3 className="text-lg font-semibold text-[#1a1a1a]">{qbank.title}</h3>
+                        <span className="inline-flex items-center rounded-full border border-[#E8E8E8] bg-[#FAFAFA] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#999]">
+                          {qbank.specialtyTag}
+                        </span>
+                      </div>
+
+                      <div className="mt-auto flex flex-col gap-3">
+                        <div className="flex items-center justify-between text-sm font-semibold text-[#666]">
+                          <span>Completion</span>
+                          <span className="text-[#1a1a1a]">{displayPercentage}%</span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-[#E8E8E8]">
+                          <div className="h-full rounded-full bg-[#0D9488]" style={{ width: `${displayPercentage}%` }} />
+                        </div>
+                        <p className="text-right text-sm font-medium text-[#999]">{attemptedCount} / {qbank.totalQuestions} Questions</p>
+                      </div>
+
+                      <Link href={`/dashboard/${qbank.slug}`} className="mt-auto block">
+                        <span className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0D9488] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0a7d6f]">
+                          <span>Go to Analytics & Practice</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </span>
+                      </Link>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <section className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-[#E8E8E8] pb-3">
+              <Lock className="h-5 w-5 text-[#999]" />
+              <h2 className="m-0 text-sm font-semibold uppercase tracking-[0.2em] text-[#999]">Available to Unlock</h2>
+            </div>
+
+            {availableQbanks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#E8E8E8] bg-white p-10 text-center">
+                <ShieldCheck className="mb-4 h-12 w-12 text-[#0D9488]" />
+                <h3 className="mb-2 text-xl font-semibold text-[#1a1a1a]">You own all available question banks!</h3>
+                <p className="max-w-lg text-[#666]">Great work—there are no additional banks to unlock right now. Keep practicing your current subscriptions.</p>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {availableQbanks.map((qbank) => (
+                  <div key={qbank.id} className="flex flex-col rounded-2xl border border-[#E8E8E8] bg-white shadow-sm transition-colors hover:border-[#0D9488]">
+                    <div className="flex flex-1 flex-col gap-4 p-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <h3 className="text-lg font-semibold text-[#1a1a1a]">{qbank.title}</h3>
+                        <span className="inline-flex items-center rounded-full border border-[#E8E8E8] bg-[#FAFAFA] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#999]">
+                          {qbank.specialtyTag}
+                        </span>
+                      </div>
+                      <p className="mt-auto text-sm leading-relaxed text-[#666]">{qbank.description}</p>
+                    </div>
+                    <div className="flex flex-col gap-4 border-t border-[#E8E8E8] bg-[#FAFAFA] px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-[#999]">{qbank.totalQuestions} Questions</span>
+                        <span className="text-2xl font-bold text-[#1a1a1a]">${(qbank.price / 100).toFixed(2)}</span>
+                      </div>
+                      <CheckoutButton qbankId={qbank.id} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+
+      <footer className="border-t border-[#E8E8E8] bg-white shadow-sm">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 md:flex-row md:items-center md:justify-between md:px-8">
+          <p className="text-sm text-[#999]">
+            <span className="font-semibold text-[#1a1a1a]">{brand}</span> © 2026. All rights reserved.
+          </p>
+          <nav aria-label="Footer links" className="flex flex-wrap items-center gap-4 text-sm text-[#999]">
+            {footerLinks.map((item) => (
+              <Link key={item.label} href={item.href} className="transition-colors hover:text-[#1a1a1a]">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 }
