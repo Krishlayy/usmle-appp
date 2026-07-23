@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -10,6 +12,62 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('Seeding database...');
+
+  // If an import preview exists, import it first (requires DATABASE_URL).
+  const previewPath = path.resolve(process.cwd(), 'import_preview.json');
+  if (fs.existsSync(previewPath)) {
+    if (!connectionString) {
+      console.error('import_preview.json found but DATABASE_URL is not set. Set DATABASE_URL to import into the database.');
+      process.exit(1);
+    }
+
+    console.log('import_preview.json found — importing into database...');
+    const raw = fs.readFileSync(previewPath, 'utf-8');
+    const preview = JSON.parse(raw);
+    const qb = preview.qbank;
+    const questions = preview.questions || [];
+
+    const upsertQbank = await prisma.qBank.upsert({
+      where: { slug: qb.slug },
+      update: {},
+      create: {
+        title: qb.title || 'Imported QBank',
+        slug: qb.slug,
+        qbankCode: qb.qbankCode || (qb.slug || 'IMPORTED').toUpperCase(),
+        description: qb.description || '',
+        specialtyTag: qb.specialtyTag || 'General',
+        price: qb.price ?? 0,
+        currency: qb.currency || 'USD',
+        totalQuestions: questions.length,
+        isActive: qb.isActive ?? true,
+      },
+    });
+
+    console.log(`Upserted QBank: ${upsertQbank.title} (id=${upsertQbank.id}). Clearing existing questions...`);
+    await prisma.question.deleteMany({ where: { qbankId: upsertQbank.id } });
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      const qidBase = upsertQbank.qbankCode || upsertQbank.slug || 'Q';
+      const qid = `${qidBase}-${i + 1}`;
+
+      await prisma.question.create({
+        data: {
+          qid,
+          qbankId: upsertQbank.id,
+          questionText: q.questionText || '',
+          options: q.options && q.options.length ? q.options : [],
+          correctAnswer: q.correctAnswer || (q.options && q.options[0] ? q.options[0].id : 'A'),
+          explanation: q.explanation || '',
+          difficulty: q.difficulty || 'medium',
+          subtopic: q.subtopic || null,
+        },
+      });
+    }
+
+    console.log(`Imported ${questions.length} questions into qbank ${upsertQbank.slug}.`);
+    // after importing preview, continue to other seeds if desired
+  }
 
   // 1. Create Cardiology QBank
   const cardiologyQbank = await prisma.qBank.upsert({

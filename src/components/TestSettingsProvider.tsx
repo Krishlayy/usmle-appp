@@ -12,6 +12,7 @@ export interface TestSettings {
   showTimer: boolean;
   splitScreen: boolean;
   confirmOmission: boolean;
+  highlightOnSelect: boolean;
   defaultHighlighter: string;
   multicolorHighlighting: boolean;
   hidePercentage: boolean;
@@ -39,6 +40,7 @@ const defaultSettings: TestSettings = {
   confirmOmission: true,
   defaultHighlighter: 'yellow',
   multicolorHighlighting: false,
+  highlightOnSelect: true,
   hidePercentage: true,
   addToFlashcard: false,
   addToNotebook: true,

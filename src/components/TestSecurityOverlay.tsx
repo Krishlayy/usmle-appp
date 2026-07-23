@@ -3,27 +3,21 @@
 import { useEffect, useState } from 'react';
 
 export function TestSecurityOverlay({ 
+  userId, 
   userEmail, 
-  userIp, 
   children 
 }: { 
+  userId: string; 
   userEmail: string; 
-  userIp: string; 
   children: React.ReactNode; 
 }) {
   const [violationCount, setViolationCount] = useState(0);
   const [showViolationWarning, setShowViolationWarning] = useState(false);
-  const [realIp, setRealIp] = useState(userIp);
+  const [realEmail] = useState(userEmail);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Fetch real IP if server didn't catch it or if it's local
-    if (userIp === 'Unknown IP' || !userIp || userIp === '::1' || userIp === '1' || userIp === '127.0.0.1') {
-      fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(data => { if (data.ip) setRealIp(data.ip); })
-        .catch(() => setRealIp('Local Environment'));
-    }
+    // nothing to fetch — watermark uses userId and email provided by server
 
     const triggerViolation = async (reason: string) => {
       if (isProcessing) return;
@@ -104,19 +98,18 @@ export function TestSecurityOverlay({
       document.removeEventListener('cut', handleCopyPaste);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [userEmail, userIp, isProcessing]);
+  }, [userEmail,  isProcessing]);
 
   return (
     <div className="relative w-full h-full min-h-screen">
       {/* Watermark Overlay */}
-      <div 
-        className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden flex flex-wrap justify-center content-center select-none"
+      <div
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden flex flex-wrap justify-center content-center select-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='400px' width='1000px'><g transform='rotate(-45 500 200)' fill='%23000' font-family='Arial' font-weight='bold' opacity='0.3' text-anchor='middle'><text x='50%' y='40%' font-size='32'>${encodeURIComponent(userEmail)}</text><text x='50%' y='55%' font-size='28'>IP: ${encodeURIComponent(realIp)}</text></g></svg>")`,
+          backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='300px' width='800px'><g transform='rotate(-45 400 150)' fill='%23000000' font-family='Arial' font-weight='600' opacity='0.06' text-anchor='middle'><text x='50%' y='45%' font-size='18'>${encodeURIComponent(userId)}</text><text x='50%' y='60%' font-size='14'>${encodeURIComponent(userEmail)}</text></g></svg>")`,
           backgroundRepeat: 'repeat',
         }}
-      >
-      </div>
+      />
 
       {showViolationWarning && (
         <div className="fixed inset-0 bg-black/80 z-[10000] flex items-center justify-center p-4">
@@ -129,9 +122,9 @@ export function TestSecurityOverlay({
               You have performed a prohibited action (Right-Click, Screenshot, Windows Key, etc). 
             </p>
             <p className="text-slate-600 text-sm mb-6 bg-slate-100 p-3 rounded">
-              Your IP Address (<strong>{realIp}</strong>) and Email (<strong>{userEmail}</strong>) have been logged. <br/><br/>
-              <strong className="text-red-600">On your 3rd violation, your account will be permanently blocked.</strong>
-            </p>
+                Your User ID (<strong>{userId}</strong>) and Email (<strong>{userEmail}</strong>) have been logged. <br/><br/>
+                <strong className="text-red-600">On your 3rd violation, your account will be permanently blocked.</strong>
+              </p>
             <button 
               onClick={() => setShowViolationWarning(false)}
               className="bg-red-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-red-700 w-full transition-colors"

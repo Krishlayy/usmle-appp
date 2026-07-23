@@ -4,11 +4,11 @@ import { ShieldAlert, AlertTriangle } from 'lucide-react';
 
 interface TestSecurityWarningProps {
   onAccept: () => void;
+  userId?: string;
   userEmail?: string;
-  userIp?: string;
 }
 
-export function TestSecurityWarning({ onAccept, userEmail = 'Unknown', userIp = 'Unknown' }: TestSecurityWarningProps) {
+export function TestSecurityWarning({ onAccept, userId = 'Unknown', userEmail = 'Unknown' }: TestSecurityWarningProps) {
   return (
     <div className="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-8 border-t-8 border-red-600">
@@ -41,7 +41,7 @@ export function TestSecurityWarning({ onAccept, userEmail = 'Unknown', userIp = 
         </div>
 
         <div className="bg-slate-100 p-4 rounded-lg mb-8 text-sm text-slate-600 border border-slate-200">
-          Your IP Address (<strong>{userIp}</strong>) and Email (<strong>{userEmail}</strong>) will be visibly watermarked on the test and recorded if any violations occur.
+          Your User ID (<strong>{userId}</strong>) and Email (<strong>{userEmail}</strong>) will be visibly watermarked on the test and recorded if any violations occur.
         </div>
 
         <div className="flex justify-end gap-4">

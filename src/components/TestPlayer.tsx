@@ -169,15 +169,15 @@ function TimerDisplay({
   );
 }
 
-export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
+export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '', userId = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string, userId?: string }) {
   return (
     <TestSettingsProvider>
-      <TestPlayerInner session={session} initialIndex={initialIndex} userEmail={userEmail} userIp={userIp} />
+      <TestPlayerInner session={session} initialIndex={initialIndex} userEmail={userEmail} userIp={userIp} userId={userId} />
     </TestSettingsProvider>
   );
 }
 
-function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
+function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '', userId = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string, userId?: string }) {
   const router = useRouter();
   const { settings } = useTestSettings();
   
@@ -362,13 +362,13 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         return;
       }
 
-      if (!settings.smartContextMenu) {
-        // Auto-highlight with default color if smart menu is disabled
+      // If highlightOnSelect is enabled, auto-highlight when a selection is made.
+      // If smartContextMenu is enabled, show the menu instead so user can pick color.
+      if (settings.highlightOnSelect && !settings.smartContextMenu) {
         const colorMap: Record<string, string> = {
           'yellow': '#ffeb3b', 'pink': '#f48fb1', 'orange': '#ffb74d', 'blue': '#81d4fa', 'green': '#a5d6a7'
         };
         const hex = colorMap[settings.defaultHighlighter || 'yellow'] || '#ffeb3b';
-        
         const targetRef = qContains ? questionContentRef : explanationContentRef;
         if (targetRef.current) {
           targetRef.current.contentEditable = 'true';
@@ -379,6 +379,12 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
           updateCurrentQuestionState(qContains ? { highlightedQuestionText: newHtml } : { highlightedExplanation: newHtml });
           window.getSelection()?.removeAllRanges();
         }
+        return;
+      }
+
+      if (!settings.smartContextMenu) {
+        // Smart context menu disabled and not auto-highlighting: do nothing
+        setContextMenu(prev => ({ ...prev, show: false }));
         return;
       }
 
@@ -401,7 +407,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       window.removeEventListener('scroll', hideMenu, true);
       window.removeEventListener('resize', hideMenu);
     };
-  }, [settings.smartContextMenu]);
+  }, [settings.smartContextMenu, settings.highlightOnSelect, settings.defaultHighlighter, settings.multicolorHighlighting]);
 
   const currentQ = questions[currentIndex];
 
@@ -706,7 +712,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   }, []);
 
   if (showSecurityWarning && session.mode !== 'review') {
-    return <TestSecurityWarning onAccept={() => setShowSecurityWarning(false)} userEmail={userEmail} userIp={userIp} />;
+    return <TestSecurityWarning onAccept={() => setShowSecurityWarning(false)} userId={userId} userEmail={userEmail} />;
   }
 
   const isDark = settings.colorTheme === 'dark';
@@ -754,7 +760,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       <div className="flex flex-1 overflow-hidden">
         
         {/* Left Sidebar */}
-        <aside className={`w-[110px] flex flex-col shrink-0 overflow-hidden border-r ${borderCol} ${sidebarBg}`}>
+        <aside className={`w-[110px] h-full min-h-full flex flex-col shrink-0 overflow-hidden border-r ${borderCol} ${sidebarBg}`}>
           <div className={`h-[45px] flex items-center justify-center text-center leading-tight font-bold text-[11px] ${isDark ? 'bg-black border-[#00e5ff] text-[#00e5ff]' : 'bg-white border-black text-black'} border-b`}>
             Question<br/>Status
           </div>
@@ -877,7 +883,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             <div className="flex flex-1">
               
               {/* Question & Options Side */}
-              <div className="flex flex-col flex-1 pr-6 question-content-area">
+              <div className={`flex flex-col ${settings.splitScreen ? 'w-1/2' : 'flex-1'} pr-6 question-content-area`}>
                 <div 
                   ref={questionContentRef}
                   className="vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit]"
@@ -939,7 +945,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   
                   {(() => {
                     const showFeedback = (session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review';
-                    if (showFeedback) {
+                    if (showFeedback && !settings.splitScreen) {
                       return (
                         <div className={`mt-8 pt-4 border-t ${borderCol}`}>
                           <div className="font-bold mb-2 uppercase text-[13px]">Explanation:</div>
@@ -962,7 +968,19 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   </button>
                 </div>
               </div>
-              
+              {/* Explanation side (split view) */}
+              {settings.splitScreen && ((session.mode === 'tutor' && currentQ.selectedOptionId) || session.mode === 'review') && (
+                <div className="w-1/2 shrink-0 pl-6 border-l border-gray-100">
+                  <div className="sticky top-4">
+                    <div className="font-bold mb-2 uppercase text-[13px]">Explanation:</div>
+                    <div
+                      ref={explanationContentRef}
+                      className="leading-relaxed [&_*]:text-[length:inherit] bg-white p-4 rounded shadow-sm"
+                      dangerouslySetInnerHTML={{ __html: currentQ.highlightedExplanation || currentQ.question.explanation || '' }}
+                    />
+                  </div>
+                </div>
+              )}
               {/* Media Side */}
               {currentQ.question.media && currentQ.question.media.length > 0 && (
                 <div className="w-[400px] shrink-0 pl-4">

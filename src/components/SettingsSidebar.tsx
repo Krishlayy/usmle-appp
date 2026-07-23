@@ -361,6 +361,11 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
                 info={true}
               />
               <ToggleRow
+                label="Highlight On Select"
+                checked={settings.highlightOnSelect}
+                onChange={() => updateSetting('highlightOnSelect', !settings.highlightOnSelect)}
+              />
+              <ToggleRow
                 label="Answer Elimination"
                 checked={settings.answerElimination}
                 onChange={() => updateSetting('answerElimination', !settings.answerElimination)}

@@ -10,7 +10,10 @@ if (!process.env.NEXTAUTH_SECRET) {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Only use PrismaAdapter when a real DATABASE_URL is configured.
+  // This prevents NextAuth routes from crashing and returning HTML errors
+  // when running locally without a DB configured.
+  adapter: process.env.DATABASE_URL ? PrismaAdapter(prisma) : undefined,
   session: {
     strategy: 'jwt',
   },

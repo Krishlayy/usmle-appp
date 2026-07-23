@@ -85,10 +85,11 @@ export default async function TestSessionPage(
   const headersList = await headers();
   const ip = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'Unknown IP';
   const email = session.user.email || 'Unknown Email';
+  const userId = session.user.id;
 
   return (
-    <TestSecurityOverlay userEmail={email} userIp={ip}>
-      <TestPlayer session={mappedSession} initialIndex={!isNaN(initialIndex) ? initialIndex : 0} userEmail={email} userIp={ip} />
+    <TestSecurityOverlay userId={userId} userEmail={email}>
+      <TestPlayer session={mappedSession} initialIndex={!isNaN(initialIndex) ? initialIndex : 0} userEmail={email} userIp={ip} userId={userId} />
     </TestSecurityOverlay>
   );
 }
