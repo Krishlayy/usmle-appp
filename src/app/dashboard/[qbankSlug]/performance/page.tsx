@@ -98,6 +98,34 @@ export default async function PerformanceOverallPage(props: { params: Promise<{ 
 
         <h1 className="text-scale-2xl text-primary mb-8 tracking-tight">Performance Analytics</h1>
 
+        {rows.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Card elevation="elevated" className="bg-white overflow-hidden flex flex-col justify-between border-l-4 border-[var(--color-success)]">
+              <div className="p-6">
+                <h3 className="text-scale-sm font-bold text-secondary uppercase tracking-wider mb-2">Strongest Subject</h3>
+                <div className="text-xl font-bold text-primary mb-1">
+                  {[...rows].filter(r => r.attempted >= 5).sort((a, b) => b.correctPct - a.correctPct)[0]?.name || rows[0].name}
+                </div>
+                <div className="text-scale-sm text-secondary">
+                  Score: <span className="font-bold text-[var(--color-success)]">{[...rows].filter(r => r.attempted >= 5).sort((a, b) => b.correctPct - a.correctPct)[0]?.correctPct || rows[0].correctPct}%</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card elevation="elevated" className="bg-white overflow-hidden flex flex-col justify-between border-l-4 border-[var(--color-error)]">
+              <div className="p-6">
+                <h3 className="text-scale-sm font-bold text-secondary uppercase tracking-wider mb-2">Weakest Subject</h3>
+                <div className="text-xl font-bold text-primary mb-1">
+                  {[...rows].filter(r => r.attempted >= 5).sort((a, b) => a.correctPct - b.correctPct)[0]?.name || [...rows].sort((a, b) => a.correctPct - b.correctPct)[0].name}
+                </div>
+                <div className="text-scale-sm text-secondary">
+                  Score: <span className="font-bold text-[var(--color-error)]">{[...rows].filter(r => r.attempted >= 5).sort((a, b) => a.correctPct - b.correctPct)[0]?.correctPct || [...rows].sort((a, b) => a.correctPct - b.correctPct)[0].correctPct}%</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
         <Card elevation="elevated" className="overflow-hidden bg-white">
           <div className="p-6 border-b border-[var(--color-border-subtle)]">
             <div className="flex gap-8 border-b border-[var(--color-border-subtle)] pb-1 mb-6">

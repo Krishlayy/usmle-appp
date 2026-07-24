@@ -10,20 +10,20 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', isLoading = false, children, disabled, ...props }, ref) => {
     
-    const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-200 ease-out rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 disabled:opacity-50 disabled:cursor-not-allowed';
     
     const variants = {
-      primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] hover:-translate-y-[1px] hover:shadow-md active:translate-y-0 active:shadow-sm',
-      secondary: 'bg-white border-2 border-[var(--color-border-subtle)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-subtle)]',
-      tertiary: 'bg-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] underline-offset-4 hover:underline',
-      ghost: 'bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)] hover:text-[var(--color-text-primary)]',
+      primary: 'bg-primary text-white hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow-sm border border-transparent',
+      secondary: 'bg-white border-2 border-[var(--color-border-subtle)] text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-primary shadow-sm active:bg-slate-100',
+      tertiary: 'bg-transparent text-slate-500 hover:text-primary underline-offset-4 hover:underline',
+      ghost: 'bg-transparent text-slate-500 hover:bg-slate-100 hover:text-primary active:bg-slate-200',
     };
 
     const sizes = {
-      sm: 'h-8 px-4 text-scale-xs',
-      md: 'h-10 px-5 text-scale-sm',
-      lg: 'h-12 px-8 text-scale-base',
-      icon: 'h-10 w-10',
+      sm: 'h-9 px-4 text-[13px]',
+      md: 'h-11 px-6 text-[14px]',
+      lg: 'h-14 px-8 text-[16px]',
+      icon: 'h-11 w-11',
     };
 
     const combinedClasses = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`;

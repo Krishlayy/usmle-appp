@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", axes: ["SOFT", "WONK"] });
 
 export const metadata: Metadata = {
-  title: "Micro Q Bank | Premium Question Banks",
+  title: "Micro - Q bank | Premium Question Banks",
   description: "Topic-specific question banks tailored for medical excellence.",
 };
 

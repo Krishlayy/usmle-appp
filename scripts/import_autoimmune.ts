@@ -94,7 +94,7 @@ async function run() {
       return;
     }
 
-    if (currentSection === 'options' && el.tagName === 'table') {
+    if (currentSection === 'options' && (el as any).tagName === 'table') {
       $(el).find('tr').each((_, tr) => {
         const tds = $(tr).find('td');
         if (tds.length >= 2) {
@@ -155,7 +155,7 @@ async function run() {
   let inserted = 0;
   for (const q of questions) {
     // Extract images from vignette to create QuestionMedia
-    const $v = cheerio.load(q.vignette || '', null, false);
+    const $v = cheerio.load(q.vignette || '');
     const media: any[] = [];
     $v('img').each((_, imgEl) => {
       const src = $v(imgEl).attr('src');

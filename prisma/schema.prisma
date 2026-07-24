@@ -189,6 +189,8 @@ model UserProgress {
   timeTakenSec    Int?
   notes           String?
   strikethroughs  String[]     @default([])
+  highlightedQuestionText String?
+  highlightedExplanation  String?
   attemptedAt     DateTime     @default(now())
 
   @@unique([userId, questionId, testSessionId])

@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -46,33 +44,65 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center font-sans bg-[var(--background)] px-4 py-12 sm:px-6 lg:px-8">
-      
-      <div className="w-full max-w-[440px] flex flex-col items-center">
-        {/* Brand Header */}
-        <Link href="/" className="mb-8 flex flex-col items-center gap-4 hover:opacity-80 transition-opacity">
-          <svg className="w-12 h-12 text-primary" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-scale-xl text-primary m-0 tracking-tight">Micro Q-Bank</span>
-        </Link>
+    <div className="min-h-screen flex font-sans bg-white">
+      {/* Left Pane - Branding (Hidden on Mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-[var(--color-primary)] flex-col justify-between p-16 relative overflow-hidden">
+        {/* Subtle Background Pattern */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
+        
+        <div className="relative z-10">
+          <Link href="/" className="flex items-center gap-4 text-white hover:opacity-80 transition-opacity w-fit">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-2xl font-bold tracking-tight">Micro Q-Bank</span>
+          </Link>
+        </div>
 
-        <Card elevation="elevated" className="w-full p-8 sm:p-10 bg-white">
-          <div className="mb-8 text-center">
-            <h2 className="text-scale-lg text-primary mb-2">Create an account</h2>
-            <p className="text-scale-sm text-secondary">Join thousands of medical students today.</p>
+        <div className="relative z-10 max-w-md">
+          <h1 className="text-4xl font-bold text-white mb-6 leading-tight">Start your journey to board success.</h1>
+          <p className="text-lg text-blue-100/80 font-medium">Create an account in seconds and get access to the most high-yield clinical scenarios available.</p>
+          
+          <div className="mt-12 flex items-center gap-4">
+            <div className="flex -space-x-3">
+              <div className="w-10 h-10 rounded-full bg-blue-200 border-2 border-[var(--color-primary)]"></div>
+              <div className="w-10 h-10 rounded-full bg-blue-300 border-2 border-[var(--color-primary)]"></div>
+              <div className="w-10 h-10 rounded-full bg-blue-400 border-2 border-[var(--color-primary)]"></div>
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center border-2 border-[var(--color-primary)]">
+                <span className="text-xs font-bold text-primary">+10k</span>
+              </div>
+            </div>
+            <span className="text-sm text-blue-100 font-semibold">Medical Students</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Pane - Form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24">
+        <div className="w-full max-w-[400px] mx-auto">
+          {/* Mobile Header (Only visible on small screens) */}
+          <div className="lg:hidden flex items-center gap-3 mb-10">
+            <svg className="w-8 h-8 text-[var(--color-primary)]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-xl font-bold text-[var(--color-primary)] tracking-tight">Micro Q-Bank</span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-[var(--color-primary)] mb-2 tracking-tight">Create your account</h2>
+            <p className="text-base text-[var(--color-secondary)] font-medium">Join the platform trusted by top institutions.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="bg-red-50 text-red-700 px-4 py-3 rounded-md text-scale-sm border border-red-200">
+              <div className="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm border border-red-200 font-medium">
                 {error}
               </div>
             )}
             
             <div className="space-y-4">
               <div>
-                <label className="block text-scale-sm font-semibold text-primary mb-1.5" htmlFor="name">
+                <label className="block text-sm font-semibold text-[var(--color-primary)] mb-1.5" htmlFor="name">
                   Full Name
                 </label>
                 <input
@@ -81,14 +111,14 @@ export default function SignupPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-md border border-[var(--color-border-subtle)] focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:border-[var(--color-primary)] outline-none transition-all bg-[var(--color-surface-subtle)] focus:bg-white text-primary text-scale-sm"
-                  placeholder="John Doe"
+                  className="w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm"
+                  placeholder="Dr. John Doe"
                 />
               </div>
 
               <div>
-                <label className="block text-scale-sm font-semibold text-primary mb-1.5" htmlFor="email">
-                  Email Address
+                <label className="block text-sm font-semibold text-[var(--color-primary)] mb-1.5" htmlFor="email">
+                  Email
                 </label>
                 <input
                   id="email"
@@ -96,13 +126,13 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-md border border-[var(--color-border-subtle)] focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:border-[var(--color-primary)] outline-none transition-all bg-[var(--color-surface-subtle)] focus:bg-white text-primary text-scale-sm"
+                  className="w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm"
                   placeholder="name@university.edu"
                 />
               </div>
 
               <div>
-                <label className="block text-scale-sm font-semibold text-primary mb-1.5" htmlFor="password">
+                <label className="block text-sm font-semibold text-[var(--color-primary)] mb-1.5" htmlFor="password">
                   Password
                 </label>
                 <input
@@ -111,7 +141,7 @@ export default function SignupPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-md border border-[var(--color-border-subtle)] focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:border-[var(--color-primary)] outline-none transition-all bg-[var(--color-surface-subtle)] focus:bg-white text-primary text-scale-sm"
+                  className="w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm"
                   placeholder="Create a password (min 6 chars)"
                 />
               </div>
@@ -120,20 +150,20 @@ export default function SignupPage() {
             <Button
               type="submit"
               variant="primary"
-              className="w-full h-11 text-scale-sm"
+              className="w-full h-12 text-sm font-bold shadow-md hover:shadow-lg transition-all"
               isLoading={loading}
             >
               Sign Up
             </Button>
           </form>
-        </Card>
 
-        <p className="mt-8 text-center text-scale-sm text-secondary">
-          Already have an account?{' '}
-          <Link href="/login" className="text-primary hover:text-accent font-semibold underline underline-offset-4">
-            Log in
-          </Link>
-        </p>
+          <p className="mt-10 text-center text-sm text-[var(--color-secondary)] font-medium">
+            Already have an account?{' '}
+            <Link href="/login" className="text-[var(--color-primary)] hover:text-[var(--color-accent)] font-bold underline underline-offset-4">
+              Log in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ export function MediaRenderer({ media, setZoomImage }: { media: { id: string; ty
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-contain" 
-            unoptimized={media.url.startsWith('data:')}
+            unoptimized={true}
           />
         </button>
         {media.caption && <p className="text-sm text-slate-500 mt-2 font-medium text-center">{media.caption}</p>}

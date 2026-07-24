@@ -9,11 +9,11 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     
     const elevations = {
       flat: 'surface-flat',
-      subtle: 'surface-subtle',
+      subtle: 'surface-subtle border border-[var(--color-border-subtle)] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)]',
       elevated: 'surface-elevated',
     };
 
-    const combinedClasses = `rounded-lg overflow-hidden ${elevations[elevation]} ${className}`;
+    const combinedClasses = `rounded-2xl overflow-hidden bg-white ${elevations[elevation]} ${className}`;
 
     return (
       <div ref={ref} className={combinedClasses} {...props}>

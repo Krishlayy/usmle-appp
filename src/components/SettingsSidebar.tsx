@@ -60,10 +60,45 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
           </div>
         </div>
 
+        {/* Layout & Accessibility */}
+        <div className="mb-6">
+          <div className="text-[13px] font-bold text-gray-800 mb-2">Layout & Accessibility:</div>
+          <div className="flex flex-col">
+            <Toggle 
+              label="Split Screen Layout" 
+              checked={settings.splitScreen} 
+              onChange={() => updateSetting('splitScreen', !settings.splitScreen)} 
+            />
+            <div className="flex items-center justify-between py-2">
+              <span className="text-[13px] text-gray-700">Answer Layout</span>
+              <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+                <button 
+                  onClick={() => updateSetting('answerLayout', 'standard')}
+                  className={`px-3 py-1 text-[11px] font-bold ${settings.answerLayout === 'standard' ? 'bg-[#3b82f6] text-white' : 'bg-gray-100 text-gray-600'}`}
+                >Standard</button>
+                <button 
+                  onClick={() => updateSetting('answerLayout', 'compact')}
+                  className={`px-3 py-1 text-[11px] font-bold border-l border-gray-300 ${settings.answerLayout === 'compact' ? 'bg-[#3b82f6] text-white' : 'bg-gray-100 text-gray-600'}`}
+                >Compact</button>
+              </div>
+            </div>
+            <Toggle 
+              label="High Contrast Mode" 
+              checked={settings.highContrast} 
+              onChange={() => updateSetting('highContrast', !settings.highContrast)} 
+            />
+            <Toggle 
+              label="Show Keyboard Shortcuts" 
+              checked={settings.showShortcuts} 
+              onChange={() => updateSetting('showShortcuts', !settings.showShortcuts)} 
+            />
+          </div>
+        </div>
+
         {/* Color Theme */}
         <div className="mb-6">
           <div className="text-[13px] font-bold text-gray-800 mb-2">Color Theme:</div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="theme" checked={settings.colorTheme === 'light'} onChange={() => updateSetting('colorTheme', 'light')} className="w-4 h-4 text-blue-600 focus:ring-blue-600" />
               <span className="text-[13px] text-gray-700">Light</span>
@@ -71,6 +106,10 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="theme" checked={settings.colorTheme === 'dark'} onChange={() => updateSetting('colorTheme', 'dark')} className="w-4 h-4 text-blue-600 focus:ring-blue-600" />
               <span className="text-[13px] text-gray-700">Dark (Reverse Color)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="theme" checked={settings.colorTheme === 'sepia'} onChange={() => updateSetting('colorTheme', 'sepia')} className="w-4 h-4 text-blue-600 focus:ring-blue-600" />
+              <span className="text-[13px] text-gray-700">Sepia</span>
             </label>
           </div>
         </div>
@@ -80,42 +119,12 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
         {/* Toggles 1 */}
         <div className="space-y-1 mb-4">
           <Toggle label="Show Timer" checked={settings.showTimer} onChange={() => updateSetting('showTimer', !settings.showTimer)} />
-          <Toggle label="Split Screen" checked={settings.splitScreen} onChange={() => updateSetting('splitScreen', !settings.splitScreen)} />
           <Toggle label="Confirm Omission" checked={settings.confirmOmission} onChange={() => updateSetting('confirmOmission', !settings.confirmOmission)} />
-          <Toggle label="Add to Flashcard" checked={settings.addToFlashcard} onChange={() => updateSetting('addToFlashcard', !settings.addToFlashcard)} />
-          <Toggle label="Add to Notebook" checked={settings.addToNotebook} onChange={() => updateSetting('addToNotebook', !settings.addToNotebook)} />
-          <Toggle label="Add to Annotation" checked={settings.addToAnnotation} onChange={() => updateSetting('addToAnnotation', !settings.addToAnnotation)} />
-        </div>
-
-        <div className="h-px bg-gray-200 my-4 w-full"></div>
-
-        {/* Default Highlighter */}
-        <div className="mb-4">
-          <div className="text-[13px] text-gray-700 mb-2">Default Highlighter:</div>
-          <div className="flex items-center gap-2">
-            {[
-              { id: 'yellow', color: '#ffeb3b' },
-              { id: 'pink', color: '#f48fb1' },
-              { id: 'orange', color: '#ffb74d' },
-              { id: 'blue', color: '#81d4fa' },
-              { id: 'green', color: '#a5d6a7' }
-            ].map(h => (
-              <button 
-                key={h.id}
-                onClick={() => updateSetting('defaultHighlighter', h.id)}
-                className={`w-6 h-6 rounded-full border-2 transition-all ${settings.defaultHighlighter === h.id ? 'border-gray-800 scale-110' : 'border-transparent'}`}
-                style={{ backgroundColor: h.color }}
-              />
-            ))}
-          </div>
         </div>
 
         {/* Toggles 2 */}
         <div className="space-y-1">
-          <Toggle label="Multi-Color Highlighting" checked={settings.multicolorHighlighting} onChange={() => updateSetting('multicolorHighlighting', !settings.multicolorHighlighting)} />
-          <Toggle label="Smart Context Menu" checked={settings.smartContextMenu} onChange={() => updateSetting('smartContextMenu', !settings.smartContextMenu)} />
-          <Toggle label="Answer Elimination" checked={settings.answerElimination} onChange={() => updateSetting('answerElimination', !settings.answerElimination)} />
-          <Toggle label="Hide Percentage (%)" checked={settings.hidePercentage} onChange={() => updateSetting('hidePercentage', !settings.hidePercentage)} />
+          <Toggle label="Auto-Next Question" checked={settings.autoNext} onChange={() => updateSetting('autoNext', !settings.autoNext)} />
         </div>
 
       </div>

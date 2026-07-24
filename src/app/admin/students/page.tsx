@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import UnblockButton from '../users/UnblockButton';
 import PurchaseSearch from '../purchases/PurchaseSearch';
+import UserTable from '../components/UserTable';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,58 +50,7 @@ export default async function AdminStudentsPage(props: { searchParams: Promise<{
 
       <PurchaseSearch />
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-              <th className="p-4">Name / Email</th>
-              <th className="p-4">Joined</th>
-              <th className="p-4">Purchases</th>
-              <th className="p-4">Sessions</th>
-              <th className="p-4">Security</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {students.map((student) => (
-              <tr key={student.id} className="hover:bg-slate-50 transition-colors">
-                <td className="p-4">
-                  <div className="font-semibold text-slate-900">{student.name || 'No Name'}</div>
-                  <div className="text-sm text-slate-500">{student.email}</div>
-                </td>
-                <td className="p-4 text-slate-600">
-                  {new Date(student.createdAt).toLocaleDateString()}
-                </td>
-                <td className="p-4 text-slate-600">
-                  {student._count.purchases}
-                </td>
-                <td className="p-4 text-slate-600">
-                  {student._count.testSessions}
-                </td>
-                <td className="p-4">
-                  <div className="flex flex-col gap-2 items-start">
-                    {student.securityViolations > 0 && (
-                      <span className="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                        {student.securityViolations} Violations
-                      </span>
-                    )}
-                    {student.isBlocked && <UnblockButton userId={student.id} />}
-                    {!student.isBlocked && student.securityViolations === 0 && (
-                      <span className="text-xs text-slate-400">Clean</span>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {students.length === 0 && (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-500">
-                  No students found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <UserTable users={students} type="student" />
     </div>
   );
 }

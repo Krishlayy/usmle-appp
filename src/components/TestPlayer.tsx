@@ -4,62 +4,27 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import dynamic from 'next/dynamic';
-import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark, X, Clock, FlaskConical, PenLine, ArrowLeftCircle, ArrowRightCircle, Lock, XCircle, Flag, Strikethrough, AlertTriangle } from 'lucide-react';
+import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark, X, Clock, FlaskConical, PenLine, ArrowLeftCircle, ArrowRightCircle, Lock, XCircle, Flag, Strikethrough, AlertTriangle, Highlighter } from 'lucide-react';
 import { MediaRenderer } from '@/components/MediaRenderer';
 import { QuestionNotesModal } from './QuestionNotesModal';
 import { TestSettingsProvider, useTestSettings, TestSettings } from '@/components/TestSettingsProvider';
 import { Button } from '@/components/ui/Button';
 import { TestSecurityWarning } from '@/components/TestSecurityWarning';
-import { SettingsDropdown } from './SettingsDropdown';
 import { ExhibitDisplay } from './ExhibitDisplay';
 import { TestTutorial } from './TestTutorial';
+import DOMPurify from 'isomorphic-dompurify';
+import { TimerDisplay, QuestionTimerDisplay } from '@/features/test-player/components/Timers';
 
-const SmartContextMenu = ({ 
-  top, left, onHighlight, onNote, onFlashcard, onClose, settings 
-}: { 
-  top: number, left: number, onHighlight: (color: string) => void, onNote: () => void, onFlashcard: () => void, onClose: () => void, settings: TestSettings 
-}) => {
-  const colors = [
-    { id: 'yellow', hex: '#ffeb3b' },
-    { id: 'pink', hex: '#f48fb1' },
-    { id: 'orange', hex: '#ffb74d' },
-    { id: 'blue', hex: '#81d4fa' },
-    { id: 'green', hex: '#a5d6a7' }
-  ];
-  
-  const displayColors = settings.multicolorHighlighting 
-    ? colors 
-    : colors.filter(c => c.id === (settings.defaultHighlighter || 'yellow'));
 
-  return (
-    <div 
-      className="fixed z-[100] flex items-center gap-2 px-3 py-2 bg-white shadow-xl rounded-lg border border-gray-200 -translate-x-1/2 -translate-y-[calc(100%+10px)]"
-      style={{ top, left }}
-      onMouseDown={(e) => e.preventDefault()}
-    >
-      <div className="flex gap-1.5 border-r border-gray-200 pr-2">
-        {displayColors.map(c => (
-          <button
-            key={c.id}
-            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onHighlight(c.hex); onClose(); }}
-            className="w-5 h-5 rounded-full border border-gray-300 hover:scale-110 transition-transform"
-            style={{ backgroundColor: c.hex }}
-          />
-        ))}
-      </div>
-      <button onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onHighlight('transparent'); onClose(); }} className="p-1 hover:bg-gray-100 rounded text-gray-500" title="Remove Highlight">
-        <X className="w-4 h-4" />
-      </button>
-      <div className="w-px h-4 bg-gray-200 mx-1"></div>
-      <button onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onNote(); onClose(); }} className="p-1 hover:bg-gray-100 rounded text-gray-500" title="Add to Notebook">
-        <FileText className="w-4 h-4" />
-      </button>
-      <button onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onFlashcard(); onClose(); }} className="p-1 hover:bg-gray-100 rounded text-gray-500" title="Create Flashcard">
-        <Bookmark className="w-4 h-4" />
-      </button>
-    </div>
-  );
+import { useTestPlayerStore } from '@/store/useTestPlayerStore';
+const sanitizeHTML = (html: string) => {
+  return DOMPurify.sanitize(html, { 
+    ADD_ATTR: ['style', 'data-url', 'class', 'target', 'color', 'size', 'face'], 
+    ADD_TAGS: ['font'] 
+  });
 };
+
+
 
 const LightboxWrapper = dynamic(() => import('@/components/LightboxWrapper'), { ssr: false });
 const Calculator = dynamic(() => import('@/components/Calculator').then(mod => mod.Calculator), { ssr: false });
@@ -107,121 +72,7 @@ export interface TestSession {
   questions: SessionQuestion[];
 };
 
-const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-};
 
-function TimerDisplay({ 
-  initialTimeLeft, 
-  initialElapsed, 
-  isTimed, 
-  onTimeUp,
-  type = 'combined',
-  className = ''
-}: { 
-  initialTimeLeft: number | null, 
-  initialElapsed: number, 
-  isTimed: boolean, 
-  onTimeUp: () => void,
-  type?: 'elapsed' | 'remaining' | 'combined',
-  className?: string
-}) {
-  const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
-  const [timeElapsed, setTimeElapsed] = useState(initialElapsed);
-
-  useEffect(() => {
-    if (!isTimed || timeLeft === null) return;
-    if (timeLeft <= 0) {
-      onTimeUp();
-      return;
-    }
-    const timer = setInterval(() => {
-      setTimeLeft(prev => (prev && prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isTimed, timeLeft, onTimeUp]);
-
-  useEffect(() => {
-    const elapsedTimer = setInterval(() => {
-      setTimeElapsed(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(elapsedTimer);
-  }, []);
-
-  if (type === 'elapsed') {
-    return <span className={className}>{formatTime(timeElapsed)}</span>;
-  }
-  if (type === 'remaining') {
-    return <span className={className}>{timeLeft !== null ? formatTime(timeLeft) : '--:--:--'}</span>;
-  }
-
-  let colorClass = "text-primary";
-  if (isTimed && timeLeft !== null) {
-    if (timeLeft < 60) colorClass = "text-red-600";
-    else if (timeLeft < 300) colorClass = "text-amber-600";
-  }
-
-  return (
-    <div className={`font-mono font-bold tracking-wider transition-colors duration-500 ${colorClass} ${className}`}>
-      {isTimed ? (timeLeft !== null ? formatTime(timeLeft) : '--:--:--') : formatTime(timeElapsed)}
-    </div>
-  );
-}
-
-// --- Question Timer -------------------------------------------------------
-// A small, self-contained ticking display, mirroring the same pattern as
-// TimerDisplay above (one interval, minimal state lifted to the parent).
-// `baseSeconds` is the already-committed accumulated time for this question
-// (the single source of truth, persisted via localStorage + autosave).
-// This component only tracks *local* seconds elapsed since it was mounted /
-// since baseSeconds last changed, and periodically asks the parent to commit
-// that local elapsed time back into baseSeconds via onCheckpoint — at which
-// point this component's local counter resets to 0 and keeps ticking from
-// the new (higher) baseSeconds. This means the parent's `questions` state
-// (and therefore localStorage + autosave) is only touched roughly once every
-// 10 seconds while idling on a question, not once per second.
-function QuestionTimerDisplay({
-  questionId,
-  baseSeconds,
-  isTicking,
-  onCheckpoint,
-  className = '',
-}: {
-  questionId: string;
-  baseSeconds: number;
-  isTicking: boolean;
-  onCheckpoint: () => void;
-  className?: string;
-}) {
-  const [localElapsed, setLocalElapsed] = useState(0);
-
-  // Keep the checkpoint callback in a ref so the effect below doesn't need
-  // to depend on it directly (it's a fresh closure every parent render).
-  const onCheckpointRef = useRef(onCheckpoint);
-  useEffect(() => { onCheckpointRef.current = onCheckpoint; }, [onCheckpoint]);
-
-  useEffect(() => {
-    setLocalElapsed(0);
-    if (!isTicking) return;
-
-    let ticks = 0;
-    const interval = setInterval(() => {
-      ticks += 1;
-      setLocalElapsed(ticks);
-      if (ticks % 10 === 0) {
-        onCheckpointRef.current();
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-    // Resets (and restarts) whenever we switch questions, or whenever a
-    // checkpoint bumps baseSeconds up from the parent.
-  }, [questionId, baseSeconds, isTicking]);
-
-  return <span className={className}>{formatTime(baseSeconds + localElapsed)}</span>;
-}
 
 export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
   return (
@@ -233,15 +84,29 @@ export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '' 
 
 function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
   const router = useRouter();
-  const { settings } = useTestSettings();
+  const { settings, updateSetting } = useTestSettings();
   
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportType, setReportType] = useState('TYPO');
   const [reportDescription, setReportDescription] = useState('');
   const [reportStatus, setReportStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [questions, setQuestions] = useState<SessionQuestion[]>(() => {
+  const [highlightColor, setHighlightColor] = useState('#fef08a');
+  
+  const isPaused = useTestPlayerStore(state => state.isPaused);
+  const setIsPaused = useTestPlayerStore(state => state.setIsPaused);
+  
+  const currentIndex = useTestPlayerStore(state => state.currentIndex);
+  const setCurrentIndex = useTestPlayerStore(state => state.setCurrentIndex);
+  
+  const questions = useTestPlayerStore(state => state.questions);
+  const setQuestions = useTestPlayerStore(state => state.setQuestions);
+  const sessionId = useTestPlayerStore(state => state.sessionId);
+
+  const storeInitRef = useRef(false);
+  if (!storeInitRef.current || sessionId !== session.id) {
+    storeInitRef.current = true;
+    let initialQs = session.questions.sort((a, b) => a.order - b.order);
     try {
       if (typeof window !== 'undefined') {
         const localState = localStorage.getItem(`test-session-state-${session.id}`);
@@ -250,22 +115,19 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
           const localAnswered = parsed.filter((q: any) => q.selectedOptionId).length;
           const serverAnswered = session.questions.filter((q: any) => q.selectedOptionId).length;
           if (localAnswered > serverAnswered) {
-            const merged = session.questions.map(sq => {
+            initialQs = session.questions.map(sq => {
               const localQ = parsed.find((pq: any) => pq.id === sq.id);
-              if (localQ) {
-                return { ...sq, ...localQ, question: sq.question };
-              }
+              if (localQ) return { ...sq, ...localQ, question: sq.question };
               return sq;
-            });
-            return merged.sort((a, b) => a.order - b.order);
+            }).sort((a, b) => a.order - b.order);
           }
         }
       }
     } catch (e) {
       console.error('Failed to load local state', e);
     }
-    return session.questions.sort((a, b) => a.order - b.order);
-  });
+    useTestPlayerStore.setState({ sessionId: session.id, questions: initialQs, currentIndex: initialIndex, isPaused: false });
+  }
   
   useEffect(() => {
     try {
@@ -428,7 +290,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   
   const [showCalculator, setShowCalculator] = useState(false);
   const [showLabValues, setShowLabValues] = useState(false);
-  const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLElement | null>(null);
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [showFlashcardModal, setShowFlashcardModal] = useState(false);
   const [flashcardPrefillText, setFlashcardPrefillText] = useState('');
@@ -445,80 +307,62 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   
   const [showSecurityWarning, setShowSecurityWarning] = useState(session.mode !== 'review');
 
-  const [contextMenu, setContextMenu] = useState<{
-    top: number;
-    left: number;
-    show: boolean;
-    targetField: 'question' | 'explanation' | null;
-  }>({ top: 0, left: 0, show: false, targetField: null });
+
   
   const questionContentRef = useRef<HTMLDivElement>(null);
   const explanationContentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleSelection = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed || selection.toString().trim() === '') {
-        setContextMenu(prev => ({ ...prev, show: false }));
-        return;
-      }
-      
-      const range = selection.getRangeAt(0);
-      const qContains = questionContentRef.current?.contains(range.commonAncestorContainer);
-      const eContains = explanationContentRef.current?.contains(range.commonAncestorContainer);
-      
-      if (!qContains && !eContains) {
-        setContextMenu(prev => ({ ...prev, show: false }));
-        return;
-      }
-
-      if (!settings.smartContextMenu) {
-        const colorMap: Record<string, string> = {
-          'yellow': '#ffeb3b', 'pink': '#f48fb1', 'orange': '#ffb74d', 'blue': '#81d4fa', 'green': '#a5d6a7'
-        };
-        const hex = colorMap[settings.defaultHighlighter || 'yellow'] || '#ffeb3b';
-        
-        const targetRef = qContains ? questionContentRef : explanationContentRef;
-        if (targetRef.current) {
-          targetRef.current.contentEditable = 'true';
-          document.execCommand('styleWithCSS', false, 'true');
-          document.execCommand('backColor', false, hex);
-          targetRef.current.contentEditable = 'false';
-          const newHtml = targetRef.current.innerHTML;
-          const updates = qContains ? { highlightedQuestionText: newHtml } : { highlightedExplanation: newHtml };
-          updateCurrentQuestionState(updates);
-          scheduleAutosave(currentQRef.current.id, updates);
-          window.getSelection()?.removeAllRanges();
-        }
-        return;
-      }
-
-      const rect = range.getBoundingClientRect();
-      setContextMenu({
-        show: true,
-        top: rect.top, 
-        left: rect.left + rect.width / 2,
-        targetField: qContains ? 'question' : 'explanation',
-      });
-    };
-
-    document.addEventListener('mouseup', handleSelection);
-    const hideMenu = () => setContextMenu(prev => ({ ...prev, show: false }));
-    window.addEventListener('scroll', hideMenu, true);
-    window.addEventListener('resize', hideMenu);
+  const applyTextFormatting = (type: 'highlight' | 'strikethrough', explicitColor?: string) => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || selection.toString().trim() === '') {
+      return;
+    }
     
-    return () => {
-      document.removeEventListener('mouseup', handleSelection);
-      window.removeEventListener('scroll', hideMenu, true);
-      window.removeEventListener('resize', hideMenu);
-    };
-  }, [settings.smartContextMenu]);
+    const range = selection.getRangeAt(0).cloneRange();
+    const qContains = questionContentRef.current?.contains(range.commonAncestorContainer);
+    const eContains = explanationContentRef.current?.contains(range.commonAncestorContainer);
+    
+    if (!qContains && !eContains) {
+      return;
+    }
+
+    const targetRef = qContains ? questionContentRef : explanationContentRef;
+    if (targetRef.current) {
+      targetRef.current.contentEditable = 'true';
+      try {
+        document.execCommand('styleWithCSS', false, true as any);
+      } catch(e) {}
+      
+      if (type === 'highlight') {
+        const targetColor = explicitColor || highlightColor;
+        
+        if (targetColor === 'transparent') {
+          document.execCommand('backColor', false, 'transparent');
+          document.execCommand('hiliteColor', false, 'transparent');
+        } else {
+          document.execCommand('backColor', false, targetColor);
+          document.execCommand('hiliteColor', false, targetColor);
+        }
+      } else if (type === 'strikethrough') {
+        document.execCommand('strikeThrough', false, undefined);
+      }
+      
+      targetRef.current.contentEditable = 'false';
+      
+      const newHtml = targetRef.current.innerHTML;
+      const updates = qContains ? { highlightedQuestionText: newHtml } : { highlightedExplanation: newHtml };
+      updateCurrentQuestionState(updates);
+      scheduleAutosave(currentQRef.current.id, updates);
+      
+      window.getSelection()?.removeAllRanges();
+    }
+  };
 
   const currentQ = questions[currentIndex];
-
+  
   // Single source of truth for "answer feedback is currently visible" — reused by the
   // options fieldset, the explanation panel, and the strikethrough lock.
-  const showFeedback = (session.mode === 'tutor' && !!currentQ.selectedOptionId) || session.mode === 'review';
+  const showFeedback = (session.mode === 'tutor' && !!currentQ?.selectedOptionId) || session.mode === 'review';
 
   const currentIndexRef = useRef(currentIndex);
   useEffect(() => { currentIndexRef.current = currentIndex; }, [currentIndex]);
@@ -601,8 +445,9 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (!currentQ) return;
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-      if (!!settingsAnchorEl || omissionWarning || showCalculator) return;
+      if (settingsMenuOpen || omissionWarning || showCalculator) return;
       
       const key = e.key.toLowerCase();
       if (key === 'arrowright') handleNext();
@@ -620,7 +465,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, currentQ, questions, !!settingsAnchorEl, omissionWarning, showCalculator]);
+  }, [currentIndex, currentQ, questions, settingsMenuOpen, omissionWarning, showCalculator]);
 
   const updateCurrentQuestionState = (updates: Partial<SessionQuestion>) => {
     setQuestions(prev => prev.map((q, i) => i === currentIndex ? { ...q, ...updates } : q));
@@ -639,6 +484,12 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     commitElapsedTime();
     updateCurrentQuestionState({ selectedOptionId: optionId, isCorrect });
     scheduleAutosave(currentQ.id, { selectedOptionId: optionId, isCorrect });
+
+    if (settings.autoNext) {
+      setTimeout(() => {
+        handleNext();
+      }, 700);
+    }
   };
   
   const handleSaveNotes = (notes: string) => {
@@ -719,26 +570,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     scheduleAutosave(currentQ.id, { strikethroughs: newStrikes });
   };
 
-  const applyHighlight = (color: string) => {
-    if (!contextMenu.targetField) return;
-    const ref = contextMenu.targetField === 'question' ? questionContentRef : explanationContentRef;
-    if (!ref.current) return;
-    
-    ref.current.contentEditable = 'true';
-    document.execCommand('styleWithCSS', false, 'true');
-    document.execCommand('backColor', false, color === 'transparent' ? 'rgba(0,0,0,0)' : color);
-    ref.current.contentEditable = 'false';
-    
-    const newHtml = ref.current.innerHTML;
-    const updates = contextMenu.targetField === 'question' 
-      ? { highlightedQuestionText: newHtml }
-      : { highlightedExplanation: newHtml };
-      
-    updateCurrentQuestionState(updates);
-    scheduleAutosave(currentQ.id, updates);
-    setContextMenu(prev => ({ ...prev, show: false }));
-    window.getSelection()?.removeAllRanges();
-  };
+
 
   const handleAddToNotebook = () => {
     const text = window.getSelection()?.toString() || '';
@@ -747,7 +579,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       handleSaveNotes(newNotes);
       setShowNotes(true);
     }
-    setContextMenu(prev => ({ ...prev, show: false }));
   };
 
   const handleAddToFlashcard = () => {
@@ -756,7 +587,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       setFlashcardPrefillText(text);
       setShowFlashcardModal(true);
     }
-    setContextMenu(prev => ({ ...prev, show: false }));
   };
 
   useEffect(() => {
@@ -820,20 +650,29 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     };
   }, []);
 
+  if (!currentQ) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[var(--background)]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   if (showSecurityWarning && session.mode !== 'review') {
     return <TestSecurityWarning onAccept={() => setShowSecurityWarning(false)} userEmail={userEmail} userIp={userIp} />;
   }
 
   const isDark = settings.colorTheme === 'dark';
+  const isSepia = settings.colorTheme === 'sepia';
   
-  const mainBg = isDark ? 'bg-slate-950' : 'bg-white';
-  const mainText = isDark ? 'text-slate-200' : 'text-slate-900';
-  const headerFooterBg = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
-  const headerFooterText = isDark ? 'text-slate-300' : 'text-slate-700';
-  const sidebarBg = isDark ? 'bg-slate-900' : 'bg-slate-50';
-  const sidebarItemBg = isDark ? 'bg-transparent text-slate-400' : 'bg-transparent text-slate-500';
-  const sidebarActiveBg = isDark ? 'bg-slate-800 text-slate-100 shadow-sm rounded-md mx-1' : 'bg-white text-slate-900 shadow-sm border border-slate-200 rounded-md mx-1';
-  const borderCol = isDark ? 'border-slate-800' : 'border-slate-200';
+  const mainBg = isDark ? 'bg-slate-950' : isSepia ? 'bg-[#f4ecd8]' : 'bg-white';
+  const mainText = isDark ? 'text-slate-200' : isSepia ? 'text-[#5b4636]' : 'text-slate-900';
+  const headerFooterBg = isDark ? 'bg-slate-900 border-slate-800' : isSepia ? 'bg-[#e9e1c9] border-[#d4c6a6]' : 'bg-white border-slate-200';
+  const headerFooterText = isDark ? 'text-slate-300' : isSepia ? 'text-[#5b4636]' : 'text-slate-700';
+  const sidebarBg = isDark ? 'bg-slate-900' : isSepia ? 'bg-[#e9e1c9]' : 'bg-slate-50';
+  const sidebarItemBg = isDark ? 'bg-transparent text-slate-400' : isSepia ? 'bg-transparent text-[#7d6550]' : 'bg-transparent text-slate-500';
+  const sidebarActiveBg = isDark ? 'bg-slate-800 text-slate-100 shadow-sm rounded-md mx-1' : isSepia ? 'bg-[#f4ecd8] text-[#5b4636] shadow-sm border border-[#d4c6a6] rounded-md mx-1' : 'bg-white text-slate-900 shadow-sm border border-slate-200 rounded-md mx-1';
+  const borderCol = isDark ? 'border-slate-800' : isSepia ? 'border-[#d4c6a6]' : 'border-slate-200';
 
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -864,6 +703,21 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   return (
     <div className={`flex flex-col h-screen overflow-hidden font-sans ${mainBg} ${mainText}`} style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
       
+      {isPaused && (
+        <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-xl shadow-2xl text-center max-w-md w-full">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Block Paused</h2>
+            <p className="text-slate-600 mb-8">The block timer is currently paused. The questions are hidden to maintain test security.</p>
+            <button 
+              onClick={() => setIsPaused(false)}
+              className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg shadow hover:bg-slate-800 transition-colors"
+            >
+              Resume Block
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Section (Sidebar + Header + Main Content) */}
       <div className="flex flex-1 overflow-hidden">
         
@@ -907,10 +761,12 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
           {/* Top Header */}
           <header className={`h-[56px] flex items-center justify-between px-4 shrink-0 select-none border-b ${headerFooterBg} ${headerFooterText}`}>
             
-            {/* Left Block Info */}
-            <div className={`flex flex-col text-[12px] font-semibold leading-tight px-2`}>
-              <div className="text-slate-500 text-[10px] uppercase tracking-wider">Item {currentIndex + 1} of {session.questions.length}</div>
-              <div className="text-slate-700">Block 1</div>
+            {/* Left Block Info & Font Tools */}
+            <div className="flex items-center gap-4 px-2">
+              <div className={`flex flex-col text-[12px] font-semibold leading-tight`}>
+                <div className="text-slate-500 text-[10px] uppercase tracking-wider">Item {currentIndex + 1} of {session.questions.length}</div>
+                <div className="text-slate-700">Block 1</div>
+              </div>
             </div>
             
             {/* Center Navigation */}
@@ -938,13 +794,67 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             </div>
             
             {/* Right Tools */}
-            <div className="flex items-center gap-1 h-full pt-1">
+            <div className="flex h-full">
+              {session.mode === 'timed' && (
+                <button 
+                  onClick={() => setIsPaused(true)}
+                  className="flex flex-col items-center justify-center h-full px-4 pt-1 border-b-0 rounded-t-sm text-slate-500 border-transparent hover:text-slate-900 hover:bg-slate-50 mr-2"
+                >
+                  <div className="leading-none mb-0.5"><Clock size={18} /></div>
+                  <span className="text-[11px] font-bold pb-1">Pause</span>
+                </button>
+              )}
               {[
+                { 
+                  name: 'Highlight', 
+                  icon: <Highlighter size={18} />, 
+                  action: (e: any) => applyTextFormatting('highlight'), 
+                  active: false,
+                  render: (isActive: boolean, toolBg: string, toolBorder: string) => (
+                    <div key="Highlight" className="relative group h-full flex">
+                      <button 
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyTextFormatting('highlight')}
+                        className={`flex flex-col items-center justify-center h-full px-3 pt-1 border-b-0 rounded-t-sm ${toolBg} ${toolBorder}`}
+                      >
+                        <div className="leading-none mb-0.5 relative">
+                          <Highlighter size={18} />
+                          <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border border-gray-400" style={{ backgroundColor: highlightColor }}></div>
+                        </div>
+                        <span className="text-[11px] font-bold pb-1">Highlight</span>
+                      </button>
+                      <div className="absolute top-full left-0 hidden group-hover:flex bg-white shadow-lg border border-slate-200 rounded p-1.5 gap-1 z-50">
+                        {[
+                          { color: '#fef08a', name: 'Yellow' },
+                          { color: '#bbf7d0', name: 'Green' },
+                          { color: '#bfdbfe', name: 'Blue' },
+                          { color: '#fbcfe8', name: 'Pink' },
+                          { color: 'transparent', name: 'Eraser (Clear)' }
+                        ].map(c => (
+                          <button
+                            key={c.name}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              if (c.color !== 'transparent') setHighlightColor(c.color);
+                              applyTextFormatting('highlight', c.color);
+                            }}
+                            className={`w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 hover:scale-110 transition-transform ${highlightColor === c.color ? 'ring-2 ring-primary ring-offset-1' : ''}`}
+                            style={{ backgroundColor: c.color === 'transparent' ? '#f8fafc' : c.color }}
+                            title={c.name}
+                          >
+                            {c.color === 'transparent' && <span className="text-red-500 font-bold text-xs">/</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                },
+                { name: 'Strike', icon: <Strikethrough size={18} />, action: (e: any) => applyTextFormatting('strikethrough'), active: false },
                 { name: 'Report Issue', icon: <AlertTriangle size={18} />, action: (e: any) => setShowReportModal(true), active: showReportModal },
                 { name: 'Lab Values', icon: <FlaskConical size={18} />, action: (e: any) => setShowLabValues(true), active: showLabValues },
                 { name: 'Notes', icon: <PenLine size={18} />, action: (e: any) => setShowNotes(true), active: showNotes },
                 { name: 'Calculator', icon: <CalcIcon size={18} />, action: (e: any) => setShowCalculator(true), active: showCalculator },
-                { name: 'Settings', icon: <SettingsIcon size={18} />, action: (e: any) => setSettingsAnchorEl(e.currentTarget), active: !!settingsAnchorEl }
+                { name: 'Settings', icon: <SettingsIcon size={18} />, action: (e: any) => setSettingsMenuOpen(true), active: settingsMenuOpen }
               ].map(tool => {
                 const isActive = tool.active;
                 const toolBg = isActive 
@@ -952,9 +862,14 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   : (isDark ? 'text-slate-400 border-transparent hover:text-slate-200' : 'text-slate-500 border-transparent hover:text-slate-900 hover:bg-slate-50 rounded-t-lg');
                 const toolBorder = '';
 
+                if (tool.render) {
+                  return tool.render(isActive, toolBg, toolBorder);
+                }
+
                 return (
                   <button 
                     key={tool.name}
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={tool.action}
                     className={`flex flex-col items-center justify-center h-full px-3 pt-1 border-b-0 rounded-t-sm ${toolBg} ${toolBorder}`}
                     style={{ marginBottom: isActive ? '-1px' : '0' }}
@@ -968,10 +883,9 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             
           </header>
 
-          {/* Main Content Area */}
           <main 
-            className="flex-1 overflow-y-auto p-4 flex flex-col relative" 
-            style={{ fontSize: `${settings.fontSize}px` }}
+            className={`flex-1 flex flex-col relative ${settings.splitScreen ? 'overflow-hidden' : 'overflow-y-auto p-4'}`}
+            style={{ fontSize: `${settings.fontSize}px`, lineHeight: 1.5 }}
           >
             
             <div className="flex items-center mb-4">
@@ -991,90 +905,110 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               </label>
             </div>
 
-            <div className="flex flex-1">
+            <div className={`flex flex-1 ${settings.splitScreen ? 'overflow-hidden p-4 pt-0' : ''}`}>
               
-              {/* Question & Options Side */}
-              <div className="flex flex-col flex-1 pr-6">
-                <div 
-                  ref={questionContentRef}
-                  className="vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit]"
-                  dangerouslySetInnerHTML={{ __html: currentQ.highlightedQuestionText || currentQ.question.questionText }}
-                />
+              {/* Main Content Area */}
+              <div className={`flex flex-1 ${settings.splitScreen ? 'flex-row' : 'flex-col pr-6'}`}>
                 
-                {/* Options List */}
-                <div className="space-y-4">
-                  <fieldset className={`border ${borderCol} p-5 rounded-xl ${isDark ? 'bg-slate-900' : 'bg-white'} shadow-sm`}>
-                    {currentQ.question.options.map((opt, i) => {
-                      const isSelected = currentQ.selectedOptionId === opt.id;
-                      const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
-                      
-                      let bgClass = "bg-transparent";
-                      if (showFeedback && opt.isCorrect) bgClass = isDark ? 'bg-green-900' : 'bg-[#008000] text-white';
-                      else if (showFeedback && isSelected) bgClass = isDark ? 'bg-red-900' : 'bg-[#f8d7da]';
-
-                      return (
-                        <div key={opt.id} className={`flex items-start justify-between group ${bgClass} p-1 rounded transition-colors`}>
-                          <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
-                            <input 
-                              type="radio" 
-                              name={`q-${currentQ.id}`}
-                              checked={isSelected}
-                              onChange={() => handleOptionSelect(opt.id)}
-                              disabled={!!showFeedback}
-                              className="mt-1 w-4 h-4 cursor-pointer accent-black shrink-0"
-                            />
-                            <div className="ml-3 flex-1 flex flex-col">
-                              <div className={`flex ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
-                                <span className="mr-2">{String.fromCharCode(65 + i)}.</span>
-                                <span className="leading-snug" dangerouslySetInnerHTML={{ __html: opt.text }} />
-                              </div>
-                              {showFeedback && (opt as any).explanation && (
-                                <div className="mt-2 text-[13px] text-gray-800 bg-gray-50 p-2 rounded border border-gray-200">
-                                  <span dangerouslySetInnerHTML={{ __html: (opt as any).explanation }} />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Strike Through Button */}
-                          {session.mode !== 'review' && (
-                            <button 
-                              type="button"
-                              onClick={() => toggleStrikethrough(opt.id)}
-                              disabled={showFeedback}
-                              aria-label={isStruckThrough ? `Remove strikethrough from option ${String.fromCharCode(65 + i)}` : `Strike out option ${String.fromCharCode(65 + i)}`}
-                              aria-pressed={!!isStruckThrough}
-                              className={`ml-4 p-1 rounded transition-all shrink-0 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50
-                                opacity-40 sm:opacity-0
-                                sm:group-hover:opacity-60 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:!opacity-100
-                                disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:!opacity-20 disabled:hover:bg-transparent`}
-                              title="Strike out option"
-                            >
-                              <Strikethrough size={16} />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </fieldset>
-                  
-                  {showFeedback && (
-                    <div className={`mt-8 pt-4 border-t ${borderCol}`}>
-                      <div className="font-bold mb-2 uppercase text-[13px]">Explanation:</div>
-                      <div 
-                        ref={explanationContentRef}
-                        className="leading-relaxed [&_*]:text-[length:inherit]"
-                        dangerouslySetInnerHTML={{ __html: currentQ.highlightedExplanation || currentQ.question.explanation || '' }}
-                      />
-                    </div>
-                  )}
+                {/* Vignette Wrapper */}
+                <div className={`${settings.splitScreen ? 'flex-1 overflow-y-auto pr-6 border-r border-gray-300 mr-6' : ''}`}>
+                  <div 
+                    ref={questionContentRef}
+                    className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
+                  />
                 </div>
                 
-                {/* Proceed Button */}
-                <div className="mt-8 pb-10">
-                  <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
-                    Proceed to Next Item
-                  </button>
+                {/* Options & Explanations Wrapper */}
+                <div className={`${settings.splitScreen ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
+                  {/* Options List */}
+                  <div className={settings.answerLayout === 'compact' ? 'space-y-2' : 'space-y-4'}>
+                    <fieldset className={`border ${settings.highContrast ? (isDark ? 'border-gray-500' : 'border-gray-400 border-2') : borderCol} ${settings.answerLayout === 'compact' ? 'p-3' : 'p-5'} rounded-xl ${isDark ? 'bg-slate-900' : 'bg-white'} shadow-sm`}>
+                      {currentQ.question.options.map((opt, i) => {
+                        const isSelected = currentQ.selectedOptionId === opt.id;
+                        const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
+                        
+                        let bgClass = "bg-transparent";
+                        if (showFeedback && opt.isCorrect) {
+                          bgClass = isDark ? 'bg-green-900' : (settings.highContrast ? 'bg-[#005a00] text-white' : 'bg-[#008000] text-white');
+                        } else if (showFeedback && isSelected) {
+                          bgClass = isDark ? 'bg-red-900' : (settings.highContrast ? 'bg-[#d9534f] text-white' : 'bg-[#f8d7da]');
+                        }
+
+                        return (
+                          <div key={opt.id} className={`flex items-start justify-between group ${bgClass} ${settings.answerLayout === 'compact' ? 'p-0.5' : 'p-1'} rounded transition-colors`}>
+                            <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
+                              <input 
+                                type="radio" 
+                                name={`q-${currentQ.id}`}
+                                checked={isSelected}
+                                onChange={() => handleOptionSelect(opt.id)}
+                                disabled={!!showFeedback}
+                                className={`mt-1 w-4 h-4 cursor-pointer accent-black shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
+                              />
+                              <div className="ml-3 flex-1 flex flex-col">
+                                <div className={`flex items-center ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
+                                  <span className={`mr-2 ${settings.highContrast ? 'font-black' : ''}`}>{String.fromCharCode(65 + i)}.</span>
+                                  {settings.showShortcuts && !showFeedback && (
+                                    <kbd className="mr-2 px-1 border border-gray-400 rounded text-[9px] text-gray-500 bg-gray-50 font-mono hidden sm:inline-block">
+                                      {String.fromCharCode(65 + i)}
+                                    </kbd>
+                                  )}
+                                  <div className={`leading-snug [&>p]:inline ${settings.highContrast ? 'text-black font-medium' : ''}`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
+                                </div>
+                                {showFeedback && (opt as any).explanation && (
+                                  <div className={`mt-2 text-[13px] ${settings.highContrast ? 'text-black bg-gray-100 border-gray-400' : 'text-gray-800 bg-gray-50 border-gray-200'} p-2 rounded border`}>
+                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHTML((opt as any).explanation) }} />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Strike Through Button */}
+                            {session.mode !== 'review' && (
+                              <button 
+                                type="button"
+                                onClick={() => toggleStrikethrough(opt.id)}
+                                disabled={showFeedback}
+                                aria-label={isStruckThrough ? `Remove strikethrough from option ${String.fromCharCode(65 + i)}` : `Strike out option ${String.fromCharCode(65 + i)}`}
+                                aria-pressed={!!isStruckThrough}
+                                className={`ml-4 p-1 rounded transition-all shrink-0 ${settings.highContrast ? 'text-gray-800' : 'text-slate-400'} hover:text-slate-900 hover:bg-slate-200/50
+                                  opacity-70 sm:opacity-50
+                                  sm:group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:!opacity-100
+                                  disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:!opacity-20 disabled:hover:bg-transparent`}
+                                title="Strike out option"
+                              >
+                                <Strikethrough size={16} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </fieldset>
+                    
+                    {showFeedback && (
+                      <div className={`mt-8 pt-4 border-t ${settings.highContrast ? 'border-gray-400' : borderCol}`}>
+                        <div className={`font-bold mb-2 uppercase text-[13px] ${settings.highContrast ? 'text-black' : ''}`}>Explanation:</div>
+                        <div 
+                          ref={explanationContentRef}
+                          className={`leading-relaxed [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedExplanation || currentQ.question.explanation || '') }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Proceed Button */}
+                  <div className="mt-8 pb-10 flex items-center">
+                    <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
+                      Proceed to Next Item
+                    </button>
+                    {settings.showShortcuts && (
+                      <kbd className="ml-3 px-2 py-1 border border-gray-400 rounded text-[11px] text-gray-500 bg-white font-mono hidden sm:inline-block">
+                        Space
+                      </kbd>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -1146,14 +1080,19 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-slate-500 uppercase tracking-wider text-[9px]">Block Time</span>
-              <TimerDisplay 
-                initialElapsed={0} 
-                initialTimeLeft={session.durationSec ? Math.max(0, session.durationSec - initialElapsed) : null} 
-                isTimed={true} 
-                onTimeUp={handleEndBlock} 
-                type="remaining"
-                className="text-[12px] font-mono font-bold text-slate-700"
-              />
+              {settings.showTimer !== false ? (
+                <TimerDisplay 
+                  initialElapsed={0} 
+                  initialTimeLeft={session.durationSec ? Math.max(0, session.durationSec - initialElapsed) : null} 
+                  isTimed={true} 
+                  isPaused={isPaused}
+                  onTimeUp={handleEndBlock} 
+                  type="remaining"
+                  className="text-[12px] font-mono font-bold text-slate-700"
+                />
+              ) : (
+                <span className="text-[12px] font-mono font-bold text-slate-700">--:--</span>
+              )}
             </div>
             <div className="flex items-center gap-2 border-l border-slate-300 pl-4">
               <span className="text-slate-500 uppercase tracking-wider text-[9px]">Question Time</span>
@@ -1161,7 +1100,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 key={currentQ.id}
                 questionId={currentQ.id}
                 baseSeconds={currentQ.timeTakenSec}
-                isTicking={session.mode !== 'review'}
+                isTicking={session.mode !== 'review' && !isPaused}
                 onCheckpoint={commitElapsedTime}
                 className="text-[12px] font-mono font-bold text-slate-700"
               />
@@ -1181,21 +1120,11 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       </footer>
 
       {/* Modals */}
-      {contextMenu.show && (
-        <SmartContextMenu 
-          top={contextMenu.top} 
-          left={contextMenu.left} 
-          onHighlight={applyHighlight} 
-          onNote={handleAddToNotebook} 
-          onFlashcard={handleAddToFlashcard}
-          onClose={() => setContextMenu(prev => ({ ...prev, show: false }))}
-          settings={settings}
-        />
-      )}
+      
       
       {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
       {showLabValues && <LabValuesModal onClose={() => setShowLabValues(false)} />}
-      {settingsAnchorEl && <SettingsDropdown anchorEl={settingsAnchorEl} onClose={() => setSettingsAnchorEl(null)} />}
+      {settingsMenuOpen && <SettingsSidebar onClose={() => setSettingsMenuOpen(false)} />}
       {showNotes && <QuestionNotesModal 
         isOpen={showNotes} 
         onClose={() => { setShowNotes(false); setNotebookAppendText(null); }} 

@@ -1,1 +1,0 @@
-const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const q = await prisma.question.findUnique({ where: { qid: 'AUTO-1' } }); console.log(JSON.stringify(q, null, 2)); } main().catch(console.error).finally(() => prisma.());

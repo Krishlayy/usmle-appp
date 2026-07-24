@@ -106,13 +106,20 @@ export function TestSecurityOverlay({
     };
   }, [userEmail, userIp, isProcessing]);
 
+  const svgWatermark = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='350px' width='850px'>
+    <g transform='rotate(-35 425 175)' fill='#9ca3af' font-family='system-ui, sans-serif' font-weight='600' opacity='0.12' text-anchor='middle'>
+      <text x='50%' y='45%' font-size='26'>${userEmail}</text>
+      <text x='50%' y='60%' font-size='22'>IP: ${realIp}</text>
+    </g>
+  </svg>`;
+
   return (
     <div className="relative w-full h-full min-h-screen">
       {/* Watermark Overlay */}
       <div 
-        className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden flex flex-wrap justify-center content-center select-none"
+        className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden flex flex-wrap justify-center content-center"
         style={{
-          backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='400px' width='1000px'><g transform='rotate(-45 500 200)' fill='%23000' font-family='Arial' font-weight='bold' opacity='0.3' text-anchor='middle'><text x='50%' y='40%' font-size='32'>${encodeURIComponent(userEmail)}</text><text x='50%' y='55%' font-size='28'>IP: ${encodeURIComponent(realIp)}</text></g></svg>")`,
+          backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svgWatermark)}")`,
           backgroundRepeat: 'repeat',
         }}
       >

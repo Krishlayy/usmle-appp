@@ -77,6 +77,8 @@ export default async function TestSessionPage(
       timeTakenSec: p.timeTakenSec || 0,
       notes: p.notes || null,
       strikethroughs: p.strikethroughs || [],
+      highlightedQuestionText: p.highlightedQuestionText || undefined,
+      highlightedExplanation: p.highlightedExplanation || undefined,
     })),
   };
 

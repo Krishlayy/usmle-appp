@@ -3,8 +3,7 @@
 import { useState, useEffect, Suspense, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Clock, GraduationCap, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { Clock, GraduationCap, CheckCircle2, ChevronLeft, Target, Settings2 } from 'lucide-react';
 import Link from 'next/link';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Loader } from '@/components/ui/Loader';
@@ -57,88 +56,116 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card elevation="elevated" className="overflow-hidden border-[var(--color-border-subtle)]">
-        {/* Header Area */}
-        <div className="bg-[var(--color-surface-subtle)] border-b border-[var(--color-border-subtle)] px-8 py-6">
-          <h1 className="text-[22px] font-bold text-primary tracking-tight mb-1">{title}</h1>
-          <p className="text-[15px] font-medium text-secondary">{totalQuestions} Questions Total</p>
-        </div>
+    <div className="max-w-4xl mx-auto">
+      
+      {/* Header Area */}
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold text-primary tracking-tight mb-2">Configure Practice Block</h1>
+        <p className="text-base font-medium text-secondary">Customize your test settings for <span className="font-bold text-primary">{title}</span>.</p>
+      </div>
 
-        <div className="p-8 space-y-8">
-          {/* Progress Section */}
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[16px] font-bold text-primary">
-                {completedQuestions > 0 ? "Resume Practice" : "Start Practice"}
-              </h3>
-              <span className="text-[14px] font-bold text-primary bg-[var(--color-surface-subtle)] border border-[var(--color-border-subtle)] px-2.5 py-1 rounded-md text-primary">
-                {Math.round(progressPercentage)}% Complete
-              </span>
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg font-medium">
+          {error}
+        </div>
+      )}
+
+      {/* Bento Box Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        
+        {/* Progress Box (Span 2) */}
+        <div className="md:col-span-2 bg-white border border-[var(--color-border-subtle)] rounded-xl p-8 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-bold text-primary">Available Questions</h3>
+            </div>
+            <p className="text-sm text-secondary font-medium mb-6">
+              You have completed {completedQuestions} out of {totalQuestions} questions.
+            </p>
+          </div>
+          
+          <div>
+            <div className="flex justify-between items-end mb-2">
+              <span className="text-2xl font-bold text-primary tracking-tight">{remainingQuestions} <span className="text-sm font-semibold text-muted uppercase tracking-wider">Remaining</span></span>
+              <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">{Math.round(progressPercentage)}%</span>
             </div>
             <ProgressBar progress={progressPercentage} />
-            <div className="flex justify-between mt-3 text-[13px] font-medium text-secondary">
-              <span>{remainingQuestions} Questions Remaining</span>
-              <span>~{estMinutes} Min Estimated</span>
-            </div>
-          </section>
-
-          <div className="h-px bg-[var(--color-border-subtle)] w-full"></div>
-
-          {/* Mode Selection */}
-          <section>
-            <h3 className="text-[16px] font-bold text-primary mb-4">Select Mode</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button 
-                onClick={() => setMode('tutor')}
-                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${mode === 'tutor' ? 'border-[var(--color-primary)] bg-[var(--color-surface-subtle)] shadow-sm' : 'border-[var(--color-border-subtle)] hover:border-[var(--color-primary)] bg-white'}`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <GraduationCap className={`w-5 h-5 ${mode === 'tutor' ? 'text-[var(--color-primary)]' : 'text-slate-400'}`} />
-                  <span className={`font-bold ${mode === 'tutor' ? 'text-[var(--color-primary)]' : 'text-primary'}`}>Tutor Mode</span>
-                </div>
-                <p className="text-[13px] text-secondary font-medium leading-snug pl-8">
-                  Explanations shown immediately after each question. No strict timer.
-                </p>
-              </button>
-
-              <button 
-                onClick={() => setMode('timed')}
-                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${mode === 'timed' ? 'border-[var(--color-primary)] bg-[var(--color-surface-subtle)] shadow-sm' : 'border-[var(--color-border-subtle)] hover:border-[var(--color-primary)] bg-white'}`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <Clock className={`w-5 h-5 ${mode === 'timed' ? 'text-[var(--color-primary)]' : 'text-slate-400'}`} />
-                  <span className={`font-bold ${mode === 'timed' ? 'text-[var(--color-primary)]' : 'text-primary'}`}>Timed Mode</span>
-                </div>
-                <p className="text-[13px] text-secondary font-medium leading-snug pl-8">
-                  Simulates exam conditions. Explanations shown only at the end of the block.
-                </p>
-              </button>
-            </div>
-          </section>
-
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl font-medium">
-              {error}
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* Footer Action */}
-        <div className="bg-[var(--color-surface-subtle)] border-t border-[var(--color-border-subtle)] px-8 py-5 flex items-center justify-between">
-          <p className="text-[13px] text-secondary flex items-center gap-1.5 font-medium">
-            <CheckCircle2 className="w-4 h-4 text-[var(--color-success)]" /> Auto-saves progress
-          </p>
-          <Button 
-            size="lg" 
-            className="w-48 text-[15px] shadow-sm font-bold gap-2" 
-            onClick={handleStart} 
-            isLoading={loading}
-          >
-            Start Block
-          </Button>
+        {/* Info Box (Span 1) */}
+        <div className="md:col-span-1 bg-[var(--color-surface-subtle)] border border-[var(--color-border-subtle)] rounded-xl p-8 flex flex-col justify-center items-center text-center">
+           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+             <Clock className="w-6 h-6 text-blue-600" />
+           </div>
+           <h4 className="text-xl font-bold text-primary mb-1">~{estMinutes} Min</h4>
+           <p className="text-sm text-secondary font-medium">Estimated time to complete remaining questions.</p>
         </div>
-      </Card>
+
+        {/* Mode Selection (Span 3) */}
+        <div className="md:col-span-3 bg-white border border-[var(--color-border-subtle)] rounded-xl p-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Settings2 className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-bold text-primary">Select Testing Mode</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button 
+              onClick={() => setMode('tutor')}
+              className={`text-left p-6 rounded-xl border-2 transition-all duration-200 ${mode === 'tutor' ? 'border-blue-600 bg-blue-50/30' : 'border-[var(--color-border-subtle)] hover:border-blue-300 bg-white'}`}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${mode === 'tutor' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className={`block text-lg font-bold ${mode === 'tutor' ? 'text-blue-700' : 'text-primary'}`}>Tutor Mode</span>
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${mode === 'tutor' ? 'text-blue-600' : 'text-muted'}`}>Recommended</span>
+                </div>
+              </div>
+              <p className="text-sm text-secondary font-medium leading-relaxed">
+                Explanations shown immediately after each question. No strict timer. Best for deep learning.
+              </p>
+            </button>
+
+            <button 
+              onClick={() => setMode('timed')}
+              className={`text-left p-6 rounded-xl border-2 transition-all duration-200 ${mode === 'timed' ? 'border-blue-600 bg-blue-50/30' : 'border-[var(--color-border-subtle)] hover:border-blue-300 bg-white'}`}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${mode === 'timed' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className={`block text-lg font-bold ${mode === 'timed' ? 'text-blue-700' : 'text-primary'}`}>Timed Mode</span>
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${mode === 'timed' ? 'text-blue-600' : 'text-muted'}`}>Simulated Exam</span>
+                </div>
+              </div>
+              <p className="text-sm text-secondary font-medium leading-relaxed">
+                Simulates real exam conditions. Explanations shown only at the end of the block.
+              </p>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Action Footer */}
+      <div className="flex items-center justify-between border-t border-[var(--color-border-subtle)] pt-6 mt-8">
+        <p className="text-sm text-secondary flex items-center gap-2 font-medium">
+          <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Progress is automatically saved
+        </p>
+        <Button 
+          size="lg" 
+          className="w-48 text-[15px] font-bold gap-2" 
+          onClick={handleStart} 
+          isLoading={loading}
+        >
+          Start Block
+        </Button>
+      </div>
+
     </div>
   );
 }
@@ -169,7 +196,7 @@ function SetupTestWrapper({ qbankSlug }: { qbankSlug: string }) {
   }
 
   if (!data) {
-    return <div className="text-red-500 font-semibold">Failed to load QBank data.</div>;
+    return <div className="text-red-500 font-semibold text-center mt-12">Failed to load QBank data.</div>;
   }
 
   return (
@@ -186,15 +213,15 @@ export default function SetupTestPage(props: { params: Promise<{ qbankSlug: stri
   const params = use(props.params);
   return (
     <div className="min-h-screen bg-[var(--background)] animate-page-enter">
-      <div className="bg-white border-b border-[var(--color-border-subtle)] sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 md:px-8 h-16 flex items-center gap-4 max-w-[1280px]">
-          <Link href={`/dashboard/${params.qbankSlug}`} className="text-secondary hover:text-primary transition-colors">
-            <ChevronLeft className="w-5 h-5" />
+      <div className="bg-white border-b border-[var(--color-border-subtle)] sticky top-0 z-10">
+        <div className="container mx-auto px-4 md:px-8 h-16 flex items-center gap-4 max-w-5xl">
+          <Link href={`/dashboard/${params.qbankSlug}`} className="w-8 h-8 flex items-center justify-center rounded-md border border-[var(--color-border-subtle)] text-secondary hover:text-primary hover:bg-gray-50 transition-colors">
+            <ChevronLeft className="w-4 h-4" />
           </Link>
-          <h1 className="text-scale-lg font-bold text-primary tracking-tight">Start Practice</h1>
+          <span className="text-sm font-semibold text-secondary uppercase tracking-wider">Test Configuration</span>
         </div>
       </div>
-      <div className="container mx-auto py-10 px-4 md:px-8 max-w-[1280px]">
+      <div className="container mx-auto py-12 px-4 md:px-8 max-w-5xl">
         <Suspense fallback={
           <div className="flex items-center justify-center h-64 text-secondary">
             <Loader size="lg" />

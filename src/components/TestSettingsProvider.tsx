@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type AppearanceMode = 'NBME Official';
-type ColorTheme = 'light' | 'dark'; // Dark is "Reverse Color"
+type ColorTheme = 'light' | 'dark' | 'sepia'; // Dark is "Reverse Color"
 
 export interface TestSettings {
   appearance: AppearanceMode;
@@ -12,14 +12,15 @@ export interface TestSettings {
   showTimer: boolean;
   splitScreen: boolean;
   confirmOmission: boolean;
-  defaultHighlighter: string;
-  multicolorHighlighting: boolean;
+  autoNext: boolean;
   hidePercentage: boolean;
   addToFlashcard: boolean;
   addToNotebook: boolean;
   addToAnnotation: boolean;
-  smartContextMenu: boolean;
   answerElimination: boolean;
+  answerLayout: 'standard' | 'compact';
+  highContrast: boolean;
+  showShortcuts: boolean;
 }
 
 interface TestSettingsContextType {
@@ -34,14 +35,15 @@ const defaultSettings: TestSettings = {
   showTimer: true,
   splitScreen: false,
   confirmOmission: true,
-  defaultHighlighter: 'yellow',
-  multicolorHighlighting: false, // NBME typically only has one highlight color natively, but keeping the engine is fine if we limit it
+  autoNext: false,
   hidePercentage: true,
   addToFlashcard: false,
   addToNotebook: true,
   addToAnnotation: false,
-  smartContextMenu: false, // Turn off modern smart context menu for true NBME feel
   answerElimination: true,
+  answerLayout: 'standard',
+  highContrast: false,
+  showShortcuts: false,
 };
 
 const TestSettingsContext = createContext<TestSettingsContextType | undefined>(undefined);

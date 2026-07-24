@@ -9,33 +9,31 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">
-      <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
-        <Link className="flex items-center gap-2" href="/">
-          <div className="bg-black text-white rounded-sm p-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
-            </svg>
+    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-[var(--color-border-subtle)] shadow-[0_4px_30px_rgba(0,0,0,0.02)] transition-all duration-300">
+      <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link className="flex items-center gap-3 group" href="/">
+          <div className="w-9 h-9 relative rounded-lg overflow-hidden bg-white border border-[var(--color-border-subtle)] shadow-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-105 group-hover:shadow-md">
+            <img src="/logo.png" alt="Micro - Q bank logo" className="w-full h-full object-cover" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-slate-800">Micro Q Bank</span>
+          <span className="font-bold text-[22px] tracking-tight text-primary">Micro - Q bank</span>
         </Link>
         <nav className="flex items-center gap-6">
           {(!session || !['ADMIN', 'SUPERADMIN'].includes(session.user?.role)) && (
             <Link 
               href="/store" 
-              className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/store') ? 'text-black' : 'text-gray-500'}`}
+              className={`text-[15px] font-semibold transition-colors duration-200 hover:text-primary ${pathname.startsWith('/store') ? 'text-primary' : 'text-secondary'}`}
             >
               Store
             </Link>
           )}
           
           {status === 'loading' ? (
-            <div className="w-20 h-8 animate-pulse bg-gray-100 rounded-none"></div>
+            <div className="w-24 h-10 animate-pulse bg-slate-100 rounded-md"></div>
           ) : session ? (
             <>
               <Link 
                 href="/dashboard" 
-                className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/dashboard') ? 'text-black' : 'text-gray-500'}`}
+                className={`text-[15px] font-semibold transition-colors duration-200 hover:text-primary ${pathname.startsWith('/dashboard') ? 'text-primary' : 'text-secondary'}`}
               >
                 Dashboard
               </Link>
@@ -43,7 +41,7 @@ export default function Navbar() {
               {['ADMIN', 'SUPERADMIN'].includes(session.user?.role) && (
                 <Link 
                   href="/admin" 
-                  className={`text-sm font-medium transition-colors hover:text-black ${pathname.startsWith('/admin') ? 'text-black' : 'text-gray-500'}`}
+                  className={`text-[15px] font-semibold transition-colors duration-200 hover:text-primary ${pathname.startsWith('/admin') ? 'text-primary' : 'text-secondary'}`}
                 >
                   Admin
                 </Link>
@@ -51,26 +49,26 @@ export default function Navbar() {
               
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="text-sm font-medium text-gray-500 hover:text-black transition-colors"
+                className="text-[15px] font-semibold text-secondary hover:text-primary transition-colors duration-200"
               >
                 Log Out
               </button>
             </>
           ) : (
-            <>
+            <div className="flex items-center gap-4">
               <Link 
                 href="/login" 
-                className="text-sm font-medium text-gray-500 hover:text-black transition-colors"
+                className="text-[15px] font-semibold text-secondary hover:text-primary transition-colors duration-200"
               >
                 Log In
               </Link>
               <Link 
                 href="/signup" 
-                className="text-sm font-medium bg-black text-white px-4 py-2 hover:bg-gray-800 transition-colors rounded-none"
+                className="text-[15px] font-semibold bg-primary text-white px-5 py-2.5 hover:bg-slate-800 transition-all duration-300 rounded-md shadow-sm hover:shadow-md hover:-translate-y-0.5"
               >
                 Sign Up
               </Link>
-            </>
+            </div>
           )}
         </nav>
       </div>
