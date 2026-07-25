@@ -6,6 +6,7 @@ type AppearanceMode = 'NBME Official';
 type ColorTheme = 'light' | 'dark' | 'sepia'; // Dark is "Reverse Color"
 
 export interface TestSettings {
+  appTheme: 'MQB' | 'NBME';
   appearance: AppearanceMode;
   fontSize: number;
   colorTheme: ColorTheme;
@@ -29,6 +30,7 @@ interface TestSettingsContextType {
 }
 
 const defaultSettings: TestSettings = {
+  appTheme: 'MQB',
   appearance: 'NBME Official',
   fontSize: 15,
   colorTheme: 'light',

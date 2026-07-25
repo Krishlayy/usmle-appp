@@ -11,24 +11,32 @@ export function MediaRenderer({ media, setZoomImage }: { media: { id: string; ty
 
   if (media.type === 'IMAGE') {
     return (
-      <div className={`flex flex-col items-center ${widthClass}`}>
+      <div className="flex flex-col items-start w-full my-4">
         <button 
           type="button"
-          className="exhibit-trigger p-2 bg-slate-50 border border-slate-200 rounded-sm cursor-zoom-in hover:bg-slate-100 transition-colors w-full flex justify-center relative min-h-[200px] block"
+          className="exhibit-trigger flex items-center gap-4 p-3 bg-white border border-slate-200 shadow-sm rounded-lg cursor-zoom-in hover:bg-slate-50 hover:border-teal-500 hover:shadow-md transition-all group"
           onClick={() => setZoomImage?.(media.url)}
           data-url={media.url}
-          title={setZoomImage ? "Click to zoom" : undefined}
+          title="Click to view Exhibit"
         >
-          <Image 
-            src={media.url} 
-            alt={media.caption || 'Clinical figure'} 
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-contain" 
-            unoptimized={true}
-          />
+          <div className="relative w-14 h-14 rounded overflow-hidden flex-shrink-0 border border-slate-200 bg-slate-100">
+            <Image 
+              src={media.url} 
+              alt={media.caption || 'Exhibit thumbnail'} 
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-300" 
+              unoptimized={true}
+            />
+          </div>
+          <div className="flex flex-col items-start text-left">
+            <span className="font-bold text-slate-800 text-sm group-hover:text-teal-700 transition-colors">
+              View Exhibit
+            </span>
+            <span className="text-xs text-slate-500 mt-0.5 line-clamp-1 max-w-[220px]">
+              {media.caption || 'Click to expand clinical image'}
+            </span>
+          </div>
         </button>
-        {media.caption && <p className="text-sm text-slate-500 mt-2 font-medium text-center">{media.caption}</p>}
       </div>
     );
   }

@@ -6,6 +6,17 @@ import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 
+type Role = "SUPERADMIN" | "ADMIN";
+
+function generateAdminId(role: Role): string {
+  const prefix = role === "SUPERADMIN" ? "SADM" : "ADM";
+
+  // Generates an 8-digit random number
+  const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
+
+  return `${prefix}${randomNumber}`;
+}
+
 export async function createAdminUser(formData: FormData) {
   const session = await getServerSession(authOptions);
 
@@ -25,6 +36,7 @@ export async function createAdminUser(formData: FormData) {
   if (role !== 'ADMIN' && role !== 'SUPERADMIN') {
     return { error: 'Invalid role.' };
   }
+
 
   try {
     const existingUser = await prisma.user.findUnique({

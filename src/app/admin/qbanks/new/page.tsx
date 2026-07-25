@@ -1,6 +1,21 @@
+"use client"
 import { createQBank } from '@/app/admin/actions';
+import { useState } from 'react';
 
 export default function NewQBankPage() {
+  const [title, setTitle] = useState("");
+  const [slugT, setSlugT] = useState("");
+  function createSlug(text: string): string {
+    const s = text
+      .trim()
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "") // Remove special characters
+      .replace(/\s+/g, "-")     // Replace spaces with -
+      .replace(/-+/g, "-");
+
+    setSlugT(s);
+    return s;
+  }
   return (
     <div>
       <div className="mb-8">
@@ -12,11 +27,16 @@ export default function NewQBankPage() {
         <form action={createQBank} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-            <input 
-              type="text" 
-              id="title" 
-              name="title" 
-              required 
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                createSlug(e.target.value);
+              }}
+              required
               className="w-full border border-slate-300 rounded-md px-4 py-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="e.g. Cardiology QBank"
             />
@@ -24,11 +44,12 @@ export default function NewQBankPage() {
 
           <div>
             <label htmlFor="slug" className="block text-sm font-medium text-slate-700 mb-1">Slug (URL)</label>
-            <input 
-              type="text" 
-              id="slug" 
-              name="slug" 
-              required 
+            <input
+              type="text"
+              id="slug"
+              name="slug"
+              value={slugT}
+              required
               className="w-full border border-slate-300 rounded-md px-4 py-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="e.g. cardiology"
             />
@@ -36,11 +57,11 @@ export default function NewQBankPage() {
 
           <div>
             <label htmlFor="qbankCode" className="block text-sm font-medium text-slate-700 mb-1">QBank Code (Unique prefix for QIDs, e.g. CARD)</label>
-            <input 
-              type="text" 
-              id="qbankCode" 
-              name="qbankCode" 
-              required 
+            <input
+              type="text"
+              id="qbankCode"
+              name="qbankCode"
+              required
               maxLength={10}
               className="w-full border border-slate-300 rounded-md px-4 py-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="e.g. CARD"
@@ -49,9 +70,9 @@ export default function NewQBankPage() {
 
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-            <textarea 
-              id="description" 
-              name="description" 
+            <textarea
+              id="description"
+              name="description"
               rows={4}
               className="w-full border border-slate-300 rounded-md px-4 py-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Detailed description of what is included..."
@@ -65,12 +86,12 @@ export default function NewQBankPage() {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <span className="text-slate-500">$</span>
                 </div>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   step="0.01"
-                  id="price" 
-                  name="price" 
-                  required 
+                  id="price"
+                  name="price"
+                  required
                   className="w-full border border-slate-300 rounded-md pl-8 pr-4 py-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="29.99"
                 />
@@ -78,9 +99,9 @@ export default function NewQBankPage() {
             </div>
             <div>
               <label htmlFor="currency" className="block text-sm font-medium text-slate-700 mb-1">Currency</label>
-              <select 
-                id="currency" 
-                name="currency" 
+              <select
+                id="currency"
+                name="currency"
                 className="w-full border border-slate-300 rounded-md px-4 py-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="USD">USD</option>
@@ -93,10 +114,10 @@ export default function NewQBankPage() {
 
 
           <div className="flex items-center">
-            <input 
-              type="checkbox" 
-              id="isActive" 
-              name="isActive" 
+            <input
+              type="checkbox"
+              id="isActive"
+              name="isActive"
               defaultChecked
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
             />
@@ -106,8 +127,8 @@ export default function NewQBankPage() {
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex justify-end">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="bg-blue-600 text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition shadow-sm"
             >
               Save and Continue

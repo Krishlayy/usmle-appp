@@ -7,14 +7,17 @@ interface SettingsSidebarProps {
   onClose: () => void;
 }
 
-const Toggle = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: () => void }) => (
-  <div className="flex items-center justify-between py-2">
-    <span className="text-[13px] text-gray-700">{label}</span>
+const Toggle = ({ label, checked, onChange, description }: { label: string, checked: boolean, onChange: () => void, description?: string }) => (
+  <div className="flex items-center justify-between py-3">
+    <div className="flex flex-col">
+      <span className="text-[13px] font-semibold text-slate-800">{label}</span>
+      {description && <span className="text-[11px] text-slate-500 mt-0.5">{description}</span>}
+    </div>
     <button 
       onClick={onChange}
-      className={`w-9 h-5 rounded-full relative transition-colors ${checked ? 'bg-[#3b82f6]' : 'bg-gray-300'}`}
+      className={`w-10 h-5 rounded-full relative transition-colors ${checked ? 'bg-blue-600' : 'bg-slate-300'}`}
     >
-      <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'} shadow`} />
+      <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'} shadow-sm`} />
     </button>
   </div>
 );
@@ -23,108 +26,155 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
   const { settings, updateSetting } = useTestSettings();
 
   return (
-    <div className="fixed inset-y-0 right-0 w-[340px] bg-white shadow-2xl border-l border-gray-300 z-[90] flex flex-col font-sans">
-      <div className="flex items-center justify-between p-3 bg-[#004b87] text-white">
-        <h2 className="text-[15px] font-bold">Settings</h2>
-        <button onClick={onClose} className="hover:bg-white/20 p-1 rounded transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-5 pb-10">
+    <div className="fixed top-16 right-4 z-[9999] flex items-start justify-end font-sans animate-in slide-in-from-top-2 fade-in duration-200">
+      <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] w-[650px] flex flex-col overflow-hidden border border-slate-300">
         
-        {/* Appearance */}
-        <div className="mb-5">
-          <div className="text-[13px] font-bold text-gray-800 mb-2">Appearance:</div>
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="appearance" checked={settings.appearance === 'NBME Official'} onChange={() => updateSetting('appearance', 'NBME Official')} className="w-4 h-4 text-blue-600 focus:ring-blue-600" />
-              <span className="text-[13px] text-gray-700">NBME Official</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Font Size */}
-        <div className="mb-5">
-          <div className="text-[13px] font-bold text-gray-800 mb-2">Font Size:</div>
-          <div className="flex items-center gap-3">
-            <span className="text-[14px] font-serif text-gray-700">A-</span>
-            <input 
-              type="range" 
-              min="10" max="24" 
-              value={settings.fontSize} 
-              onChange={(e) => updateSetting('fontSize', parseInt(e.target.value))}
-              className="flex-1 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-[#3b82f6]"
-            />
-            <span className="text-[18px] font-serif text-gray-700">A+</span>
-          </div>
-        </div>
-
-        {/* Layout & Accessibility */}
-        <div className="mb-6">
-          <div className="text-[13px] font-bold text-gray-800 mb-2">Layout & Accessibility:</div>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
           <div className="flex flex-col">
-            <Toggle 
-              label="Split Screen Layout" 
-              checked={settings.splitScreen} 
-              onChange={() => updateSetting('splitScreen', !settings.splitScreen)} 
-            />
-            <div className="flex items-center justify-between py-2">
-              <span className="text-[13px] text-gray-700">Answer Layout</span>
-              <div className="flex items-center border border-gray-300 rounded overflow-hidden">
-                <button 
-                  onClick={() => updateSetting('answerLayout', 'standard')}
-                  className={`px-3 py-1 text-[11px] font-bold ${settings.answerLayout === 'standard' ? 'bg-[#3b82f6] text-white' : 'bg-gray-100 text-gray-600'}`}
-                >Standard</button>
-                <button 
-                  onClick={() => updateSetting('answerLayout', 'compact')}
-                  className={`px-3 py-1 text-[11px] font-bold border-l border-gray-300 ${settings.answerLayout === 'compact' ? 'bg-[#3b82f6] text-white' : 'bg-gray-100 text-gray-600'}`}
-                >Compact</button>
+            <h2 className="text-[18px] font-bold text-slate-900">Test Player Settings</h2>
+            <p className="text-[12px] text-slate-500 font-medium">Customize your exam experience.</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 hover:bg-slate-200 p-1.5 rounded-md transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 bg-white max-h-[70vh]">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            {/* Left Column: Visuals */}
+            <div className="flex flex-col gap-6">
+
+              {/* App Theme */}
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4">Application Theme</div>
+                <div className="flex bg-slate-200/50 p-1 rounded-md border border-slate-200">
+                  <button 
+                    onClick={() => updateSetting('appTheme', 'MQB')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.appTheme === 'MQB' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >MQB (Modern)</button>
+                  <button 
+                    onClick={() => updateSetting('appTheme', 'NBME')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.appTheme === 'NBME' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >NBME (Classic)</button>
+                </div>
               </div>
+              
+              {/* Font Size */}
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4">Typography</div>
+                <div className="flex items-center gap-4">
+                  <span className="text-[14px] font-serif text-slate-700 font-bold">A-</span>
+                  <input 
+                    type="range" 
+                    min="10" max="24" 
+                    value={settings.fontSize} 
+                    onChange={(e) => updateSetting('fontSize', parseInt(e.target.value))}
+                    className="flex-1 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <span className="text-[20px] font-serif text-slate-700 font-bold">A+</span>
+                </div>
+              </div>
+
+              {/* Color Theme */}
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4">Color Theme</div>
+                <div className="flex bg-slate-200/50 p-1 rounded-md border border-slate-200">
+                  <button 
+                    onClick={() => updateSetting('colorTheme', 'light')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.colorTheme === 'light' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >Light</button>
+                  <button 
+                    onClick={() => updateSetting('colorTheme', 'sepia')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.colorTheme === 'sepia' ? 'bg-[#f4ecd8] text-[#5b4636] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >Sepia</button>
+                  <button 
+                    onClick={() => updateSetting('colorTheme', 'dark')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.colorTheme === 'dark' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >Dark</button>
+                </div>
+              </div>
+
+              {/* Layout Mode */}
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4">Options Layout</div>
+                <div className="flex bg-slate-200/50 p-1 rounded-md border border-slate-200">
+                  <button 
+                    onClick={() => updateSetting('answerLayout', 'standard')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.answerLayout === 'standard' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >Standard</button>
+                  <button 
+                    onClick={() => updateSetting('answerLayout', 'compact')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.answerLayout === 'compact' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >Compact</button>
+                </div>
+              </div>
+
             </div>
-            <Toggle 
-              label="High Contrast Mode" 
-              checked={settings.highContrast} 
-              onChange={() => updateSetting('highContrast', !settings.highContrast)} 
-            />
-            <Toggle 
-              label="Show Keyboard Shortcuts" 
-              checked={settings.showShortcuts} 
-              onChange={() => updateSetting('showShortcuts', !settings.showShortcuts)} 
-            />
+
+            {/* Right Column: Behaviors */}
+            <div className="flex flex-col gap-6">
+              
+              {/* Accessibility */}
+              <div className="bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 divide-y divide-slate-200">
+                <Toggle 
+                  label="Split Screen Layout" 
+                  description="Side-by-side reading view"
+                  checked={settings.splitScreen} 
+                  onChange={() => updateSetting('splitScreen', !settings.splitScreen)} 
+                />
+                <Toggle 
+                  label="High Contrast Mode" 
+                  description="Maximize text readability"
+                  checked={settings.highContrast} 
+                  onChange={() => updateSetting('highContrast', !settings.highContrast)} 
+                />
+                <Toggle 
+                  label="Show Keyboard Shortcuts" 
+                  description="Display shortcut hints on buttons"
+                  checked={settings.showShortcuts} 
+                  onChange={() => updateSetting('showShortcuts', !settings.showShortcuts)} 
+                />
+              </div>
+
+              {/* Exam Behavior */}
+              <div className="bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 divide-y divide-slate-200">
+                <Toggle 
+                  label="Show Timer" 
+                  description="Display the block countdown"
+                  checked={settings.showTimer} 
+                  onChange={() => updateSetting('showTimer', !settings.showTimer)} 
+                />
+                <Toggle 
+                  label="Confirm Omission" 
+                  description="Warn if questions are left blank"
+                  checked={settings.confirmOmission} 
+                  onChange={() => updateSetting('confirmOmission', !settings.confirmOmission)} 
+                />
+                <Toggle 
+                  label="Auto-Next Question" 
+                  description="Proceed automatically on answer"
+                  checked={settings.autoNext} 
+                  onChange={() => updateSetting('autoNext', !settings.autoNext)} 
+                />
+              </div>
+
+            </div>
+
           </div>
         </div>
-
-        {/* Color Theme */}
-        <div className="mb-6">
-          <div className="text-[13px] font-bold text-gray-800 mb-2">Color Theme:</div>
-          <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="theme" checked={settings.colorTheme === 'light'} onChange={() => updateSetting('colorTheme', 'light')} className="w-4 h-4 text-blue-600 focus:ring-blue-600" />
-              <span className="text-[13px] text-gray-700">Light</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="theme" checked={settings.colorTheme === 'dark'} onChange={() => updateSetting('colorTheme', 'dark')} className="w-4 h-4 text-blue-600 focus:ring-blue-600" />
-              <span className="text-[13px] text-gray-700">Dark (Reverse Color)</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="theme" checked={settings.colorTheme === 'sepia'} onChange={() => updateSetting('colorTheme', 'sepia')} className="w-4 h-4 text-blue-600 focus:ring-blue-600" />
-              <span className="text-[13px] text-gray-700">Sepia</span>
-            </label>
-          </div>
-        </div>
-
-        <div className="h-px bg-gray-200 my-4 w-full"></div>
-
-        {/* Toggles 1 */}
-        <div className="space-y-1 mb-4">
-          <Toggle label="Show Timer" checked={settings.showTimer} onChange={() => updateSetting('showTimer', !settings.showTimer)} />
-          <Toggle label="Confirm Omission" checked={settings.confirmOmission} onChange={() => updateSetting('confirmOmission', !settings.confirmOmission)} />
-        </div>
-
-        {/* Toggles 2 */}
-        <div className="space-y-1">
-          <Toggle label="Auto-Next Question" checked={settings.autoNext} onChange={() => updateSetting('autoNext', !settings.autoNext)} />
+        
+        {/* Footer */}
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+          <button 
+            onClick={onClose}
+            className="bg-slate-900 text-white px-6 py-2 rounded-md text-[13px] font-bold hover:bg-slate-800 transition-colors shadow-sm"
+          >
+            Done
+          </button>
         </div>
 
       </div>

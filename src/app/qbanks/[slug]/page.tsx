@@ -4,7 +4,6 @@ import { CheckoutButton } from '@/components/CheckoutButton';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import Link from 'next/link';
-import { ChevronLeft, CheckCircle2, Lock, Zap, BookOpen, Activity, Play } from 'lucide-react';
 
 export const revalidate = 60;
 
@@ -32,182 +31,140 @@ export default async function QBankDetailPage(props: { params: Promise<{ slug: s
   const isOwned = session?.user?.id && qbank.purchases && qbank.purchases.length > 0;
 
   return (
-    <div className="min-h-screen bg-[var(--background)] animate-page-enter">
-      
-      {/* Top Nav Bar */}
-      <div className="bg-white border-b border-[var(--color-border-subtle)] sticky top-0 z-20">
-        <div className="container mx-auto px-4 md:px-8 h-16 flex items-center max-w-7xl">
-          <Link href="/store" className="inline-flex items-center gap-2 text-sm font-semibold text-secondary hover:text-primary transition-colors">
-            <ChevronLeft className="w-4 h-4" /> Back to Curriculum Store
-          </Link>
-        </div>
-      </div>
-
-      <div className="container mx-auto py-12 px-4 md:px-8 max-w-7xl">
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
-          
-          {/* Main Content Pane */}
-          <div className="flex-1 space-y-12">
+    <div className="container mx-auto py-12 px-4 md:px-6 max-w-6xl">
+      <Link href="/store" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-8 transition-colors">
+        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to Store
+      </Link>
+      <div className="flex flex-col lg:flex-row gap-12">
+        <div className="flex-1 space-y-10">
+          <div>
+            <div className="inline-flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 mb-4">
+              {qbank.specialtyTag}
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">{qbank.title}</h1>
             
-            {/* Header Area */}
-            <div>
-              <span className="inline-block bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-widest py-1.5 px-3 rounded-md mb-4 border border-blue-100">
-                {qbank.specialtyTag}
-              </span>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-primary mb-6 leading-tight">
-                {qbank.title}
-              </h1>
-              <p className="text-lg text-secondary font-medium leading-relaxed max-w-3xl">
-                {qbank.description}
-              </p>
-            </div>
+            <p className="text-xl text-slate-600 leading-relaxed max-w-3xl">
+              {qbank.description}
+            </p>
+          </div>
 
-            {/* Features Grid */}
-            <div className="bg-white border border-[var(--color-border-subtle)] rounded-xl p-8 shadow-sm">
-              <h3 className="font-bold text-xl mb-8 text-primary flex items-center gap-3">
-                <CheckCircle2 className="w-6 h-6 text-blue-600" /> What's Included
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+            <h3 className="font-bold text-xl mb-6 text-slate-900 border-b border-slate-100 pb-4">What&apos;s included in this module</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-0.5">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900">{qbank.totalQuestions} High-Yield Questions</h4>
+                  <p className="text-sm text-slate-500 mt-1">Carefully crafted by experts to match USMLE difficulty.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-0.5">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900">In-Depth Explanations</h4>
+                  <p className="text-sm text-slate-500 mt-1">Detailed breakdown of both correct and incorrect choices.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-0.5">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900">Tutor & Timed Modes</h4>
+                  <p className="text-sm text-slate-500 mt-1">Practice under real test conditions or learn as you go.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-0.5">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900">Performance Analytics</h4>
+                  <p className="text-sm text-slate-500 mt-1">Track your weaknesses across specific micro-topics.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {sampleQuestion && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-slate-200 text-slate-600 px-4 py-1 rounded-bl-lg font-medium text-xs tracking-wider uppercase">Sample</div>
+              <h3 className="font-bold text-xl mb-6 flex items-center text-slate-900">
+                <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                Experience the Interface
               </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-                    <BookOpen className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-primary mb-1">{qbank.totalQuestions} High-Yield Questions</h4>
-                    <p className="text-sm text-secondary font-medium leading-relaxed">Carefully crafted by top-scorers to match USMLE and NBME difficulty. No fluff.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-                    <Zap className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-primary mb-1">In-Depth Explanations</h4>
-                    <p className="text-sm text-secondary font-medium leading-relaxed">Detailed breakdown of both correct and incorrect choices, with vivid educational images.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-                    <Activity className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-primary mb-1">Performance Analytics</h4>
-                    <p className="text-sm text-secondary font-medium leading-relaxed">Track your weaknesses across specific micro-topics and optimize your study schedule.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-                    <Play className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-primary mb-1">Tutor & Timed Modes</h4>
-                    <p className="text-sm text-secondary font-medium leading-relaxed">Practice under real test conditions or learn as you go with immediate feedback.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sample Question Preview */}
-            {sampleQuestion && (
-              <div className="bg-[var(--color-surface-subtle)] border border-[var(--color-border-subtle)] rounded-xl relative overflow-hidden">
-                
-                <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1.5 rounded-bl-xl font-bold text-xs tracking-wider uppercase z-10 shadow-sm">
-                  Interface Preview
-                </div>
-                
-                <div className="p-10 relative">
-                  <div 
-                    className="text-primary mb-8 font-medium leading-relaxed prose prose-slate max-w-none prose-p:text-[15px]"
-                    dangerouslySetInnerHTML={{ __html: sampleQuestion.questionText }}
-                  />
-                  
-                  <div className="space-y-3 relative z-0">
-                    {/* Overlay for locked state */}
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[3px] z-10 flex flex-col items-center justify-center rounded-xl border border-white/50">
-                      <div className="bg-white p-8 rounded-xl shadow-lg border border-[var(--color-border-subtle)] text-center max-w-md w-full mx-4">
-                        <div className="w-14 h-14 bg-blue-50 border border-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-5">
-                          <Lock className="w-6 h-6" />
-                        </div>
-                        <h4 className="font-bold text-primary text-xl mb-3">
-                          {isOwned ? "Module Unlocked" : "Unlock Full Access"}
-                        </h4>
-                        <p className="text-sm text-secondary font-medium mb-8 leading-relaxed">
-                          {isOwned 
-                            ? "You have full access to this content. Head over to your dashboard to start practicing."
-                            : `Purchase this module to reveal answers, read detailed explanations, and access the remaining ${qbank.totalQuestions - 1} questions.`}
-                        </p>
-                        {isOwned ? (
-                          <Link 
-                            href={`/dashboard/${qbank.slug}`}
-                            className="flex w-full items-center justify-center rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-sm hover:shadow-md hover:bg-blue-700 h-12 px-8"
-                          >
-                            Go to Dashboard
-                          </Link>
-                        ) : (
-                          <CheckoutButton qbankId={qbank.id} />
-                        )}
-                      </div>
+              <div 
+                className="text-slate-800 mb-8 font-medium leading-relaxed prose prose-slate max-w-none"
+                dangerouslySetInnerHTML={{ __html: sampleQuestion.questionText }}
+              />
+              <div className="space-y-4 relative">
+                <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center rounded-xl border border-white/50 shadow-sm">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 text-center max-w-sm w-full mx-4">
+                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     </div>
-
-                    {['Option A', 'Option B', 'Option C', 'Option D', 'Option E'].map((opt, i) => (
-                      <div key={i} className="p-4 border border-[var(--color-border-subtle)] rounded-lg text-secondary font-medium bg-white flex items-center shadow-sm">
-                        <div className="w-5 h-5 rounded-full border-2 border-gray-300 mr-4 flex-shrink-0"></div>
-                        {opt}
-                      </div>
-                    ))}
+                    <h4 className="font-bold text-slate-900 text-lg mb-2">
+                      {isOwned ? "You own this module!" : "Unlock Full Access"}
+                    </h4>
+                    <p className="text-sm text-slate-500 mb-6">
+                      {isOwned 
+                        ? "Head over to your dashboard to start practicing."
+                        : `Purchase this module to reveal answers, detailed explanations, and ${qbank.totalQuestions - 1} more questions.`}
+                    </p>
+                    {isOwned ? (
+                      <Link 
+                        href={`/dashboard/${qbank.slug}`}
+                        className="flex w-full items-center justify-center rounded-md text-base font-medium transition-colors bg-blue-600 text-white shadow hover:bg-blue-700 h-12 px-8 mb-4"
+                      >
+                        Go to Dashboard
+                      </Link>
+                    ) : (
+                      <CheckoutButton qbankId={qbank.id} />
+                    )}
                   </div>
                 </div>
+                {['Option A', 'Option B', 'Option C', 'Option D', 'Option E'].map((opt, i) => (
+                  <div key={i} className="p-4 border border-slate-200 rounded-lg text-slate-500 bg-white flex items-center">
+                    <div className="w-6 h-6 rounded-full border-2 border-slate-300 mr-4 flex-shrink-0"></div>
+                    {opt}
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-
-          {/* Sticky Purchase Pane */}
-          <div className="lg:w-[400px] shrink-0">
-            <div className="sticky top-24 border border-[var(--color-border-subtle)] rounded-2xl p-8 bg-white shadow-xl shadow-slate-200/40">
-              
-              <div className="mb-4">
-                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
-                  Lifetime Access
-                </span>
-              </div>
-              
-              <div className="flex items-end gap-1 mb-8">
-                <span className="text-6xl font-extrabold tracking-tighter text-primary">${(qbank.price / 100).toFixed(0)}</span>
-                <span className="text-xl font-bold text-secondary mb-1">.00</span>
-              </div>
-              
-              <div className="w-full mb-8">
-                {isOwned ? (
-                  <Link 
-                    href={`/dashboard/${qbank.slug}`}
-                    className="flex w-full items-center justify-center rounded-md text-[15px] font-bold transition-all bg-blue-600 text-white shadow-sm hover:shadow-md hover:bg-blue-700 h-14 px-8"
-                  >
-                    Go to Dashboard
-                  </Link>
-                ) : (
-                  <CheckoutButton qbankId={qbank.id} />
-                )}
-              </div>
-              
-              <div className="space-y-4 pt-6 border-t border-[var(--color-border-subtle)]">
-                <div className="flex items-center justify-center gap-2 text-sm text-secondary font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Secure one-time payment
-                </div>
-                <div className="flex items-center justify-center gap-2 text-sm text-secondary font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Instant account access
-                </div>
-                <div className="flex items-center justify-center gap-2 text-sm text-secondary font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Includes all future updates
-                </div>
-              </div>
-
             </div>
-          </div>
+          )}
+        </div>
 
+        <div className="lg:w-96 shrink-0">
+          <div className="sticky top-24 border border-blue-100 rounded-2xl p-8 shadow-xl bg-white shadow-blue-900/5">
+            <div className="mb-2">
+              <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Lifetime Access</span>
+            </div>
+            <div className="text-5xl font-extrabold mb-8 text-slate-900">
+              ${(qbank.price / 100).toFixed(2)}
+            </div>
+            
+            <div className="w-full mb-6">
+              {isOwned ? (
+                <Link 
+                  href={`/dashboard/${qbank.slug}`}
+                  className="flex w-full items-center justify-center rounded-md text-base font-medium transition-colors bg-blue-600 text-white shadow hover:bg-blue-700 h-12 px-8 mb-4"
+                >
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <CheckoutButton qbankId={qbank.id} />
+              )}
+            </div>
+            
+            <p className="text-sm text-center text-slate-500 leading-relaxed">
+              Secure, one-time payment. <br/>Includes all future updates and errata for this topic bank.
+            </p>
+          </div>
         </div>
       </div>
     </div>

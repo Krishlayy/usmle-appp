@@ -601,13 +601,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
       if (target.closest('#exhibit-display-root')) return;
 
-      const trigger = target.closest('.exhibit-trigger') as HTMLElement;
-      if (trigger && trigger.dataset.url) {
-        e.preventDefault();
-        e.stopPropagation();
-        setZoomImage(trigger.dataset.url);
-        return;
-      }
+      // Let React handle exhibit trigger clicks naturally
+      if (target.closest('.exhibit-trigger')) return;
 
       if (!target.closest('.vignette-text') && !target.closest('.leading-relaxed')) {
         return;
@@ -700,8 +695,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     }
   };
 
-  return (
-    <div className={`flex flex-col h-screen overflow-hidden font-sans ${mainBg} ${mainText}`} style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+  const renderMqbTheme = () => (
+   <div className={`flex flex-col h-screen overflow-hidden font-sans ${mainBg} ${mainText}`} style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
       
       {isPaused && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center backdrop-blur-sm">
@@ -759,71 +754,83 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         <div className="flex-1 flex flex-col overflow-hidden">
           
           {/* Top Header */}
-          <header className={`h-[56px] flex items-center justify-between px-4 shrink-0 select-none border-b ${headerFooterBg} ${headerFooterText}`}>
+          <header className={`min-h-[60px] flex items-center justify-between px-4 shrink-0 select-none border-b ${headerFooterBg} ${headerFooterText}`}>
             
-            {/* Left Block Info & Font Tools */}
-            <div className="flex items-center gap-4 px-2">
+            {/* Left Column: Info & Font Tools */}
+            <div className="flex-1 flex items-center gap-6">
               <div className={`flex flex-col text-[12px] font-semibold leading-tight`}>
                 <div className="text-slate-500 text-[10px] uppercase tracking-wider">Item {currentIndex + 1} of {session.questions.length}</div>
                 <div className="text-slate-700">Block 1</div>
               </div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => updateSetting('fontSize', Math.max(12, settings.fontSize - 2))}
+                  className="text-slate-500 font-bold hover:text-slate-900 transition-colors"
+                  title="Decrease Font Size"
+                >A-</button>
+                <button 
+                  onClick={() => updateSetting('fontSize', Math.min(24, settings.fontSize + 2))}
+                  className="text-slate-500 font-bold hover:text-slate-900 transition-colors text-lg"
+                  title="Increase Font Size"
+                >A+</button>
+              </div>
             </div>
             
-            {/* Center Navigation */}
-            <div className="flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
+            {/* Center Column: Navigation */}
+            <div className="flex-1 flex items-center justify-center gap-8">
               <button 
                 onClick={handlePrev} 
                 disabled={currentIndex === 0} 
-                className="flex flex-col items-center disabled:opacity-50 hover:bg-white/10 px-2 rounded"
+                className="flex flex-col items-center disabled:opacity-30 hover:text-blue-600 transition-colors"
               >
-                <ArrowLeftCircle size={20} strokeWidth={1.5} />
-                <span className="text-[10px] font-bold mt-0.5">Previous</span>
+                <ArrowLeftCircle size={22} strokeWidth={1.5} />
+                <span className="text-[10px] font-bold mt-1">Previous</span>
               </button>
               
-              <div className="text-[14px] font-bold">
+              <div className="text-[14px] font-bold tracking-wide">
                 {currentIndex + 1} / {session.questions.length}
               </div>
               
               <button 
                 onClick={handleNext} 
-                className="flex flex-col items-center hover:bg-white/10 px-2 rounded"
+                className="flex flex-col items-center hover:text-blue-600 transition-colors"
               >
-                <ArrowRightCircle size={20} strokeWidth={1.5} />
-                <span className="text-[10px] font-bold mt-0.5">Next</span>
+                <ArrowRightCircle size={22} strokeWidth={1.5} />
+                <span className="text-[10px] font-bold mt-1">Next</span>
               </button>
             </div>
             
-            {/* Right Tools */}
-            <div className="flex h-full">
+            {/* Right Column: Tools */}
+            <div className="flex-1 flex justify-end items-center gap-1 h-full py-1">
               {session.mode === 'timed' && (
                 <button 
                   onClick={() => setIsPaused(true)}
-                  className="flex flex-col items-center justify-center h-full px-4 pt-1 border-b-0 rounded-t-sm text-slate-500 border-transparent hover:text-slate-900 hover:bg-slate-50 mr-2"
+                  className="flex flex-col items-center justify-center px-3 text-slate-500 hover:text-blue-600 transition-colors rounded"
                 >
-                  <div className="leading-none mb-0.5"><Clock size={18} /></div>
-                  <span className="text-[11px] font-bold pb-1">Pause</span>
+                  <Clock size={20} strokeWidth={1.5} className="mb-1" />
+                  <span className="text-[10px] font-bold">Pause</span>
                 </button>
               )}
               {[
                 { 
-                  name: 'Highlight', 
-                  icon: <Highlighter size={18} />, 
+                  name: 'Multi-Color', 
+                  icon: <Highlighter size={20} strokeWidth={1.5} />, 
                   action: (e: any) => applyTextFormatting('highlight'), 
                   active: false,
-                  render: (isActive: boolean, toolBg: string, toolBorder: string) => (
-                    <div key="Highlight" className="relative group h-full flex">
+                  render: (isActive: boolean) => (
+                    <div key="Highlight" className="relative group flex items-center justify-center h-full">
                       <button 
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => applyTextFormatting('highlight')}
-                        className={`flex flex-col items-center justify-center h-full px-3 pt-1 border-b-0 rounded-t-sm ${toolBg} ${toolBorder}`}
+                        className={`flex flex-col items-center justify-center px-3 text-slate-500 hover:text-blue-600 transition-colors rounded`}
                       >
-                        <div className="leading-none mb-0.5 relative">
-                          <Highlighter size={18} />
+                        <div className="relative mb-1">
+                          <Highlighter size={20} strokeWidth={1.5} />
                           <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border border-gray-400" style={{ backgroundColor: highlightColor }}></div>
                         </div>
-                        <span className="text-[11px] font-bold pb-1">Highlight</span>
+                        <span className="text-[10px] font-bold">Multi-Color</span>
                       </button>
-                      <div className="absolute top-full left-0 hidden group-hover:flex bg-white shadow-lg border border-slate-200 rounded p-1.5 gap-1 z-50">
+                      <div className="absolute top-full right-0 hidden group-hover:flex bg-white shadow-lg border border-slate-200 rounded p-2 gap-2 z-50">
                         {[
                           { color: '#fef08a', name: 'Yellow' },
                           { color: '#bbf7d0', name: 'Green' },
@@ -838,44 +845,34 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                               if (c.color !== 'transparent') setHighlightColor(c.color);
                               applyTextFormatting('highlight', c.color);
                             }}
-                            className={`w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 hover:scale-110 transition-transform ${highlightColor === c.color ? 'ring-2 ring-primary ring-offset-1' : ''}`}
+                            className={`w-6 h-6 rounded-full border border-gray-300 hover:scale-110 transition-transform ${highlightColor === c.color ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}
                             style={{ backgroundColor: c.color === 'transparent' ? '#f8fafc' : c.color }}
                             title={c.name}
                           >
-                            {c.color === 'transparent' && <span className="text-red-500 font-bold text-xs">/</span>}
+                            {c.color === 'transparent' && <span className="text-red-500 font-bold text-xs flex items-center justify-center h-full w-full">/</span>}
                           </button>
                         ))}
                       </div>
                     </div>
                   )
                 },
-                { name: 'Strike', icon: <Strikethrough size={18} />, action: (e: any) => applyTextFormatting('strikethrough'), active: false },
-                { name: 'Report Issue', icon: <AlertTriangle size={18} />, action: (e: any) => setShowReportModal(true), active: showReportModal },
-                { name: 'Lab Values', icon: <FlaskConical size={18} />, action: (e: any) => setShowLabValues(true), active: showLabValues },
-                { name: 'Notes', icon: <PenLine size={18} />, action: (e: any) => setShowNotes(true), active: showNotes },
-                { name: 'Calculator', icon: <CalcIcon size={18} />, action: (e: any) => setShowCalculator(true), active: showCalculator },
-                { name: 'Settings', icon: <SettingsIcon size={18} />, action: (e: any) => setSettingsMenuOpen(true), active: settingsMenuOpen }
+                { name: 'Report Issue', icon: <AlertTriangle size={20} strokeWidth={1.5} />, action: (e: any) => setShowReportModal(true), active: showReportModal },
+                { name: 'Lab Values', icon: <FlaskConical size={20} strokeWidth={1.5} />, action: (e: any) => setShowLabValues(true), active: showLabValues },
+                { name: 'Notes', icon: <PenLine size={20} strokeWidth={1.5} />, action: (e: any) => setShowNotes(true), active: showNotes },
+                { name: 'Calculator', icon: <CalcIcon size={20} strokeWidth={1.5} />, action: (e: any) => setShowCalculator(true), active: showCalculator },
+                { name: 'Settings', icon: <SettingsIcon size={20} strokeWidth={1.5} />, action: (e: any) => setSettingsMenuOpen(true), active: settingsMenuOpen }
               ].map(tool => {
-                const isActive = tool.active;
-                const toolBg = isActive 
-                  ? (isDark ? 'bg-slate-800 border-t border-l border-r border-slate-700 text-slate-100' : 'bg-slate-50 text-slate-900 border-t border-l border-r border-slate-200 rounded-t-lg')
-                  : (isDark ? 'text-slate-400 border-transparent hover:text-slate-200' : 'text-slate-500 border-transparent hover:text-slate-900 hover:bg-slate-50 rounded-t-lg');
-                const toolBorder = '';
-
-                if (tool.render) {
-                  return tool.render(isActive, toolBg, toolBorder);
-                }
-
+                if (tool.render) return tool.render(tool.active);
+                
                 return (
                   <button 
                     key={tool.name}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={tool.action}
-                    className={`flex flex-col items-center justify-center h-full px-3 pt-1 border-b-0 rounded-t-sm ${toolBg} ${toolBorder}`}
-                    style={{ marginBottom: isActive ? '-1px' : '0' }}
+                    className={`flex flex-col items-center justify-center px-3 text-slate-500 hover:text-blue-600 transition-colors rounded`}
                   >
-                    <div className="leading-none mb-0.5">{tool.icon}</div>
-                    <span className="text-[11px] font-bold pb-1">{tool.name}</span>
+                    <div className="mb-1">{tool.icon}</div>
+                    <span className="text-[10px] font-bold">{tool.name}</span>
                   </button>
                 );
               })}
@@ -923,20 +920,20 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 <div className={`${settings.splitScreen ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
                   {/* Options List */}
                   <div className={settings.answerLayout === 'compact' ? 'space-y-2' : 'space-y-4'}>
-                    <fieldset className={`border ${settings.highContrast ? (isDark ? 'border-gray-500' : 'border-gray-400 border-2') : borderCol} ${settings.answerLayout === 'compact' ? 'p-3' : 'p-5'} rounded-xl ${isDark ? 'bg-slate-900' : 'bg-white'} shadow-sm`}>
+                    <fieldset className={`flex flex-col gap-2 ${settings.answerLayout === 'compact' ? 'mt-2' : 'mt-4'}`}>
                       {currentQ.question.options.map((opt, i) => {
                         const isSelected = currentQ.selectedOptionId === opt.id;
                         const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
                         
                         let bgClass = "bg-transparent";
                         if (showFeedback && opt.isCorrect) {
-                          bgClass = isDark ? 'bg-green-900' : (settings.highContrast ? 'bg-[#005a00] text-white' : 'bg-[#008000] text-white');
+                          bgClass = isDark ? 'bg-green-900/40' : (settings.highContrast ? 'bg-[#005a00]/20' : 'bg-[#008000]/10');
                         } else if (showFeedback && isSelected) {
-                          bgClass = isDark ? 'bg-red-900' : (settings.highContrast ? 'bg-[#d9534f] text-white' : 'bg-[#f8d7da]');
+                          bgClass = isDark ? 'bg-red-900/40' : (settings.highContrast ? 'bg-[#d9534f]/20' : 'bg-[#f8d7da]/50');
                         }
 
                         return (
-                          <div key={opt.id} className={`flex items-start justify-between group ${bgClass} ${settings.answerLayout === 'compact' ? 'p-0.5' : 'p-1'} rounded transition-colors`}>
+                          <div key={opt.id} className={`flex items-start justify-between group ${bgClass} py-2 px-1 rounded transition-colors`}>
                             <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
                               <input 
                                 type="radio" 
@@ -944,20 +941,20 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                                 checked={isSelected}
                                 onChange={() => handleOptionSelect(opt.id)}
                                 disabled={!!showFeedback}
-                                className={`mt-1 w-4 h-4 cursor-pointer accent-black shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
+                                className={`mt-1.5 w-4 h-4 cursor-pointer accent-slate-600 shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
                               />
-                              <div className="ml-3 flex-1 flex flex-col">
-                                <div className={`flex items-center ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
-                                  <span className={`mr-2 ${settings.highContrast ? 'font-black' : ''}`}>{String.fromCharCode(65 + i)}.</span>
+                              <div className="ml-4 flex-1 flex flex-col">
+                                <div className={`flex items-start ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
+                                  <span className={`mr-3 ${settings.highContrast ? 'font-black' : 'font-semibold'}`}>{String.fromCharCode(65 + i)}.</span>
                                   {settings.showShortcuts && !showFeedback && (
-                                    <kbd className="mr-2 px-1 border border-gray-400 rounded text-[9px] text-gray-500 bg-gray-50 font-mono hidden sm:inline-block">
+                                    <kbd className="mr-3 mt-0.5 px-1.5 py-0.5 border border-gray-300 rounded text-[9px] text-gray-500 bg-white shadow-sm font-mono hidden sm:inline-block">
                                       {String.fromCharCode(65 + i)}
                                     </kbd>
                                   )}
-                                  <div className={`leading-snug [&>p]:inline ${settings.highContrast ? 'text-black font-medium' : ''}`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
+                                  <div className={`leading-relaxed [&>p]:inline ${settings.highContrast ? 'text-black font-medium' : ''}`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
                                 </div>
                                 {showFeedback && (opt as any).explanation && (
-                                  <div className={`mt-2 text-[13px] ${settings.highContrast ? 'text-black bg-gray-100 border-gray-400' : 'text-gray-800 bg-gray-50 border-gray-200'} p-2 rounded border`}>
+                                  <div className={`mt-3 text-[13px] ${settings.highContrast ? 'text-black bg-gray-100 border-gray-400' : 'text-slate-700 bg-slate-50 border-slate-200'} p-3 rounded-md border`}>
                                     <div dangerouslySetInnerHTML={{ __html: sanitizeHTML((opt as any).explanation) }} />
                                   </div>
                                 )}
@@ -972,7 +969,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                                 disabled={showFeedback}
                                 aria-label={isStruckThrough ? `Remove strikethrough from option ${String.fromCharCode(65 + i)}` : `Strike out option ${String.fromCharCode(65 + i)}`}
                                 aria-pressed={!!isStruckThrough}
-                                className={`ml-4 p-1 rounded transition-all shrink-0 ${settings.highContrast ? 'text-gray-800' : 'text-slate-400'} hover:text-slate-900 hover:bg-slate-200/50
+                                className={`ml-4 p-1.5 rounded transition-all shrink-0 ${settings.highContrast ? 'text-gray-800' : 'text-slate-400'} hover:text-slate-900 hover:bg-slate-200/50
                                   opacity-70 sm:opacity-50
                                   sm:group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:!opacity-100
                                   disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:!opacity-20 disabled:hover:bg-transparent`}
@@ -1014,51 +1011,62 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               
               {/* Media Side */}
               {currentQ.question.media && currentQ.question.media.length > 0 && (
-                <div className="w-[400px] shrink-0 pl-4">
-                  <div className="border border-gray-400 shadow-[4px_4px_10px_rgba(0,0,0,0.2)] bg-white p-1 flex">
-                    <div className="w-12 flex flex-col items-center gap-4 py-2 border-r border-gray-200 mr-2 shrink-0">
+                <div className="w-[350px] shrink-0 pl-4">
+                  <div className="border border-gray-300 shadow-md bg-white p-1 flex h-[300px]">
+                    
+                    {/* Left Tools Panel */}
+                    <div className="w-12 flex flex-col items-center gap-3 py-2 border-r border-gray-200 mr-1 shrink-0">
                       <button 
-                        className="exhibit-trigger flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
-                        data-url={currentQ.question.media && currentQ.question.media.length > 0 ? currentQ.question.media[0].url : ''}
+                        className="exhibit-trigger flex flex-col items-center justify-center hover:bg-gray-100 p-1 rounded w-full"
                         onClick={() => {
                           if (currentQ.question.media && currentQ.question.media.length > 0) {
                             setZoomImage(currentQ.question.media[0].url);
                           }
                         }}
                       >
-                        <div className="w-5 h-5 bg-black rounded-sm flex items-center justify-center text-white text-[12px] transform rotate-45 mb-1">◩</div>
-                        <span className="text-[10px]">Invert</span>
+                        <div className="w-4 h-4 bg-black rounded-sm flex items-center justify-center transform rotate-45 mb-1 text-white overflow-hidden">
+                           <div className="w-full h-1/2 bg-white absolute top-0 left-0 transform -rotate-45 -translate-y-1"></div>
+                        </div>
+                        <span className="text-[9px] font-semibold text-slate-700">Invert</span>
                       </button>
                       <button 
-                        className="exhibit-trigger flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
-                        data-url={currentQ.question.media && currentQ.question.media.length > 0 ? currentQ.question.media[0].url : ''}
+                        className="exhibit-trigger flex flex-col items-center justify-center hover:bg-gray-100 p-1 rounded w-full"
                         onClick={() => {
                           if (currentQ.question.media && currentQ.question.media.length > 0) {
                             setZoomImage(currentQ.question.media[0].url);
                           }
                         }}
                       >
-                        <div className="text-[18px] mb-1">☼</div>
-                        <span className="text-[10px]">Contrast</span>
+                        <div className="text-[16px] mb-1 leading-none text-slate-700">☼</div>
+                        <span className="text-[9px] font-semibold text-slate-700">Contrast</span>
                       </button>
                       <button 
-                        className="exhibit-trigger flex flex-col items-center hover:bg-gray-100 p-1 rounded w-full"
-                        data-url={currentQ.question.media && currentQ.question.media.length > 0 ? currentQ.question.media[0].url : ''}
+                        className="exhibit-trigger flex flex-col items-center justify-center hover:bg-gray-100 p-1 rounded w-full"
                         onClick={() => {
                           if (currentQ.question.media && currentQ.question.media.length > 0) {
                             setZoomImage(currentQ.question.media[0].url);
                           }
                         }}
                       >
-                        <div className="text-[18px] mb-1">⊕</div>
-                        <span className="text-[10px]">Zoom</span>
+                        <div className="text-[16px] mb-1 leading-none text-slate-700">⊕</div>
+                        <span className="text-[9px] font-semibold text-slate-700">Zoom</span>
                       </button>
                     </div>
-                    <div className="flex-1 flex items-center justify-center bg-[#0000ff] min-h-[300px]">
-                      {currentQ.question.media.map(m => (
-                        <MediaRenderer key={m.id} media={m} setZoomImage={setZoomImage} />
-                      ))}
+
+                    {/* Right Blue Exhibit Panel */}
+                    <div className="flex-1 flex flex-col bg-[#0000ff] rounded-sm overflow-hidden">
+                      <div className="flex-1 flex items-center justify-center p-2 pb-0 relative">
+                        {currentQ.question.media.map(m => (
+                          <div key={m.id} className="relative w-full h-full flex items-center justify-center bg-white rounded-t-xl overflow-hidden border border-gray-300">
+                             <MediaRenderer media={m} setZoomImage={setZoomImage} />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-center text-[#5555ff] text-[11px] font-medium py-1.5 bg-[#0000ff]">
+                        Clinical Exhibit
+                      </div>
                     </div>
+
                   </div>
                 </div>
               )}
@@ -1228,5 +1236,344 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         </div>
       )}
     </div>
+
   );
+
+  const renderNbmeTheme = () => (
+    <div className="flex flex-col h-screen overflow-hidden font-sans bg-white text-black select-none relative" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+      
+      {/* Modals & Overlays */}
+      {isPaused && (
+        <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-xl shadow-2xl text-center max-w-md w-full">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Block Paused</h2>
+            <p className="text-slate-600 mb-8">The block timer is currently paused. The questions are hidden to maintain test security.</p>
+            <button 
+              onClick={() => setIsPaused(false)}
+              className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg shadow hover:bg-slate-800 transition-colors"
+            >
+              Resume Block
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
+      {showLabValues && <LabValuesModal onClose={() => setShowLabValues(false)} />}
+      
+      {settingsMenuOpen && (
+         <div className="absolute top-[46px] right-2 z-[9999] bg-white border border-black shadow-lg shadow-black/20 w-[220px] py-1 flex flex-col text-[13px] font-medium text-black">
+            <button className="flex items-center justify-between px-3 py-1.5 hover:bg-[#3399ff] hover:text-white group">
+               Resize Text <span className="text-[10px] group-hover:text-white text-black">▶</span>
+            </button>
+            <button className="flex items-center justify-between px-3 py-1.5 hover:bg-[#3399ff] hover:text-white group">
+               Color Theme <span className="text-[10px] group-hover:text-white text-black">▶</span>
+            </button>
+            <button className="flex items-center justify-between px-3 py-1.5 hover:bg-[#3399ff] hover:text-white">
+               Show/Hide Strikeout
+            </button>
+            <button className="flex items-center justify-between px-3 py-1.5 hover:bg-[#3399ff] hover:text-white">
+               Help
+            </button>
+            <div className="border-t border-gray-300 my-1"></div>
+            <div className="px-3 py-1 text-[11px] text-gray-500 font-bold uppercase tracking-wider">Switch Theme</div>
+            <button onClick={() => updateSetting('appTheme', 'MQB')} className="flex items-center justify-between px-3 py-1.5 hover:bg-[#3399ff] hover:text-white">
+               Back to MQB Theme
+            </button>
+         </div>
+      )}
+
+      {showNotes && <QuestionNotesModal 
+        isOpen={showNotes} 
+        onClose={() => { setShowNotes(false); setNotebookAppendText(null); }} 
+        initialNotes={currentQ.notes || ''} 
+        onSave={handleSaveNotes} 
+        appendContent={notebookAppendText}
+      />}
+      {zoomImage && (
+        <ExhibitDisplay 
+          mediaUrl={zoomImage} 
+          onClose={() => setZoomImage(null)} 
+          onAddToNotes={() => setShowNotes(true)}
+        />
+      )}
+      {showFlashcardModal && session.qbankSlug && (
+        <FlashcardModal 
+          isOpen={showFlashcardModal} 
+          onClose={() => setShowFlashcardModal(false)} 
+          questionId={currentQ.question.id} 
+          qbankSlug={session.qbankSlug} 
+          initialFront={flashcardPrefillText}
+        />
+      )}
+      
+      {/* NBME Header */}
+      <header className="h-[46px] bg-[#003b6d] text-white flex items-center shrink-0 w-full relative z-10 border-b border-[#002244]">
+        
+        {/* Question Status Title Block */}
+        <div className="w-[110px] h-full bg-white text-black border border-black flex items-center justify-center text-[11px] font-bold leading-tight text-center shrink-0 shadow-[inset_0_0_2px_rgba(0,0,0,0.5)]">
+          Question<br/>Status
+        </div>
+        
+        {/* Item & Block Info */}
+        <div className="flex flex-col text-[13px] font-bold leading-tight px-4 min-w-[120px]">
+          <div>Item: {currentIndex + 1} of {session.questions.length}</div>
+          <div>Block: 1 of 6</div>
+        </div>
+        
+        {/* Navigation */}
+        <div className="flex-1 flex items-center justify-center gap-6">
+          <button 
+            onClick={handlePrev} 
+            disabled={currentIndex === 0}
+            className="flex flex-col items-center disabled:opacity-50 hover:bg-[#1a5f94] p-0.5 rounded transition-colors"
+          >
+            <ArrowLeftCircle size={24} fill="white" stroke="#003b6d" strokeWidth={1} className="drop-shadow-sm" />
+            <span className="text-[10px] font-bold mt-0.5">Previous</span>
+          </button>
+          
+          <div className="text-[16px] font-bold tracking-wide mt-[-10px]">
+            {currentIndex + 1} / {session.questions.length}
+          </div>
+          
+          <button 
+            onClick={handleNext} 
+            className="flex flex-col items-center hover:bg-[#1a5f94] p-0.5 rounded transition-colors"
+          >
+            <ArrowRightCircle size={24} fill="white" stroke="#003b6d" strokeWidth={1} className="drop-shadow-sm" />
+            <span className="text-[10px] font-bold mt-0.5">Next</span>
+          </button>
+        </div>
+        
+        {/* Tools */}
+        <div className="flex items-center h-full px-2 gap-0.5">
+          <button onClick={() => setShowLabValues(true)} className="flex flex-col items-center justify-center w-[60px] h-full hover:bg-[#1a5f94] transition-colors rounded">
+            <FlaskConical size={20} className="mb-0.5" />
+            <span className="text-[10px] font-bold">Lab Values</span>
+          </button>
+          <button onClick={() => setShowNotes(true)} className="flex flex-col items-center justify-center w-[60px] h-full hover:bg-[#1a5f94] transition-colors rounded">
+            <PenLine size={20} className="mb-0.5" />
+            <span className="text-[10px] font-bold">Notes</span>
+          </button>
+          <button onClick={() => setShowCalculator(true)} className="flex flex-col items-center justify-center w-[60px] h-full hover:bg-[#1a5f94] transition-colors rounded">
+            <CalcIcon size={20} className="mb-0.5" />
+            <span className="text-[10px] font-bold">Calculator</span>
+          </button>
+          <button onClick={() => setSettingsMenuOpen(!settingsMenuOpen)} className="flex flex-col items-center justify-center w-[60px] h-full hover:bg-[#1a5f94] transition-colors rounded relative">
+            <SettingsIcon size={20} className="mb-0.5" />
+            <span className="text-[10px] font-bold">Settings</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden relative">
+        
+        {/* Question List Sidebar */}
+        <aside className="w-[110px] bg-white border-r border-gray-300 flex flex-col shrink-0 overflow-y-auto overflow-x-hidden pt-0.5">
+          {questions.map((q, idx) => {
+            const isActive = idx === currentIndex;
+            const isAnswered = !!q.selectedOptionId;
+            const isFlagged = q.isFlagged;
+            
+            return (
+              <div 
+                key={q.id}
+                onClick={() => navigateToIndex(idx)}
+                className={`flex items-center px-1.5 py-1 text-[12px] font-bold cursor-pointer border-b border-gray-100 ${isActive ? 'bg-[#3399ff] text-white' : 'hover:bg-gray-100 text-black'}`}
+              >
+                <div className="w-[18px] flex items-center justify-center gap-[1px] shrink-0 mr-1.5">
+                  {isAnswered && <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-black'} shrink-0`} />}
+                  {isFlagged && <Flag size={10} className={`${isActive ? 'fill-white text-white' : 'fill-[#cc0000] text-[#cc0000]'} shrink-0`} />}
+                </div>
+                <div className="flex-1 flex items-center justify-between">
+                  <span className={`text-[13px] ${isActive ? 'text-white' : 'text-gray-800'}`}>{idx + 1}</span>
+                  {isActive && <span className="text-white font-black text-[14px] ml-1 flex items-center justify-center -mr-1">▶</span>}
+                </div>
+              </div>
+            );
+          })}
+        </aside>
+
+        {/* Content Pane */}
+        <main className="flex-1 flex flex-col overflow-y-auto p-4 pl-6 relative pb-20">
+          
+          <div className="flex justify-between items-start mb-6">
+             {/* Mark Question Checkbox */}
+             <label className="flex items-center gap-1.5 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={currentQ.isFlagged}
+                onChange={() => {
+                  const nextFlagged = !currentQ.isFlagged;
+                  updateCurrentQuestionState({ isFlagged: nextFlagged });
+                  scheduleAutosave(currentQ.id, { isFlagged: nextFlagged });
+                }}
+                className="w-3.5 h-3.5 accent-[#cc0000] outline-none border border-gray-400"
+              />
+              <span className="text-[13px] text-[#cc0000] flex items-center gap-1 font-bold">
+                 <Flag size={13} className="fill-[#cc0000]" />
+                 Mark Question
+              </span>
+             </label>
+          </div>
+
+          <div className="flex flex-1">
+             
+             {/* Vignette & Options */}
+             <div className="flex-1 pr-8 flex flex-col max-w-[800px]">
+                <div 
+                  ref={questionContentRef}
+                  className="vignette-text text-[15px] leading-relaxed mb-6 font-medium text-black"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
+                />
+
+                {/* NBME Options Box */}
+                <div className="border border-[#4477aa] w-[450px]">
+                  <fieldset className="flex flex-col p-0.5">
+                    {currentQ.question.options.map((opt, i) => {
+                      const isSelected = currentQ.selectedOptionId === opt.id;
+                      const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
+                      
+                      return (
+                        <div key={opt.id} className="flex items-start group hover:bg-gray-100 py-2 px-2 relative">
+                          <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
+                            <input 
+                              type="radio" 
+                              name={`q-nbme-${currentQ.id}`}
+                              checked={isSelected}
+                              onChange={() => handleOptionSelect(opt.id)}
+                              disabled={!!showFeedback}
+                              className="mt-1 w-3.5 h-3.5 accent-black cursor-pointer shadow-sm"
+                            />
+                            <div className="ml-3 flex-1 flex flex-col">
+                              <div className={`flex items-start ${isStruckThrough ? 'line-through text-gray-500' : 'text-black'}`}>
+                                <span className="mr-2 font-medium text-[15px]">{String.fromCharCode(65 + i)}.</span>
+                                <div className="leading-relaxed [&>p]:inline text-[15px]" dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {session.mode !== 'review' && (
+                            <button 
+                              type="button"
+                              onClick={() => toggleStrikethrough(opt.id)}
+                              disabled={showFeedback}
+                              className="ml-2 text-gray-400 hover:text-black opacity-0 group-hover:opacity-100 absolute right-2 top-2"
+                            >
+                              <span className="text-[13px] font-bold line-through">ab</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </fieldset>
+
+                  {/* Show Answer button */}
+                  {session.mode === 'tutor' && !showFeedback && (
+                    <div className="p-2 border-t border-[#4477aa] bg-white">
+                       <button onClick={() => alert("Please select an option to see the answer.")} className="border border-black bg-[#e0e0e0] px-3 py-1 text-[12px] font-bold hover:bg-[#d0d0d0] shadow-sm active:bg-gray-300">
+                          Show Answer
+                       </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Explanations */}
+                {showFeedback && (
+                  <div className="mt-8 pt-4 border-t border-gray-400">
+                    <div className="font-bold mb-2 uppercase text-[13px] text-black">Explanation:</div>
+                    <div 
+                      ref={explanationContentRef}
+                      className="leading-relaxed text-[14px] text-black"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedExplanation || currentQ.question.explanation || '') }}
+                    />
+                  </div>
+                )}
+                
+                {/* Proceed Button */}
+                <div className="mt-10">
+                  <button onClick={handleNext} className="bg-[#0055a4] text-white px-5 py-2 text-[13px] font-bold rounded shadow-md border border-[#003b6d] hover:bg-[#004b87] active:bg-[#003b6d] transition-colors">
+                    Proceed to Next Item
+                  </button>
+                </div>
+
+             </div>
+
+             {/* NBME Exhibit Side */}
+             {currentQ.question.media && currentQ.question.media.length > 0 && (
+               <div className="w-[450px] shrink-0 pl-4">
+                 {currentQ.question.media.map(m => (
+                   <div key={m.id} className="relative border-4 border-[#004b87]/10 shadow-[0_4px_12px_rgba(0,0,0,0.15)] bg-white p-[1px] mb-4">
+                     <div className="bg-[#0000cc] w-full flex items-center justify-center overflow-hidden border border-gray-400">
+                       <MediaRenderer media={m} setZoomImage={setZoomImage} />
+                     </div>
+                     {/* Floating NBME Tools */}
+                     <div className="absolute bottom-1 left-1 bg-white/95 border border-gray-300 shadow-sm rounded-sm flex flex-col p-1 gap-1 w-12 z-10">
+                        <button className="flex flex-col items-center justify-center py-1.5 hover:bg-gray-100 rounded border border-transparent hover:border-gray-200">
+                           <div className="w-3.5 h-3.5 bg-black transform rotate-45 text-white overflow-hidden mb-1">
+                              <div className="w-full h-1/2 bg-white absolute top-0 left-0 transform -rotate-45 -translate-y-1"></div>
+                           </div>
+                           <span className="text-[9px] font-bold text-gray-800">Invert</span>
+                        </button>
+                        <button className="flex flex-col items-center justify-center py-1.5 hover:bg-gray-100 rounded border border-transparent hover:border-gray-200">
+                           <div className="text-[16px] leading-none mb-1 text-gray-800">☼</div>
+                           <span className="text-[9px] font-bold text-gray-800">Contrast</span>
+                        </button>
+                        <button 
+                           className="flex flex-col items-center justify-center py-1.5 hover:bg-gray-100 rounded border border-transparent hover:border-gray-200"
+                           onClick={() => setZoomImage(m.url)}
+                        >
+                           <div className="text-[16px] leading-none mb-1 text-gray-800">⊕</div>
+                           <span className="text-[9px] font-bold text-gray-800">Zoom</span>
+                        </button>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             )}
+          </div>
+        </main>
+      </div>
+      
+      {/* NBME Footer */}
+      <footer className="h-[38px] bg-[#003b6d] text-white flex items-center justify-between px-3 shrink-0 border-t border-[#002244]">
+         <div className="flex flex-col text-[11px] font-bold leading-tight mt-0.5">
+            <div className="flex gap-1 items-center">
+               <span>Block Time Remaining:</span>
+               {settings.showTimer !== false ? (
+                 <TimerDisplay 
+                   initialElapsed={0} 
+                   initialTimeLeft={session.durationSec ? Math.max(0, session.durationSec - initialElapsed) : null} 
+                   isTimed={true} 
+                   isPaused={isPaused}
+                   onTimeUp={handleEndBlock} 
+                   type="remaining"
+                   className="font-bold"
+                 />
+               ) : (
+                 <span>--:--</span>
+               )}
+            </div>
+            <div className="flex gap-1 text-[#a0c8e6] items-center">
+               <span>Day Time Remaining:</span>
+               <span>3:29:48</span>
+            </div>
+         </div>
+
+         <button onClick={() => setIsPaused(true)} className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center text-[#a0c8e6] hover:text-white transition-colors">
+            <svg className="mb-0.5 w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span className="text-[9px] font-bold uppercase tracking-wider">Lock</span>
+         </button>
+
+         <button onClick={handleEndBlock} className="flex flex-col items-center justify-center text-[#ff3333] hover:text-[#ff6666] transition-colors gap-0.5">
+            <XCircle size={16} fill="white" stroke="#ff3333" />
+            <span className="text-[9px] font-bold">End Block</span>
+         </button>
+      </footer>
+    </div>
+  );
+
+
+  return settings.appTheme === 'NBME' ? renderNbmeTheme() : renderMqbTheme();
 }

@@ -13,7 +13,7 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
     }
 
     const body = await req.json();
-    const { questionProgressId, selectedOptionId, isCorrect, timeTakenSec, notes, strikethroughs, highlightedQuestionText, highlightedExplanation } = body;
+    const { questionProgressId, selectedOptionId, isCorrect, timeTakenSec, notes, strikethroughs, highlightedQuestionText, highlightedExplanation, isFlagged } = body;
 
     if (!questionProgressId) {
       return new NextResponse('Invalid request', { status: 400 });
@@ -41,34 +41,38 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
       return new NextResponse('Progress not found', { status: 404 });
     }
 
-    // Safe merging logic: prevent dormant devices from regressing progress
+    // Only update timeTakenSec if the new time is strictly greater (prevents race conditions)
     const finalTimeTakenSec = (timeTakenSec !== undefined && timeTakenSec > (existingProgress.timeTakenSec || 0))
       ? timeTakenSec
       : undefined;
 
-    const finalSelectedOptionId = (selectedOptionId !== undefined)
-      ? (selectedOptionId === null && existingProgress.selectedAnswer !== null ? undefined : selectedOptionId)
-      : undefined;
+    // Build the update payload dynamically to avoid Prisma throwing on empty data
+    const updateData: any = {};
+    if (selectedOptionId !== undefined) updateData.selectedAnswer = selectedOptionId;
+    if (isCorrect !== undefined) updateData.isCorrect = isCorrect;
+    if (finalTimeTakenSec !== undefined) updateData.timeTakenSec = finalTimeTakenSec;
+    if (notes !== undefined) updateData.notes = notes;
+    if (strikethroughs !== undefined) updateData.strikethroughs = strikethroughs;
+    if (highlightedQuestionText !== undefined) updateData.highlightedQuestionText = highlightedQuestionText;
+    if (highlightedExplanation !== undefined) updateData.highlightedExplanation = highlightedExplanation;
+    if (isFlagged !== undefined) updateData.flagged = isFlagged;
 
-    const finalIsCorrect = finalSelectedOptionId === undefined ? undefined : isCorrect;
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ success: true, ignored: true });
+    }
 
     // Auto-save the individual question progress
     await prisma.userProgress.update({
       where: { id: questionProgressId },
-      data: {
-        ...(finalSelectedOptionId !== undefined && { selectedAnswer: finalSelectedOptionId }),
-        ...(finalIsCorrect !== undefined && { isCorrect: finalIsCorrect }),
-        ...(finalTimeTakenSec !== undefined && { timeTakenSec: finalTimeTakenSec }),
-        ...(notes !== undefined && { notes: notes }),
-        ...(strikethroughs !== undefined && { strikethroughs: strikethroughs }),
-        ...(highlightedQuestionText !== undefined && { highlightedQuestionText: highlightedQuestionText }),
-        ...(highlightedExplanation !== undefined && { highlightedExplanation: highlightedExplanation }),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[AUTOSAVE_ERROR]', error);
-    return new NextResponse('Internal server error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) }, 
+      { status: 500 }
+    );
   }
 }

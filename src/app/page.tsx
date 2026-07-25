@@ -1,84 +1,503 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { ArrowRight, BookOpen, BarChart2, ShieldCheck, Sparkles } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
+
+interface FeatureItem {
+  icon: 'content' | 'analytics' | 'purchase';
+  tileColor: string;
+  title: string;
+  description: string;
+}
+
+function BookIcon({ color }: { color: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
+      <path
+        d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v16.5a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 17.5V4.5Zm2.5-.5a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5H18V4H6.5Z"
+        fill={color}
+      />
+    </svg>
+  );
+}
+
+function ArrowIcon({ color }: { color: string }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
+      <path d="M5 12h12.17l-4.58 4.59L14 18l7-7-7-7-1.41 1.41L17.17 10H5v2Z" fill={color} />
+    </svg>
+  );
+}
+
+function FeatureIcon({ variant, color }: { variant: 'content' | 'analytics' | 'purchase'; color: string }) {
+  if (variant === 'content') {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
+        <path
+          d="M6 3h12a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-4 2V5a2 2 0 0 1 2-2Zm0 2v10.76l2-.99 4 2 4-2 2 .99V5H6Z"
+          fill={color}
+        />
+      </svg>
+    );
+  }
+  if (variant === 'analytics') {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
+        <path d="M4 19h16v2H2V3h2v16Zm3-2V9h3v8H7Zm5 0V5h3v12h-3Zm5 0v-6h3v6h-3Z" fill={color} />
+      </svg>
+    );
+  }
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
+      <path
+        d="M7 4h10l3 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8l3-4Zm1.05 2L6.5 8h11L16 6H8.05ZM12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"
+        fill={color}
+      />
+    </svg>
+  );
+}
 
 export default function Home() {
+  const rootRef = React.useRef<HTMLDivElement | null>(null);
+  const inView = useInView(rootRef, { once: true, amount: 0.2 });
+  const shouldAnimate = inView;
+
+  // Config
+  const brand = 'Micro Q Bank';
+  const eyebrow = 'The New Standard in Clinical Education';
+  const emphasizedHeading = 'Master Medical Concepts,';
+  const headingRemainder = 'One Topic at a Time.';
+  const supportingParagraph =
+    'Stop paying for bloated subscriptions. Build your own curriculum with premium, high-yield question banks tailored precisely for your clinical weak spots.';
+  const primaryButtonLabel = 'Explore Question Banks';
+  const primaryButtonHref = '/store';
+  const secondaryButtonLabel = 'Create Free Account';
+  const secondaryButtonHref = '/signup';
+  const features: FeatureItem[] = [
+    {
+      icon: 'content',
+      tileColor: 'rgba(15, 118, 110, 0.08)',
+      title: 'High-Yield Content',
+      description:
+        'Questions crafted by top scorers, focusing on the concepts most frequently tested on the boards. No low-yield fluff.',
+    },
+    {
+      icon: 'analytics',
+      tileColor: 'rgba(2, 132, 199, 0.08)',
+      title: 'Advanced Analytics',
+      description:
+        'Track your performance across micro-topics to identify weaknesses and optimize your study time efficiently.',
+    },
+    {
+      icon: 'purchase',
+      tileColor: 'rgba(79, 70, 229, 0.08)',
+      title: 'Pay Per Module',
+      description: 'Zero subscriptions. Lifetime access to the modules you buy. A fair marketplace built for medical students.',
+    },
+  ];
+  const calloutTitle = 'Ready to elevate your clinical study?';
+  const calloutBody = 'Join a smarter question-bank experience designed for focused learning and measurable growth.';
+  const calloutButtonLabel = 'Get Started Today';
+  const calloutButtonHref = '/signup';
+  const footerBrand = 'Micro Q Bank';
+  const footerCopyright = `© ${new Date().getFullYear()} Micro Q Bank. All rights reserved.`;
+
+  // Colors - Clean Professional Theme
+  const pageBackground = '#FFFFFF'; 
+  const accentYellow = '#0F766E';   // Deep medical teal for primary action
+  const aqua = '#0284C7';           // Crisp blue for secondary elements
+  const navy = '#0F172A';           // Dark slate for headers
+  const cardSurface = '#FFFFFF';
+  const sectionSurface = '#F8FAFC'; // Subtle gray-blue section background
+  const primaryText = '#0F172A';
+  const mutedText = '#64748B';
+  const borderColor = '#E2E8F0';
+  const radius = '12px';
+
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-white text-primary font-sans animate-page-enter">
-      <main className="flex-1 flex flex-col items-center justify-center">
-        
-        {/* HERO SECTION */}
-        <div className="relative w-full overflow-hidden bg-gradient-to-b from-slate-50 to-white px-6">
-          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-50"></div>
-          <div className="max-w-5xl w-full mx-auto text-center space-y-10 py-32 flex flex-col items-center relative z-10">
-            
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-sm font-semibold mb-6 animate-fade-slide-up shadow-sm" style={{ animationDelay: '100ms' }}>
-              <Sparkles className="w-4 h-4 text-blue-500" />
-              The New Standard in Clinical Education
+    <div
+      ref={rootRef}
+      style={{
+        position: 'relative',
+        width: '100%',
+        background: pageBackground,
+        color: primaryText,
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
+
+      <main
+        style={{
+          width: '100%',
+          padding: '18px 20px 60px',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1120,
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 56,
+          }}
+        >
+          {/* Hero Section */}
+          <section
+            style={{
+              position: 'relative',
+              borderRadius: radius,
+              padding: '74px 20px 70px',
+              textAlign: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: 0,
+                width: '58%',
+                minWidth: 280,
+                transform: 'translateX(-50%)',
+                height: 230,
+                background: `radial-gradient(circle at center, ${aqua}24 0%, transparent 70%)`,
+                pointerEvents: 'none',
+              }}
+            />
+            <motion.div
+              initial={shouldAnimate ? { opacity: 0, y: 14 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 22,
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  border: `1px solid ${borderColor}`,
+                  borderRadius: 999,
+                  padding: '7px 12px',
+                  textTransform: 'uppercase',
+                  color: mutedText,
+                  letterSpacing: '0.06em',
+                  fontSize: 12,
+                  lineHeight: '1em',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 999,
+                    background: accentYellow,
+                    display: 'inline-block',
+                  }}
+                />
+                {eyebrow}
+              </span>
+
+              <h1
+                style={{
+                  fontSize: 'clamp(42px, 7vw, 72px)',
+                  lineHeight: '1.05',
+                  margin: 0,
+                  color: primaryText,
+                  maxWidth: 820,
+                  fontWeight: 600,
+                  letterSpacing: '-0.04em',
+                }}
+              >
+                <span style={{ fontStyle: 'italic', marginRight: 8 }}>{emphasizedHeading}</span>
+                <br />
+                {headingRemainder}
+              </h1>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: mutedText,
+                  maxWidth: 680,
+                  fontSize: 16,
+                  lineHeight: '1.35em',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {supportingParagraph}
+              </p>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 12,
+                  flexWrap: 'wrap',
+                  width: '100%',
+                  paddingTop: 8,
+                }}
+              >
+                <Link href={primaryButtonHref}>
+                  <span
+                    style={{
+                      minHeight: 50,
+                      minWidth: 210,
+                      padding: '12px 18px',
+                      borderRadius: radius,
+                      border: '1px solid #000000',
+                      background: '#000000',
+                      color: '#FFFFFF',
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <span>{primaryButtonLabel}</span>
+                    <ArrowIcon color="#FFFFFF" />
+                  </span>
+                </Link>
+                <Link href={secondaryButtonHref}>
+                  <span
+                    style={{
+                      minHeight: 50,
+                      minWidth: 210,
+                      padding: '12px 18px',
+                      borderRadius: radius,
+                      border: `1px solid ${borderColor}`,
+                      background: accentYellow,
+                      color: primaryText,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {secondaryButtonLabel}
+                  </span>
+                </Link>
+              </div>
+            </motion.div>
+          </section>
+
+          {/* Features Section */}
+          <section
+            style={{
+              background: sectionSurface,
+              borderRadius: radius,
+              padding: '28px 18px',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: 16,
+              }}
+            >
+              {features.map((feature, index) => (
+                <motion.article
+                  key={`${feature.title}-${index}`}
+                  initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.35,
+                    delay: 0.06 * index,
+                    ease: 'easeOut',
+                  }}
+                  style={{
+                    background: cardSurface,
+                    border: `1px solid ${borderColor}`,
+                    borderRadius: radius,
+                    padding: '24px 20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 14,
+                    minWidth: 0,
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 10,
+                      background: feature.tileColor,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <FeatureIcon variant={feature.icon} color={primaryText} />
+                  </span>
+                  <h3
+                    style={{
+                      margin: 0,
+                      color: primaryText,
+                      fontWeight: 700,
+                      fontSize: 16,
+                    }}
+                  >
+                    {feature.title}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      color: mutedText,
+                      fontSize: 14,
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    {feature.description}
+                  </p>
+                </motion.article>
+              ))}
             </div>
+          </section>
 
-            <h1 className="text-scale-3xl md:text-[80px] leading-[1.1] animate-fade-slide-up text-primary tracking-tight font-extrabold" style={{ animationDelay: '200ms' }}>
-              Master Medical Concepts,<br/>
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">One Topic at a Time.</span>
-            </h1>
-            
-            <p className="mx-auto max-w-2xl text-scale-lg text-secondary leading-relaxed animate-fade-slide-up mt-8 font-medium" style={{ animationDelay: '300ms' }}>
-              Stop paying for bloated subscriptions. Build your own curriculum with premium, high-yield question banks tailored precisely for your clinical weak spots.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-5 pt-12 animate-fade-slide-up w-full sm:w-auto" style={{ animationDelay: '400ms' }}>
-              <Link href="/store" className="w-full sm:w-auto">
-                <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-[0_4px_14px_0_rgb(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] hover:bg-blue-600 gap-2 px-10 h-14 text-base">
-                  Explore Question Banks <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-              
-              <Link href="/signup" className="w-full sm:w-auto">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto h-14 px-10 text-base shadow-sm hover:shadow">
-                  Create Free Account
-                </Button>
-              </Link>
+          {/* Callout Section */}
+          <motion.section
+            initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.4,
+              ease: 'easeOut',
+              delay: 0.08,
+            }}
+            style={{
+              width: '100%',
+              background: navy,
+              borderRadius: radius,
+              padding: '28px 24px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 20,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                minWidth: 0,
+                flex: '1 1 360px',
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  color: '#FFFFFF',
+                  fontSize: 'clamp(24px, 3.3vw, 38px)',
+                  lineHeight: '1.08em',
+                  fontWeight: 600,
+                  letterSpacing: '-0.04em',
+                }}
+              >
+                {calloutTitle}
+              </h3>
+              <p
+                style={{
+                  margin: 0,
+                  color: '#D5DCE8',
+                  maxWidth: 620,
+                  fontSize: 16,
+                  lineHeight: '1.35em',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {calloutBody}
+              </p>
             </div>
-          </div>
-        </div>
-
-        {/* FEATURES GRID */}
-        <div className="max-w-7xl w-full mx-auto py-32 px-6 sm:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
-            <Card elevation="subtle" className="p-10 flex flex-col hover:-translate-y-2 transition-transform duration-300 border-none bg-slate-50">
-              <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 mb-8 flex items-center justify-center">
-                <BookOpen className="w-7 h-7 stroke-[2px]" />
-              </div>
-              <h3 className="text-[22px] font-bold text-primary mb-4">High-Yield Content</h3>
-              <p className="text-secondary leading-relaxed text-scale-base font-medium">Questions crafted by top scorers, focusing on the concepts most frequently tested on the boards. No low-yield fluff.</p>
-            </Card>
-
-            <Card elevation="subtle" className="p-10 flex flex-col hover:-translate-y-2 transition-transform duration-300 border-none bg-slate-50" style={{ animationDelay: '100ms' }}>
-              <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 mb-8 flex items-center justify-center">
-                <BarChart2 className="w-7 h-7 stroke-[2px]" />
-              </div>
-              <h3 className="text-[22px] font-bold text-primary mb-4">Advanced Analytics</h3>
-              <p className="text-secondary leading-relaxed text-scale-base font-medium">Track your performance across micro-topics to identify weaknesses and optimize your study time efficiently.</p>
-            </Card>
-
-            <Card elevation="subtle" className="p-10 flex flex-col hover:-translate-y-2 transition-transform duration-300 border-none bg-slate-50" style={{ animationDelay: '200ms' }}>
-              <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 mb-8 flex items-center justify-center">
-                <ShieldCheck className="w-7 h-7 stroke-[2px]" />
-              </div>
-              <h3 className="text-[22px] font-bold text-primary mb-4">Pay Per Module</h3>
-              <p className="text-secondary leading-relaxed text-scale-base font-medium">Zero subscriptions. Lifetime access to the modules you buy. A fair marketplace built for medical students.</p>
-            </Card>
-          </div>
+            <Link href={calloutButtonHref}>
+              <span
+                style={{
+                  background: aqua,
+                  color: navy,
+                  textDecoration: 'none',
+                  borderRadius: radius,
+                  border: `1px solid ${aqua}`,
+                  minHeight: 48,
+                  minWidth: 220,
+                  padding: '12px 16px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  boxSizing: 'border-box',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <span>{calloutButtonLabel}</span>
+                <ArrowIcon color={navy} />
+              </span>
+            </Link>
+          </motion.section>
         </div>
       </main>
 
-      <footer className="bg-slate-50 border-t border-[var(--color-border-subtle)] py-16 text-center text-secondary">
-        <div className="max-w-7xl mx-auto px-6">
-          <p className="mb-3 font-semibold text-primary">© {new Date().getFullYear()} Micro - Q bank.</p>
-          <p className="text-sm text-muted font-medium">An independent clinical educational platform built for excellence.</p>
+      <footer
+        style={{
+          width: '100%',
+          background: sectionSurface,
+          borderTop: `1px solid ${borderColor}`,
+          padding: '20px',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1120,
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <BookIcon color={primaryText} />
+            <span
+              style={{
+                color: primaryText,
+                fontWeight: 700,
+                fontSize: 14,
+              }}
+            >
+              {footerBrand}
+            </span>
+          </div>
+          <span style={{ color: mutedText, fontSize: 12 }}>{footerCopyright}</span>
         </div>
       </footer>
     </div>

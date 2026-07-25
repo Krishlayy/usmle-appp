@@ -113,17 +113,26 @@ export function TestSecurityOverlay({
     </g>
   </svg>`;
 
+  const encodedSvg = typeof window !== 'undefined' ? window.btoa(svgWatermark) : '';
+  const bgUrl = `url("data:image/svg+xml;base64,${encodedSvg}")`;
+
   return (
     <div className="relative w-full h-full min-h-screen">
-      {/* Watermark Overlay */}
+      <style>{`
+        @keyframes driftWatermark {
+          from { background-position: 0 0; }
+          to { background-position: 850px 350px; }
+        }
+      `}</style>
+      
+      {/* Floating Diagonal Grid Watermark */}
       <div 
-        className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden flex flex-wrap justify-center content-center"
+        className="pointer-events-none fixed inset-0 z-[9999] mix-blend-multiply"
         style={{
-          backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svgWatermark)}")`,
-          backgroundRepeat: 'repeat',
+          backgroundImage: bgUrl,
+          animation: 'driftWatermark 40s linear infinite'
         }}
-      >
-      </div>
+      />
 
       {showViolationWarning && (
         <div className="fixed inset-0 bg-black/80 z-[10000] flex items-center justify-center p-4">
