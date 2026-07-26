@@ -1535,8 +1535,23 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                       const isSelected = currentQ.selectedOptionId === opt.id;
                       const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
                       
+                      let bgClass = "hover:bg-gray-100";
+                      let textClass = isStruckThrough ? "line-through text-gray-500" : "text-black";
+                      
+                      if (showFeedback) {
+                        if (opt.isCorrect) {
+                          bgClass = "bg-[#d4edda]"; // NBME green
+                          textClass = "text-[#155724] font-semibold";
+                        } else if (isSelected) {
+                          bgClass = "bg-[#f8d7da]"; // NBME red
+                          textClass = "text-[#721c24] font-semibold";
+                        } else {
+                          bgClass = ""; // remove hover effect during feedback
+                        }
+                      }
+                      
                       return (
-                        <div key={opt.id} className="flex items-start group hover:bg-gray-100 py-2 px-2 relative">
+                        <div key={opt.id} className={`flex items-start group py-2 px-2 relative ${bgClass}`}>
                           <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
                             <input 
                               type="radio" 
@@ -1547,7 +1562,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                               className="mt-1 w-3.5 h-3.5 accent-black cursor-pointer shadow-sm"
                             />
                             <div className="ml-3 flex-1 flex flex-col">
-                              <div className={`flex items-start ${isStruckThrough ? 'line-through text-gray-500' : 'text-black'}`}>
+                              <div className={`flex items-start ${textClass}`}>
                                 <span className="mr-2 font-medium text-[15px]">{String.fromCharCode(65 + i)}.</span>
                                 <div className="leading-relaxed [&>p]:inline text-[15px]" dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
                               </div>
