@@ -104,16 +104,15 @@ export default function Home() {
   const footerCopyright = `© ${new Date().getFullYear()} Micro Q Bank. All rights reserved.`;
 
   // Colors - Clean Professional Theme
-  const pageBackground = '#FFFFFF'; 
-  const accentYellow = '#0F766E';   // Deep medical teal for primary action
-  const aqua = '#0284C7';           // Crisp blue for secondary elements
-  const navy = '#0F172A';           // Dark slate for headers
+  const pageBackground = '#FAFAF9'; 
+  const accent = '#0D9488';   // Deep medical teal for primary action
+  const navy = '#14161A';           // Dark slate for headers
   const cardSurface = '#FFFFFF';
-  const sectionSurface = '#F8FAFC'; // Subtle gray-blue section background
-  const primaryText = '#0F172A';
-  const mutedText = '#64748B';
-  const borderColor = '#E2E8F0';
-  const radius = '12px';
+  const sectionSurface = '#FFFFFF'; // Subtle gray-blue section background
+  const primaryText = '#14161A';
+  const mutedText = '#5C626E';
+  const borderColor = '#E5E7EB';
+  const radius = '8px';
 
   return (
     <div
@@ -164,7 +163,7 @@ export default function Home() {
                 minWidth: 280,
                 transform: 'translateX(-50%)',
                 height: 230,
-                background: `radial-gradient(circle at center, ${aqua}24 0%, transparent 70%)`,
+                background: `radial-gradient(circle at center, ${accent}15 0%, transparent 70%)`,
                 pointerEvents: 'none',
               }}
             />
@@ -202,7 +201,7 @@ export default function Home() {
                     width: 7,
                     height: 7,
                     borderRadius: 999,
-                    background: accentYellow,
+                    background: accent,
                     display: 'inline-block',
                   }}
                 />
@@ -281,8 +280,8 @@ export default function Home() {
                       padding: '12px 18px',
                       borderRadius: radius,
                       border: `1px solid ${borderColor}`,
-                      background: accentYellow,
-                      color: primaryText,
+                      background: accent,
+                      color: '#FFFFFF',
                       textDecoration: 'none',
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -434,11 +433,11 @@ export default function Home() {
             <Link href={calloutButtonHref}>
               <span
                 style={{
-                  background: aqua,
-                  color: navy,
+                  background: accent,
+                  color: '#FFFFFF',
                   textDecoration: 'none',
                   borderRadius: radius,
-                  border: `1px solid ${aqua}`,
+                  border: `1px solid ${accent}`,
                   minHeight: 48,
                   minWidth: 220,
                   padding: '12px 16px',
@@ -452,7 +451,7 @@ export default function Home() {
                 }}
               >
                 <span>{calloutButtonLabel}</span>
-                <ArrowIcon color={navy} />
+                <ArrowIcon color="#FFFFFF" />
               </span>
             </Link>
           </motion.section>
