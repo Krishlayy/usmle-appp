@@ -1003,7 +1003,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     
                     <div className="mt-8 pb-10 flex items-center">
                       <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
-                        {t('Next')} Item
+                        {t('Next Item')}
                       </button>
                       {settings.showShortcuts && (
                         <kbd className="ml-3 px-2 py-1 border border-gray-400 rounded text-[11px] text-gray-500 bg-white font-mono hidden sm:inline-block">
@@ -1080,7 +1080,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     
                     <div className="mt-8 pb-10 flex items-center">
                       <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
-                        {t('Next')} Item
+                        {t('Next Item')}
                       </button>
                     </div>
                   </div>
@@ -1248,8 +1248,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               You have not answered all questions in this block. Are you sure you want to proceed?
             </div>
             <div className={`bg-[#f0f0f0] text-black p-3 flex justify-end gap-2 border-t border-gray-300`}>
-              <button onClick={() => setOmissionWarning(null)} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">Cancel</button>
-              <button onClick={() => { omissionWarning(); setOmissionWarning(null); }} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">Proceed</button>
+              <button onClick={() => setOmissionWarning(null)} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">{t('Cancel')}</button>
+              <button onClick={() => { omissionWarning(); setOmissionWarning(null); }} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">{t('Proceed')}</button>
             </div>
           </div>
         </div>
@@ -1581,7 +1581,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 {/* Proceed Button */}
                 <div className="mt-10">
                   <button onClick={handleNext} className="bg-[#0055a4] text-white px-5 py-2 text-[13px] font-bold rounded shadow-md border border-[#003b6d] hover:bg-[#004b87] active:bg-[#003b6d] transition-colors">
-                    {t('Next')} Item
+                    {t('Next Item')}
                   </button>
                 </div>
 

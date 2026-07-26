@@ -1,5 +1,6 @@
 export type UIKeys = 
   | 'Next'
+  | 'Next Item'
   | 'Previous'
   | 'Submit'
   | 'Bookmark'
@@ -18,11 +19,14 @@ export type UIKeys =
   | 'Mark'
   | 'Strikethrough'
   | 'Highlight'
-  | 'Clear';
+  | 'Clear'
+  | 'Proceed'
+  | 'Cancel';
 
 const UI_DICTIONARY: Record<string, Record<UIKeys, string>> = {
   hi: { // Hindi
     Next: 'अगला',
+    'Next Item': 'अगला आइटम',
     Previous: 'पिछला',
     Submit: 'जमा करें',
     Bookmark: 'बुकमार्क',
@@ -41,10 +45,13 @@ const UI_DICTIONARY: Record<string, Record<UIKeys, string>> = {
     Mark: 'चिह्नित करें',
     Strikethrough: 'काटें',
     Highlight: 'हाइलाइट',
-    Clear: 'साफ़ करें'
+    Clear: 'साफ़ करें',
+    Proceed: 'आगे बढ़ें',
+    Cancel: 'रद्द करें'
   },
   ta: { // Tamil
     Next: 'அடுத்தது',
+    'Next Item': 'அடுத்த உருப்படி',
     Previous: 'முந்தையது',
     Submit: 'சமர்ப்பி',
     Bookmark: 'புக்மார்க்',
@@ -63,10 +70,13 @@ const UI_DICTIONARY: Record<string, Record<UIKeys, string>> = {
     Mark: 'குறி',
     Strikethrough: 'அடிக்கோடிடு',
     Highlight: 'முன்னிலைப்படுத்து',
-    Clear: 'அழி'
+    Clear: 'அழி',
+    Proceed: 'தொடரவும்',
+    Cancel: 'ரத்துசெய்'
   },
   te: { // Telugu
     Next: 'తరువాత',
+    'Next Item': 'తదుపరి అంశం',
     Previous: 'మునుపటి',
     Submit: 'సమర్పించు',
     Bookmark: 'బుక్ మార్క్',
@@ -85,10 +95,13 @@ const UI_DICTIONARY: Record<string, Record<UIKeys, string>> = {
     Mark: 'గుర్తు',
     Strikethrough: 'కొట్టివేయి',
     Highlight: 'హైలైట్',
-    Clear: 'తొలగించు'
+    Clear: 'తొలగించు',
+    Proceed: 'కొనసాగించు',
+    Cancel: 'రద్దు చేయి'
   },
   bn: { // Bengali
     Next: 'পরবর্তী',
+    'Next Item': 'পরবর্তী আইটেম',
     Previous: 'পূর্ববর্তী',
     Submit: 'জমা দিন',
     Bookmark: 'বুকমার্ক',
@@ -107,10 +120,13 @@ const UI_DICTIONARY: Record<string, Record<UIKeys, string>> = {
     Mark: 'চিহ্নিত করুন',
     Strikethrough: 'কাটা',
     Highlight: 'হাইলাইট',
-    Clear: 'পরিষ্কার করুন'
+    Clear: 'পরিষ্কার করুন',
+    Proceed: 'এগিয়ে যান',
+    Cancel: 'বাতিল করুন'
   },
   es: { // Spanish
     Next: 'Siguiente',
+    'Next Item': 'Siguiente elemento',
     Previous: 'Anterior',
     Submit: 'Enviar',
     Bookmark: 'Marcador',
@@ -129,7 +145,9 @@ const UI_DICTIONARY: Record<string, Record<UIKeys, string>> = {
     Mark: 'Marcar',
     Strikethrough: 'Tachar',
     Highlight: 'Resaltar',
-    Clear: 'Borrar'
+    Clear: 'Borrar',
+    Proceed: 'Proceder',
+    Cancel: 'Cancelar'
   }
 };
 
