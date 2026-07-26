@@ -16,6 +16,7 @@ export function HighlightToolbar({ rect, onHighlight, onTranslate, onAddNote }: 
     { name: 'blue', hex: '#bfdbfe' },
     { name: 'red', hex: '#fecaca' },
     { name: 'purple', hex: '#e9d5ff' },
+    { name: 'eraser', hex: 'transparent' },
   ];
 
   return (
@@ -30,11 +31,14 @@ export function HighlightToolbar({ rect, onHighlight, onTranslate, onAddNote }: 
         {colors.map(c => (
           <button
             key={c.name}
-            onClick={() => onHighlight(c.name)}
-            className="w-6 h-6 rounded-full shadow-sm hover:scale-110 transition-transform"
-            style={{ backgroundColor: c.hex }}
-            title={`Highlight ${c.name}`}
-          />
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onHighlight(c.hex)}
+            className={`w-6 h-6 rounded-full shadow-sm hover:scale-110 transition-transform ${c.hex === 'transparent' ? 'border border-gray-300' : ''}`}
+            style={{ backgroundColor: c.hex === 'transparent' ? '#f8fafc' : c.hex }}
+            title={c.name === 'eraser' ? 'Eraser (Clear)' : `Highlight ${c.name}`}
+          >
+            {c.hex === 'transparent' && <span className="text-red-500 font-bold text-xs flex items-center justify-center h-full w-full">/</span>}
+          </button>
         ))}
       </div>
       
