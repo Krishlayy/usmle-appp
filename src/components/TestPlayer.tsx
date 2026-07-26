@@ -1326,7 +1326,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   );
 
   const renderNbmeTheme = () => (
-    <div className="flex flex-col h-screen overflow-hidden font-sans bg-white text-black select-none relative" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+    <div className="flex flex-col h-screen overflow-hidden font-sans bg-white text-black relative" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
       
       {/* Modals & Overlays */}
       {isPaused && (
