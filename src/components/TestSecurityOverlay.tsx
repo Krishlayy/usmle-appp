@@ -25,85 +25,8 @@ export function TestSecurityOverlay({
         .catch(() => setRealIp('Local Environment'));
     }
 
-    const triggerViolation = async (reason: string) => {
-      if (isProcessing) return;
-      setIsProcessing(true);
-      
-      try {
-        const res = await fetch('/api/security/violation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: reason })
-        });
-        const data = await res.json();
-        
-        if (data.blocked) {
-          window.location.href = '/blocked';
-        } else {
-          setViolationCount(data.violations || 1);
-          setShowViolationWarning(true);
-        }
-      } catch (err) {
-        console.error('Violation tracking error', err);
-      } finally {
-        setTimeout(() => setIsProcessing(false), 1000);
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isPrintScreen = e.key === 'PrintScreen';
-      const isDevTools = e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I');
-      const isSave = e.ctrlKey && e.key === 's';
-      const isMeta = e.key === 'Meta' || e.key === 'OS';
-      
-      if (isPrintScreen || isDevTools || isSave || isMeta) {
-        e.preventDefault();
-        triggerViolation('Keyboard Violation: ' + e.key);
-      }
-    };
-
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      // Temporarily disabled right-click violation because it false-flags double taps on Macbooks
-      // triggerViolation('Right Click Violation');
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        triggerViolation('Tab Switching / Window Hidden');
-      }
-    };
-
-    const handleCopyPaste = (e: Event) => {
-      e.preventDefault();
-      triggerViolation('Copy/Paste attempted');
-    };
-
-    const handleBlur = () => {
-      setTimeout(() => {
-        if (!document.hasFocus()) {
-          triggerViolation('Window lost focus');
-        }
-      }, 200);
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    document.addEventListener('copy', handleCopyPaste);
-    document.addEventListener('paste', handleCopyPaste);
-    document.addEventListener('cut', handleCopyPaste);
-    window.addEventListener('blur', handleBlur);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('copy', handleCopyPaste);
-      document.removeEventListener('paste', handleCopyPaste);
-      document.removeEventListener('cut', handleCopyPaste);
-      window.removeEventListener('blur', handleBlur);
-    };
+    // Anti-cheat listeners have been temporarily disabled.
+    // Floating IP watermark remains active.
   }, [userEmail, userIp, isProcessing]);
 
   const svgWatermark = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='350px' width='850px'>

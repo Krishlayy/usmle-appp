@@ -312,7 +312,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     }
   }, [session.id]);
   
-  const [showSecurityWarning, setShowSecurityWarning] = useState(session.mode !== 'review');
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false); // Anti-cheat temporarily disabled
 
 
   
