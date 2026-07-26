@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
+import { ChevronLeft, RotateCcw, Plus, Clock, Target, CheckCircle2, XCircle } from 'lucide-react';
 
 export default async function SessionResultsPage(props: { params: Promise<{ qbankSlug: string, sessionId: string }> }) {
   const params = await props.params;
@@ -42,27 +43,9 @@ export default async function SessionResultsPage(props: { params: Promise<{ qban
   const totalQuestions = testSession.progress.length;
   const answeredQuestions = testSession.progress.filter(p => p.selectedAnswer).length;
   const correctQuestions = testSession.progress.filter(p => p.isCorrect).length;
+  const incorrectQuestions = answeredQuestions - correctQuestions;
 
   const scorePercentage = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
-
-  const previousSession = await prisma.testSession.findFirst({
-    where: {
-      userId: session.user.id,
-      qbankId: qbank.id,
-      status: 'completed',
-      completedAt: { lt: testSession.completedAt || new Date() },
-      id: { not: testSession.id }
-    },
-    orderBy: { completedAt: 'desc' },
-    include: { progress: true }
-  });
-
-  let previousScorePercentage: number | null = null;
-  if (previousSession && previousSession.progress.length > 0) {
-    const prevTotal = previousSession.progress.length;
-    const prevCorrect = previousSession.progress.filter(p => p.isCorrect).length;
-    previousScorePercentage = Math.round((prevCorrect / prevTotal) * 100);
-  }
 
   const timeTakenTotal = testSession.progress.reduce((sum, p) => sum + (p.timeTakenSec || 0), 0);
   const timeTakenMinutes = Math.floor(timeTakenTotal / 60);
@@ -84,83 +67,119 @@ export default async function SessionResultsPage(props: { params: Promise<{ qban
 
   const sortedSubtopics = Object.keys(subtopicStats).sort((a, b) => subtopicStats[b].incorrect - subtopicStats[a].incorrect);
 
+  const radius = 60;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (scorePercentage / 100) * circumference;
+
   return (
-    <div className="min-h-screen bg-[#f4f7f9] font-sans">
-      <div className="container mx-auto py-8 px-4 max-w-5xl">
-        <Link href={`/dashboard/${qbank.slug}`} className="text-sm text-blue-500 hover:underline mb-4 inline-block font-medium">
-          &larr; Back to {qbank.title} Dashboard
-        </Link>
-        
-        <h1 className="text-[28px] font-extrabold text-[#001738] mb-6 tracking-tight">Block Results</h1>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          <div className="bg-white rounded-md p-6 shadow-sm border border-slate-200 text-center flex flex-col justify-center h-[120px]">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Score</h3>
-            <div className="text-[32px] font-black text-[#001738] leading-none">{scorePercentage}%</div>
-            {previousScorePercentage !== null && (
-              <div className={`text-xs font-bold mt-2 ${scorePercentage >= previousScorePercentage ? 'text-emerald-600' : 'text-red-500'}`}>
-                {scorePercentage >= previousScorePercentage ? '▲' : '▼'} {Math.abs(scorePercentage - previousScorePercentage)}% vs previous test
-              </div>
-            )}
+    <div className="min-h-screen bg-[#F8FAF9] font-sans">
+      <div className="bg-[#FFFFFF] border-b border-[#E5E7EB] sticky top-0 z-10">
+        <div className="container mx-auto px-4 md:px-8 h-16 flex items-center justify-between max-w-5xl">
+          <Link href={`/dashboard/${qbank.slug}`} className="flex items-center gap-2 text-sm font-bold text-[#6B7280] hover:text-[#111827] transition-colors">
+            <ChevronLeft className="w-4 h-4" /> Back to Dashboard
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link 
+              href={`/dashboard/${params.qbankSlug}/test/${params.sessionId}?mode=review`}
+              className="px-4 py-2 bg-[#FFFFFF] border border-[#E5E7EB] text-[#111827] font-bold text-sm rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" /> Review Session
+            </Link>
+            <Link 
+              href={`/dashboard/${params.qbankSlug}/setup`}
+              className="px-4 py-2 bg-[#0D9488] text-white font-bold text-sm rounded-lg hover:bg-[#0a7d6f] flex items-center gap-2 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" /> New Block
+            </Link>
           </div>
-          
-          <div className="bg-white rounded-md p-6 shadow-sm border border-slate-200 text-center flex flex-col justify-center h-[120px]">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Correct</h3>
-            <div className="text-[32px] font-black text-emerald-600 leading-none">{correctQuestions} <span className="text-xl text-slate-400 font-bold">/ {totalQuestions}</span></div>
-          </div>
+        </div>
+      </div>
 
-          <div className="bg-white rounded-md p-6 shadow-sm border border-slate-200 text-center flex flex-col justify-center h-[120px]">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Answered</h3>
-            <div className="text-[32px] font-black text-blue-600 leading-none">{answeredQuestions} <span className="text-xl text-slate-400 font-bold">/ {totalQuestions}</span></div>
-          </div>
-
-          <div className="bg-white rounded-md p-6 shadow-sm border border-slate-200 text-center flex flex-col justify-center h-[120px]">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Time Spent</h3>
-            <div className="text-[32px] font-black text-[#001738] leading-none">
-              {timeTakenMinutes}:{timeTakenSeconds.toString().padStart(2, '0')}
+      <div className="container mx-auto py-10 px-4 md:px-8 max-w-5xl">
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative w-40 h-40 flex items-center justify-center mb-4">
+            <svg className="transform -rotate-90 w-40 h-40">
+              <circle cx="80" cy="80" r="70" stroke="#E5E7EB" strokeWidth="12" fill="transparent" />
+              <circle 
+                cx="80" cy="80" r="70" 
+                stroke="#0D9488" 
+                strokeWidth="12" 
+                fill="transparent" 
+                strokeDasharray={circumference * (70/60)} 
+                strokeDashoffset={(circumference * (70/60)) - (scorePercentage / 100) * (circumference * (70/60))} 
+                className="transition-all duration-1000 ease-out" 
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute flex flex-col items-center justify-center">
+              <span className="text-4xl font-extrabold text-[#111827]">{scorePercentage}%</span>
+              <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mt-1">Score</span>
             </div>
           </div>
+          <h1 className="text-2xl font-extrabold text-[#111827] mb-1">Session Complete!</h1>
+          <p className="text-[#6B7280] font-medium">Here is how you performed on this block.</p>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[22px] font-extrabold text-[#001738]">Test Analysis</h2>
-          <a 
-            href={`/dashboard/${params.qbankSlug}/test/${params.sessionId}?mode=review`}
-            className="px-6 py-2 bg-[#003b5c] text-white font-bold text-sm rounded shadow hover:bg-[#004f7a] transition-colors"
-          >
-            Review Test Explanations
-          </a>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#E5E7EB] p-6 text-center hover:shadow-md transition-shadow">
+            <Target className="w-6 h-6 text-[#0D9488] mx-auto mb-3" />
+            <div className="text-2xl font-extrabold text-[#111827] mb-1">{scorePercentage}%</div>
+            <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">Overall Score</h3>
+          </div>
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#E5E7EB] p-6 text-center hover:shadow-md transition-shadow">
+            <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-3" />
+            <div className="text-2xl font-extrabold text-emerald-600 mb-1">{correctQuestions}</div>
+            <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">Correct</h3>
+          </div>
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#E5E7EB] p-6 text-center hover:shadow-md transition-shadow">
+            <XCircle className="w-6 h-6 text-red-500 mx-auto mb-3" />
+            <div className="text-2xl font-extrabold text-red-600 mb-1">{incorrectQuestions}</div>
+            <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">Incorrect</h3>
+          </div>
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#E5E7EB] p-6 text-center hover:shadow-md transition-shadow">
+            <Clock className="w-6 h-6 text-[#111827] mx-auto mb-3" />
+            <div className="text-2xl font-extrabold text-[#111827] mb-1">
+              {timeTakenMinutes}:{timeTakenSeconds.toString().padStart(2, '0')}
+            </div>
+            <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">Time Spent</h3>
+          </div>
         </div>
-        
-        <div className="bg-white rounded-md p-6 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold text-[#001738] mb-4">Performance by Subtopic</h3>
+
+        <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#E5E7EB] overflow-hidden">
+          <div className="p-6 border-b border-[#E5E7EB]">
+            <h3 className="text-lg font-bold text-[#111827]">Performance by Topic</h3>
+          </div>
           {sortedSubtopics.length === 0 ? (
-            <div className="text-slate-500 text-sm">No topic data available for this block.</div>
+            <div className="p-6 text-[#6B7280] text-sm text-center font-medium">No topic data available for this block.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b-2 border-slate-200 bg-slate-50">
-                    <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase">Subtopic</th>
-                    <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-center">Total</th>
-                    <th className="py-3 px-4 text-xs font-bold text-emerald-600 uppercase text-center">Correct</th>
-                    <th className="py-3 px-4 text-xs font-bold text-red-600 uppercase text-center">Incorrect</th>
-                    <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-center">Omitted</th>
-                    <th className="py-3 px-4 text-xs font-bold text-[#001738] uppercase text-center">% Correct</th>
+                  <tr className="bg-[#F8FAF9] border-b border-[#E5E7EB]">
+                    <th className="py-4 px-6 text-xs font-bold text-[#6B7280] uppercase tracking-wider">Subtopic</th>
+                    <th className="py-4 px-6 text-xs font-bold text-[#6B7280] uppercase tracking-wider text-center">Total</th>
+                    <th className="py-4 px-6 text-xs font-bold text-[#6B7280] uppercase tracking-wider text-center">Correct</th>
+                    <th className="py-4 px-6 text-xs font-bold text-[#6B7280] uppercase tracking-wider text-center">Incorrect</th>
+                    <th className="py-4 px-6 text-xs font-bold text-[#6B7280] uppercase tracking-wider text-center">Omitted</th>
+                    <th className="py-4 px-6 text-xs font-bold text-[#6B7280] uppercase tracking-wider text-right">Accuracy</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[#E5E7EB]">
                   {sortedSubtopics.map(tag => {
                     const stats = subtopicStats[tag];
                     const percent = Math.round((stats.correct / stats.total) * 100);
+                    let colorClass = 'text-[#111827]';
+                    if (percent >= 70) colorClass = 'text-emerald-600';
+                    else if (percent < 50) colorClass = 'text-red-600';
+
                     return (
-                      <tr key={tag} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-4 text-sm font-bold text-slate-700 uppercase">{tag}</td>
-                        <td className="py-3 px-4 text-sm font-medium text-slate-600 text-center">{stats.total}</td>
-                        <td className="py-3 px-4 text-sm font-bold text-emerald-600 text-center">{stats.correct}</td>
-                        <td className="py-3 px-4 text-sm font-bold text-red-600 text-center">{stats.incorrect > 0 ? stats.incorrect : '-'}</td>
-                        <td className="py-3 px-4 text-sm font-medium text-slate-500 text-center">{stats.omitted > 0 ? stats.omitted : '-'}</td>
-                        <td className="py-3 px-4 text-sm font-black text-[#001738] text-center">{percent}%</td>
+                      <tr key={tag} className="hover:bg-gray-50 transition-colors">
+                        <td className="py-4 px-6 text-sm font-bold text-[#111827]">{tag}</td>
+                        <td className="py-4 px-6 text-sm font-medium text-[#6B7280] text-center">{stats.total}</td>
+                        <td className="py-4 px-6 text-sm font-bold text-emerald-600 text-center">{stats.correct > 0 ? stats.correct : '-'}</td>
+                        <td className="py-4 px-6 text-sm font-bold text-red-600 text-center">{stats.incorrect > 0 ? stats.incorrect : '-'}</td>
+                        <td className="py-4 px-6 text-sm font-medium text-[#6B7280] text-center">{stats.omitted > 0 ? stats.omitted : '-'}</td>
+                        <td className={`py-4 px-6 text-sm font-black text-right ${colorClass}`}>{percent}%</td>
                       </tr>
                     );
                   })}

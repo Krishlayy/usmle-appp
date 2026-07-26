@@ -44,11 +44,11 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
     // Update all TestSessionQuestion records
     // Also, we need to log to UserProgress to maintain global history
 
-    // Batch all updates into a sequential loop to prevent deadlocks with pending autosaves
-    // We catch individual errors so that a single failed update (e.g. lock timeout) doesn't crash the submission
-    for (const q of questions) {
-      try {
-        await prisma.userProgress.update({
+    // Save all question progress in parallel for speed.
+    // Use allSettled so a single DB failure doesn't block all other saves.
+    const saveResults = await Promise.allSettled(
+      questions.map((q: any) =>
+        prisma.userProgress.update({
           where: { id: q.id },
           data: {
             selectedAnswer: q.selectedOptionId ?? null,
@@ -56,19 +56,32 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
             flagged: q.isFlagged ?? false,
             timeTakenSec: q.timeTakenSec ?? 0,
           },
-        });
-      } catch (err) {
-        console.warn(`Failed to update UserProgress ${q.id} during submit:`, err);
-      }
-    }
+        })
+      )
+    );
 
-    // Mark session as completed
-    await prisma.testSession.update({
-      where: { id: params.sessionId },
-      data: { status: 'completed' },
+    // Track which questions failed to save (for client-side warning)
+    const failedIds: string[] = [];
+    saveResults.forEach((result, i) => {
+      if (result.status === 'rejected') {
+        failedIds.push(questions[i].id);
+        console.warn(`[SUBMIT] Failed to save UserProgress ${questions[i].id}:`, result.reason);
+      }
     });
 
-    return NextResponse.json({ success: true });
+    // Mark session as completed — include completedAt timestamp
+    await prisma.testSession.update({
+      where: { id: params.sessionId },
+      data: {
+        status: 'completed',
+        completedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      ...(failedIds.length > 0 && { partialFailure: true, failedIds }),
+    });
   } catch (error) {
     console.error('[TEST_SESSION_SUBMIT_ERROR]', error);
     return new NextResponse('Internal server error', { status: 500 });

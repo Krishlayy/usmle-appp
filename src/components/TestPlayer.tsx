@@ -200,28 +200,25 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       const queue = JSON.parse(localStorage.getItem(`sync-queue-${session.id}`) || '[]');
       if (queue.length === 0) return;
 
-      const successfulIndexes: number[] = [];
-      for (let i = 0; i < queue.length; i++) {
-        try {
-          const res = await fetch(`/api/test-sessions/${session.id}/autosave`, {
+      // Fire all pending saves in parallel — don't let one slow request block others
+      const results = await Promise.allSettled(
+        queue.map((item: any) =>
+          fetch(`/api/test-sessions/${session.id}/autosave`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(queue[i]),
-          });
-          if (res.ok) successfulIndexes.push(i);
-        } catch (err) {
-          console.error('Network error while flushing', err);
-          break;
-        }
-      }
+            body: JSON.stringify(item),
+          }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return true;
+          })
+        )
+      );
 
-      if (successfulIndexes.length > 0) {
-        const remaining = queue.filter((_: any, idx: number) => !successfulIndexes.includes(idx));
-        if (remaining.length === 0) {
-          localStorage.removeItem(`sync-queue-${session.id}`);
-        } else {
-          localStorage.setItem(`sync-queue-${session.id}`, JSON.stringify(remaining));
-        }
+      const remaining = queue.filter((_: any, idx: number) => results[idx].status === 'rejected');
+      if (remaining.length === 0) {
+        localStorage.removeItem(`sync-queue-${session.id}`);
+      } else {
+        localStorage.setItem(`sync-queue-${session.id}`, JSON.stringify(remaining));
       }
     } catch (e) {
       console.error('Queue flush error', e);
@@ -370,7 +367,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   const currentQ = questions[currentIndex];
   
   const testPlayerMainRef = useRef<HTMLDivElement>(null);
-  const { translatedData, isTranslating } = useTranslation(currentQ?.question.id, settings.targetLanguage);
+  const { translatedData, isTranslating, error } = useTranslation(currentQ?.question.id, settings.targetLanguage);
   
 
 
@@ -1021,7 +1018,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 </div>
 
                 {/* Translated Panel */}
-                {settings.targetLanguage && (translatedData || isTranslating) && (
+                {settings.targetLanguage && (translatedData || isTranslating || error) && (
                   <div className="flex flex-1 flex-col pl-6 border-l border-[var(--color-border-subtle)] bg-[var(--color-accent)]/5">
                     <div className="text-[10px] font-bold text-[var(--color-accent)] uppercase mb-2">Translation</div>
                     
@@ -1032,6 +1029,11 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         <div className="h-4 bg-gray-200 rounded w-5/6"></div>
                         <div className="h-4 bg-gray-200 rounded w-full"></div>
                         <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    ) : error ? (
+                      <div className="mt-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                        <span>⚠️</span>
+                        <span>Translation unavailable. Please try again later.</span>
                       </div>
                     ) : translatedData ? (
                       <>

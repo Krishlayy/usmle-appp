@@ -85,10 +85,18 @@ export async function POST(req: Request) {
         const sessions = await stripe.checkout.sessions.list({ payment_intent: charge.payment_intent, limit: 1 });
         if (sessions.data.length > 0) {
           const sessionId = sessions.data[0].id;
-          await prisma.purchase.updateMany({
+          const updated = await prisma.purchase.updateMany({
             where: { stripeSessionId: sessionId },
             data: { status: 'refunded' }
           });
+          if (updated.count === 0) {
+            // Found the Stripe session but no matching DB purchase — log for investigation
+            console.error(`[REFUND] No purchase found for stripeSessionId ${sessionId} (payment_intent: ${charge.payment_intent})`);
+          }
+        } else {
+          // No checkout session found for this payment_intent — return 500 so Stripe retries
+          console.error(`[REFUND] No checkout session found for payment_intent ${charge.payment_intent}. Stripe will retry.`);
+          return new NextResponse('No matching session found', { status: 500 });
         }
         await redis.set(`stripe:event:${eventId}`, 'true', { ex: 86400 });
       } catch (error) {

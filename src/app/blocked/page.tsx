@@ -24,7 +24,7 @@ export default function BlockedPage() {
 
         <div className="flex flex-col gap-3">
           <a 
-            href="mailto:admin@example.com?subject=Account%20Suspension%20Appeal"
+            href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@microqbank.com'}?subject=Account%20Suspension%20Appeal`}
             className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
           >
             <Mail className="w-5 h-5" />
