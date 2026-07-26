@@ -77,21 +77,21 @@ export default function Home() {
   const features: FeatureItem[] = [
     {
       icon: 'content',
-      tileColor: 'rgba(15, 118, 110, 0.08)',
+      tileColor: 'rgba(13, 148, 136, 0.08)',
       title: 'High-Yield Content',
       description:
         'Questions crafted by top scorers, focusing on the concepts most frequently tested on the boards. No low-yield fluff.',
     },
     {
       icon: 'analytics',
-      tileColor: 'rgba(2, 132, 199, 0.08)',
+      tileColor: 'rgba(13, 148, 136, 0.08)',
       title: 'Advanced Analytics',
       description:
         'Track your performance across micro-topics to identify weaknesses and optimize your study time efficiently.',
     },
     {
       icon: 'purchase',
-      tileColor: 'rgba(79, 70, 229, 0.08)',
+      tileColor: 'rgba(13, 148, 136, 0.08)',
       title: 'Pay Per Module',
       description: 'Zero subscriptions. Lifetime access to the modules you buy. A fair marketplace built for medical students.',
     },

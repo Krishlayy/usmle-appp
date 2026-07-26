@@ -21,6 +21,7 @@ export function useTranslation(questionId: string | undefined, targetLanguage: s
         return;
       }
 
+      if (isMounted) setTranslatedData(null);
       setIsTranslating(true);
       setError(null);
 

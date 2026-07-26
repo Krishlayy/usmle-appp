@@ -1017,17 +1017,28 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 </div>
 
                 {/* Translated Panel */}
-                {settings.targetLanguage && translatedData && (
-                  <div className="flex flex-1 flex-col pl-6 border-l border-gray-300 bg-blue-50/30">
-                    <div className="text-[10px] font-bold text-blue-600 uppercase mb-2">Translation</div>
-                    <div className="mb-6">
-                      <div 
-                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(translatedData.questionText) }}
-                        className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
-                      />
-                    </div>
+                {settings.targetLanguage && (translatedData || isTranslating) && (
+                  <div className="flex flex-1 flex-col pl-6 border-l border-[var(--color-border-subtle)] bg-[var(--color-accent)]/5">
+                    <div className="text-[10px] font-bold text-[var(--color-accent)] uppercase mb-2">Translation</div>
                     
-                    <div>
+                    {isTranslating ? (
+                      <div className="animate-pulse space-y-4 py-4 w-full pr-4">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    ) : translatedData ? (
+                      <>
+                        <div className="mb-6">
+                          <div 
+                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(translatedData.questionText) }}
+                            className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
+                          />
+                        </div>
+                        
+                        <div>
                       <div className={settings.answerLayout === 'compact' ? 'space-y-2' : 'space-y-4'}>
                         <fieldset className={`flex flex-col gap-2 ${settings.answerLayout === 'compact' ? 'mt-2' : 'mt-4'}`}>
                           {translatedData.options.map((opt, i) => {
@@ -1035,21 +1046,25 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                             const isSelected = currentQ.selectedOptionId === originalOpt.id;
                             const isStruckThrough = currentQ.strikethroughs?.includes(originalOpt.id);
                             
-                            let bgClass = "bg-transparent";
+                            let bgClass = "bg-white border-[var(--color-border-subtle)] hover:border-gray-300 shadow-sm";
                             if (showFeedback && originalOpt.isCorrect) {
-                              bgClass = isDark ? 'bg-green-900/40' : (settings.highContrast ? 'bg-[#005a00]/20' : 'bg-[#008000]/10');
+                              bgClass = 'bg-[var(--color-success)]/10 border-[var(--color-success)]/30';
                             } else if (showFeedback && isSelected) {
-                              bgClass = isDark ? 'bg-red-900/40' : (settings.highContrast ? 'bg-[#d9534f]/20' : 'bg-[#f8d7da]/50');
+                              bgClass = 'bg-[var(--color-error)]/10 border-[var(--color-error)]/30';
+                            } else if (isSelected) {
+                              bgClass = 'border-[var(--color-accent)] ring-1 ring-[var(--color-accent)] bg-[var(--color-accent)]/5';
                             }
 
                             return (
                               <div key={opt.id} className={`flex items-start justify-between group border ${bgClass} p-4 rounded-xl transition-all`}>
-                                <div className="flex items-start flex-1 opacity-90">
+                                <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(originalOpt.id)}>
                                   <input 
                                     type="radio" 
+                                    name={`q-translated-${currentQ.id}`}
                                     checked={isSelected}
-                                    readOnly
-                                    className={`mt-1.5 w-4 h-4 accent-slate-600 shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
+                                    onChange={() => handleOptionSelect(originalOpt.id)}
+                                    disabled={!!showFeedback}
+                                    className={`mt-1.5 w-4 h-4 cursor-pointer accent-slate-600 shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
                                   />
                                   <div className="ml-4 flex-1 flex flex-col">
                                     <div className={`flex items-start ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
@@ -1079,6 +1094,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         )}
                       </div>
                     </div>
+                    </>
+                    ) : null}
                     
                     <div className="mt-8 pb-10 flex items-center">
                       <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
