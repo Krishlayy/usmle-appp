@@ -1027,7 +1027,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     <div className="mb-6">
                       <HighlightWrapper 
                         html={translatedData.questionText}
-                        highlights={highlights}
+                        highlights={[]} // Disable highlighting in translated pane
                         section="stem"
                         className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
                       />
@@ -1084,6 +1084,12 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                           </div>
                         )}
                       </div>
+                    </div>
+                    
+                    <div className="mt-8 pb-10 flex items-center">
+                      <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
+                        {t('Next')} Item
+                      </button>
                     </div>
                   </div>
                 )}
@@ -1203,7 +1209,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         
         <button onClick={handleEndBlock} className="flex flex-col items-center justify-center hover:bg-red-600/30 px-2 h-full rounded">
           <XCircle size={14} className="text-red-500 mb-0.5" />
-          <span className="text-[10px] font-bold">{t('End Block')}</span>
+          <span className="text-[10px] font-bold">End Block</span>
         </button>
       </footer>
 
@@ -1660,7 +1666,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
          <button onClick={handleEndBlock} className="flex flex-col items-center justify-center text-[#ff3333] hover:text-[#ff6666] transition-colors gap-0.5">
             <XCircle size={16} fill="white" stroke="#ff3333" />
-            <span className="text-[9px] font-bold">{t('End Block')}</span>
+            <span className="text-[9px] font-bold">End Block</span>
          </button>
       </footer>
     </div>

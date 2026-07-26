@@ -124,7 +124,11 @@ export async function POST(req: Request) {
     const translatedOptions = [];
     for (const opt of options) {
       const t = await translateLargeText(opt.text, targetLanguage);
-      translatedOptions.push({ ...opt, text: t });
+      let translatedOptExp = opt.explanation;
+      if (opt.explanation) {
+        translatedOptExp = await translateLargeText(opt.explanation, targetLanguage);
+      }
+      translatedOptions.push({ ...opt, text: t, explanation: translatedOptExp });
     }
     
     // Also translate captions for media if they exist
