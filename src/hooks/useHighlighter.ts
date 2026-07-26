@@ -22,6 +22,28 @@ export function useHighlighter({ questionId, containerRef, initialHighlights = [
   const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
   const [currentSelection, setCurrentSelection] = useState<{ startOffset: number; endOffset: number; text: string; section: string } | null>(null);
 
+  useEffect(() => {
+    let isMounted = true;
+    if (!questionId) return;
+    
+    async function fetchHighlights() {
+      try {
+        const response = await fetch(`/api/highlights?questionId=${questionId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (isMounted && data.highlights) {
+            setHighlights(data.highlights);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch highlights', e);
+      }
+    }
+    fetchHighlights();
+    
+    return () => { isMounted = false; };
+  }, [questionId]);
+
   // Helper to get absolute text offset ignoring HTML tags
   const getTextOffset = (node: Node, offset: number, container: HTMLElement) => {
     let currentOffset = 0;
