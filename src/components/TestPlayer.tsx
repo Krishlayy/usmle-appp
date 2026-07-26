@@ -18,6 +18,7 @@ import { TimerDisplay, QuestionTimerDisplay } from '@/features/test-player/compo
 
 import { useTestPlayerStore } from '@/store/useTestPlayerStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useUITranslation } from '@/hooks/useUITranslation';
 import { useHighlighter } from '@/hooks/useHighlighter';
 import { HighlightWrapper } from '@/components/HighlightWrapper';
 import { HighlightToolbar } from '@/components/HighlightToolbar';
@@ -90,6 +91,7 @@ export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '' 
 function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
   const router = useRouter();
   const { settings, updateSetting } = useTestSettings();
+  const { t } = useUITranslation(settings.targetLanguage);
   
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportType, setReportType] = useState('TYPO');
@@ -797,7 +799,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 className="flex flex-col items-center disabled:opacity-30 hover:text-blue-600 transition-colors"
               >
                 <ArrowLeftCircle size={22} strokeWidth={1.5} />
-                <span className="text-[10px] font-bold mt-1">Previous</span>
+                <span className="text-[10px] font-bold mt-1">{t('Previous')}</span>
               </button>
               
               <div className="text-[14px] font-bold tracking-wide">
@@ -809,7 +811,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 className="flex flex-col items-center hover:text-blue-600 transition-colors"
               >
                 <ArrowRightCircle size={22} strokeWidth={1.5} />
-                <span className="text-[10px] font-bold mt-1">Next</span>
+                <span className="text-[10px] font-bold mt-1">{t('Next')}</span>
               </button>
             </div>
             
@@ -821,7 +823,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   className="flex flex-col items-center justify-center px-3 text-slate-500 hover:text-blue-600 transition-colors rounded"
                 >
                   <Clock size={20} strokeWidth={1.5} className="mb-1" />
-                  <span className="text-[10px] font-bold">Pause</span>
+                  <span className="text-[10px] font-bold">{t('Pause')}</span>
                 </button>
               )}
               {[
@@ -1024,7 +1026,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   {/* Proceed Button */}
                   <div className="mt-8 pb-10 flex items-center">
                     <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
-                      Proceed to Next Item
+                      {t('Next')} Item
                     </button>
                     {settings.showShortcuts && (
                       <kbd className="ml-3 px-2 py-1 border border-gray-400 rounded text-[11px] text-gray-500 bg-white font-mono hidden sm:inline-block">
@@ -1084,7 +1086,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                       <div className="flex-1 flex items-center justify-center p-2 pb-0 relative">
                         {currentQ.question.media.map(m => (
                           <div key={m.id} className="relative w-full h-full flex items-center justify-center bg-white rounded-t-xl overflow-hidden border border-gray-300">
-                             <MediaRenderer media={m} setZoomImage={setZoomImage} />
+                             <MediaRenderer media={{ ...m, caption: translatedData?.media?.find(tm => tm.id === m.id)?.caption || m.caption }} setZoomImage={setZoomImage} />
                           </div>
                         ))}
                       </div>
@@ -1149,7 +1151,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         
         <button onClick={handleEndBlock} className="flex flex-col items-center justify-center hover:bg-red-600/30 px-2 h-full rounded">
           <XCircle size={14} className="text-red-500 mb-0.5" />
-          <span className="text-[10px] font-bold">End Block</span>
+          <span className="text-[10px] font-bold">{t('End Block')}</span>
         </button>
       </footer>
 
@@ -1355,7 +1357,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             className="flex flex-col items-center disabled:opacity-50 hover:bg-[#1a5f94] p-0.5 rounded transition-colors"
           >
             <ArrowLeftCircle size={24} fill="white" stroke="#003b6d" strokeWidth={1} className="drop-shadow-sm" />
-            <span className="text-[10px] font-bold mt-0.5">Previous</span>
+            <span className="text-[10px] font-bold mt-0.5">{t('Previous')}</span>
           </button>
           
           <div className="text-[16px] font-bold tracking-wide mt-[-10px]">
@@ -1367,7 +1369,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             className="flex flex-col items-center hover:bg-[#1a5f94] p-0.5 rounded transition-colors"
           >
             <ArrowRightCircle size={24} fill="white" stroke="#003b6d" strokeWidth={1} className="drop-shadow-sm" />
-            <span className="text-[10px] font-bold mt-0.5">Next</span>
+            <span className="text-[10px] font-bold mt-0.5">{t('Next')}</span>
           </button>
         </div>
         
@@ -1375,19 +1377,19 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         <div className="flex items-center h-full px-2 gap-0.5">
           <button onClick={() => setShowLabValues(true)} className="flex flex-col items-center justify-center w-[60px] h-full hover:bg-[#1a5f94] transition-colors rounded">
             <FlaskConical size={20} className="mb-0.5" />
-            <span className="text-[10px] font-bold">Lab Values</span>
+            <span className="text-[10px] font-bold">{t('Lab Values')}</span>
           </button>
           <button onClick={() => setShowNotes(true)} className="flex flex-col items-center justify-center w-[60px] h-full hover:bg-[#1a5f94] transition-colors rounded">
             <PenLine size={20} className="mb-0.5" />
-            <span className="text-[10px] font-bold">Notes</span>
+            <span className="text-[10px] font-bold">{t('Notes')}</span>
           </button>
           <button onClick={() => setShowCalculator(true)} className="flex flex-col items-center justify-center w-[60px] h-full hover:bg-[#1a5f94] transition-colors rounded">
             <CalcIcon size={20} className="mb-0.5" />
-            <span className="text-[10px] font-bold">Calculator</span>
+            <span className="text-[10px] font-bold">{t('Calculator')}</span>
           </button>
           <button onClick={() => setSettingsMenuOpen(!settingsMenuOpen)} className="flex flex-col items-center justify-center w-[60px] h-full hover:bg-[#1a5f94] transition-colors rounded relative">
             <SettingsIcon size={20} className="mb-0.5" />
-            <span className="text-[10px] font-bold">Settings</span>
+            <span className="text-[10px] font-bold">{t('Settings')}</span>
           </button>
         </div>
       </header>
@@ -1532,7 +1534,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 {/* Proceed Button */}
                 <div className="mt-10">
                   <button onClick={handleNext} className="bg-[#0055a4] text-white px-5 py-2 text-[13px] font-bold rounded shadow-md border border-[#003b6d] hover:bg-[#004b87] active:bg-[#003b6d] transition-colors">
-                    Proceed to Next Item
+                    {t('Next')} Item
                   </button>
                 </div>
 
@@ -1544,7 +1546,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                  {currentQ.question.media.map(m => (
                    <div key={m.id} className="relative border-4 border-[#004b87]/10 shadow-[0_4px_12px_rgba(0,0,0,0.15)] bg-white p-[1px] mb-4">
                      <div className="bg-[#0000cc] w-full flex items-center justify-center overflow-hidden border border-gray-400">
-                       <MediaRenderer media={m} setZoomImage={setZoomImage} />
+                       <MediaRenderer media={{ ...m, caption: translatedData?.media?.find(tm => tm.id === m.id)?.caption || m.caption }} setZoomImage={setZoomImage} />
                      </div>
                      {/* Floating NBME Tools */}
                      <div className="absolute bottom-1 left-1 bg-white/95 border border-gray-300 shadow-sm rounded-sm flex flex-col p-1 gap-1 w-12 z-10">
@@ -1606,7 +1608,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
          <button onClick={handleEndBlock} className="flex flex-col items-center justify-center text-[#ff3333] hover:text-[#ff6666] transition-colors gap-0.5">
             <XCircle size={16} fill="white" stroke="#ff3333" />
-            <span className="text-[9px] font-bold">End Block</span>
+            <span className="text-[9px] font-bold">{t('End Block')}</span>
          </button>
       </footer>
     </div>

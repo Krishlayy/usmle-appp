@@ -4,6 +4,7 @@ export interface TranslatedData {
   questionText: string;
   explanation: string;
   options: { id: string; text: string }[];
+  media?: { id: string; caption: string | null }[];
 }
 
 export function useTranslation(questionId: string | undefined, targetLanguage: string | null | undefined) {

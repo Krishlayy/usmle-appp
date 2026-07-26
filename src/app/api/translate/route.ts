@@ -3,33 +3,63 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import translate from 'google-translate-api-x';
+import { getProtectedTermsRegex } from '@/utils/medicalDictionary';
 
 // A robust regex to find numbers, specific medical units, and math expressions
-// We wrap these in <span translate="no"> to prevent Google Translate from messing them up.
-function protectContent(html: string): string {
-  if (!html) return '';
+// We use a Placeholder Replacement Algorithm for safety with the free API
+function protectContent(html: string): { protectedHtml: string; placeholders: Record<string, string> } {
+  if (!html) return { protectedHtml: '', placeholders: {} };
   
-  // 1. Protect tables
-  let protectedHtml = html.replace(/<table[\s\S]*?<\/table>/gi, match => `<span translate="no">${match}</span>`);
+  const placeholders: Record<string, string> = {};
+  let counter = 0;
   
-  // 2. Protect numbers and common medical units (e.g., 150 mg/dL, 50 mmHg, etc)
+  // 1. Protect tables (we replace them entirely so the structure isn't broken)
+  let protectedHtml = html.replace(/<table[\s\S]*?<\/table>/gi, match => {
+     const ph = `__MED_TABLE_${++counter}__`;
+     placeholders[ph] = match;
+     return ph;
+  });
+  
+  // 2. Protect numbers and common medical units
   const unitRegex = /\b(\d+(?:\.\d+)?)\s*(mg\/dL|mmHg|mEq\/L|mmol\/L|g\/dL|mL|L|kg|g|mcg|bpm|beats\/min)\b/gi;
-  protectedHtml = protectedHtml.replace(unitRegex, match => `<span translate="no">${match}</span>`);
+  protectedHtml = protectedHtml.replace(unitRegex, match => {
+     const ph = `__MED_UNIT_${++counter}__`;
+     placeholders[ph] = match;
+     return ph;
+  });
   
-  // 3. Protect specific keywords, drug names (we'll just do a few common abbreviations for now)
-  const medicalAbbreviations = /\b(ECG|MRI|CT|HbA1c|CBC|BMP|LFTs|TSH|HIV|DNA|RNA|ATP)\b/g;
-  protectedHtml = protectedHtml.replace(medicalAbbreviations, match => `<span translate="no">${match}</span>`);
+  // 3. Protect Dictionary Terms
+  const dictRegex = getProtectedTermsRegex();
+  protectedHtml = protectedHtml.replace(dictRegex, match => {
+     const ph = `__MED_TERM_${++counter}__`;
+     placeholders[ph] = match;
+     return ph;
+  });
 
-  return protectedHtml;
+  return { protectedHtml, placeholders };
+}
+
+function restoreContent(translatedHtml: string, placeholders: Record<string, string>): string {
+  if (!translatedHtml) return '';
+  let restored = translatedHtml;
+  // Free translation APIs sometimes add spaces around placeholders (e.g. "__ MED_TERM_1 __")
+  for (const [ph, original] of Object.entries(placeholders)) {
+    const safePh = ph.replace(/_/g, '_\\s*');
+    const regex = new RegExp(safePh, 'gi');
+    restored = restored.replace(regex, original);
+  }
+  return restored;
 }
 
 // Helper function to safely translate large HTML strings by breaking them into chunks
 async function translateLargeText(html: string, to: string): Promise<string> {
-  if (!html) return '';
-  // Split by closing block tags to keep chunks small for the free API
-  const chunks = html.split(/(?<=<\/p>|<\/table>|<\/div>|<br>)/i).filter(c => c.trim().length > 0);
+  const { protectedHtml, placeholders } = protectContent(html);
+  if (!protectedHtml) return '';
   
-  if (chunks.length === 0) return html;
+  // Split by closing block tags to keep chunks small for the free API
+  const chunks = protectedHtml.split(/(?<=<\/p>|<\/table>|<\/div>|<br>)/i).filter(c => c.trim().length > 0);
+  
+  if (chunks.length === 0) return restoreContent(protectedHtml, placeholders);
 
   let translatedHtml = '';
   for (const chunk of chunks) {
@@ -45,7 +75,8 @@ async function translateLargeText(html: string, to: string): Promise<string> {
       translatedHtml += chunk; // fallback to original English for this chunk if it fails
     }
   }
-  return translatedHtml;
+  
+  return restoreContent(translatedHtml, placeholders);
 }
 
 export async function POST(req: Request) {
@@ -77,7 +108,8 @@ export async function POST(req: Request) {
 
     // 2. Fetch Original Question
     const question = await prisma.question.findUnique({
-      where: { id: questionId }
+      where: { id: questionId },
+      include: { media: true }
     });
 
     if (!question) {
@@ -85,20 +117,35 @@ export async function POST(req: Request) {
     }
 
     // 3. Translate content individually using chunking to avoid character limits
-    const translatedQuestionText = await translateLargeText(protectContent(question.questionText), targetLanguage);
-    const translatedExplanation = await translateLargeText(protectContent(question.explanation), targetLanguage);
+    const translatedQuestionText = await translateLargeText(question.questionText, targetLanguage);
+    const translatedExplanation = await translateLargeText(question.explanation, targetLanguage);
     
     const options = question.options as any[];
     const translatedOptions = [];
     for (const opt of options) {
-      const t = await translateLargeText(protectContent(opt.text), targetLanguage);
+      const t = await translateLargeText(opt.text, targetLanguage);
       translatedOptions.push({ ...opt, text: t });
+    }
+    
+    // Also translate captions for media if they exist
+    const media = question.media as any[];
+    const translatedMedia = [];
+    if (media && Array.isArray(media)) {
+      for (const m of media) {
+        if (m.caption) {
+          const t = await translateLargeText(m.caption, targetLanguage);
+          translatedMedia.push({ ...m, caption: t });
+        } else {
+          translatedMedia.push(m);
+        }
+      }
     }
 
     const translatedData = {
       questionText: translatedQuestionText,
       explanation: translatedExplanation,
-      options: translatedOptions
+      options: translatedOptions,
+      media: translatedMedia
     };
 
     // 5. Save to Cache
