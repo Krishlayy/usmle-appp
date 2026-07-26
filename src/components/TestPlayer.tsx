@@ -92,7 +92,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   const { t: baseT } = useUITranslation(settings.targetLanguage);
   const t = (text: string) => {
     if (settings.appTheme === 'NBME') return text;
-    return baseT(text);
+    return baseT(text as any);
   };
   
   const [showReportModal, setShowReportModal] = useState(false);
