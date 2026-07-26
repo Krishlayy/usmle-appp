@@ -924,6 +924,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   {/* Vignette Wrapper */}
                   <div className={`${settings.splitScreen && !settings.targetLanguage ? 'flex-1 overflow-y-auto pr-6 border-r border-gray-300 mr-6' : ''}`}>
                     <div 
+                      ref={questionContentRef}
                       dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
                       className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
                     />
@@ -1500,6 +1501,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
              {/* Vignette & Options */}
              <div className="flex-1 pr-8 flex flex-col max-w-[800px]">
                 <div 
+                  ref={questionContentRef}
                   dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
                   className="vignette-text text-[15px] leading-relaxed mb-6 font-medium text-black"
                 />
