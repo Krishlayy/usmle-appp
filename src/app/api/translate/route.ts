@@ -2,11 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { Translate } from '@google-cloud/translate/build/src/v2';
-
-const translate = new Translate({
-  key: process.env.GOOGLE_TRANSLATE_API_KEY,
-});
+import translate from 'google-translate-api-x';
 
 // A robust regex to find numbers, specific medical units, and math expressions
 // We wrap these in <span translate="no"> to prevent Google Translate from messing them up.
@@ -74,17 +70,19 @@ export async function POST(req: Request) {
       textsToTranslate.push(protectContent(opt.text));
     });
 
-    // 4. Send to Google Translate API
-    const [translations] = await translate.translate(textsToTranslate, {
+    // 4. Send to google-translate-api-x (free web API)
+    // google-translate-api-x supports arrays for batch translation
+    const res = await translate(textsToTranslate, {
       to: targetLanguage,
-      format: 'html' // Crucial: maintains HTML structure
+      // The free web API doesn't have an explicit format='html' flag like the cloud API,
+      // but it attempts to preserve HTML inherently. The 'no' tags we added above will still protect terms.
     });
 
-    const translatedQuestionText = translations[0];
-    const translatedExplanation = translations[1];
+    const translatedQuestionText = res[0].text;
+    const translatedExplanation = res[1].text;
     const translatedOptions = options.map((opt, index) => ({
       ...opt,
-      text: translations[index + 2]
+      text: res[index + 2].text
     }));
 
     const translatedData = {
