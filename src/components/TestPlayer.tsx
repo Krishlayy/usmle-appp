@@ -89,7 +89,11 @@ export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '' 
 function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
   const router = useRouter();
   const { settings, updateSetting } = useTestSettings();
-  const { t } = useUITranslation(settings.targetLanguage);
+  const { t: baseT } = useUITranslation(settings.targetLanguage);
+  const t = (text: string) => {
+    if (settings.appTheme === 'NBME') return text;
+    return baseT(text);
+  };
   
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportType, setReportType] = useState('TYPO');
@@ -1524,16 +1528,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
                   className="vignette-text text-[15px] leading-relaxed mb-6 font-medium text-black"
                 />
-                {settings.targetLanguage && translatedData && (
-                  <div className="mt-4 mb-6 p-4 bg-gray-100 border border-gray-300">
-                    <div className="text-[10px] font-bold text-gray-600 uppercase mb-2">Translation</div>
-                    <div 
-                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(translatedData.questionText) }}
-                      className="vignette-text text-[15px] leading-relaxed font-medium text-black"
-                    />
-                  </div>
-                )}
-
                 {/* NBME Options Box */}
                 <div className="border border-[#4477aa] w-[450px]">
                   <fieldset className="flex flex-col p-0.5">
