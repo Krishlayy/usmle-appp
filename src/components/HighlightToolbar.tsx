@@ -1,13 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface HighlightToolbarProps {
-  rect: DOMRect | null;
+  containerRef: React.RefObject<HTMLElement>;
   onHighlight: (color: string) => void;
   onTranslate?: () => void;
   onAddNote?: () => void;
 }
 
-export function HighlightToolbar({ rect, onHighlight, onTranslate, onAddNote }: HighlightToolbarProps) {
+export function HighlightToolbar({ containerRef, onHighlight, onTranslate, onAddNote }: HighlightToolbarProps) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || !containerRef.current) {
+        setRect(null);
+        return;
+      }
+      if (!containerRef.current.contains(selection.anchorNode)) {
+        return;
+      }
+      setRect(selection.getRangeAt(0).getBoundingClientRect());
+    };
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => document.removeEventListener('selectionchange', handleSelectionChange);
+  }, [containerRef]);
+
   if (!rect) return null;
 
   const colors = [

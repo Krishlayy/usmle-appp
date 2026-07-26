@@ -368,24 +368,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   const testPlayerMainRef = useRef<HTMLDivElement>(null);
   const { translatedData, isTranslating } = useTranslation(currentQ?.question.id, settings.targetLanguage);
   
-  const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
 
-  useEffect(() => {
-    const handleSelectionChange = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed || !testPlayerMainRef.current) {
-        setSelectionRect(null);
-        return;
-      }
-      if (!testPlayerMainRef.current.contains(selection.anchorNode)) {
-        return;
-      }
-      const range = selection.getRangeAt(0);
-      setSelectionRect(range.getBoundingClientRect());
-    };
-    document.addEventListener('selectionchange', handleSelectionChange);
-    return () => document.removeEventListener('selectionchange', handleSelectionChange);
-  }, []);
 
   // Single source of truth for "answer feedback is currently visible" — reused by the
   // options fieldset, the explanation panel, and the strikethrough lock.
@@ -1680,7 +1663,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   return (
     <>
       <HighlightToolbar 
-        rect={selectionRect} 
+        containerRef={testPlayerMainRef} 
         onHighlight={(color) => applyTextFormatting('highlight', color)} 
       />
       {settings.appTheme === 'NBME' ? renderNbmeTheme() : renderMqbTheme()}
