@@ -23,6 +23,31 @@ function protectContent(html: string): string {
   return protectedHtml;
 }
 
+// Helper function to safely translate large HTML strings by breaking them into chunks
+async function translateLargeText(html: string, to: string): Promise<string> {
+  if (!html) return '';
+  // Split by closing block tags to keep chunks small for the free API
+  const chunks = html.split(/(?<=<\/p>|<\/table>|<\/div>|<br>)/i).filter(c => c.trim().length > 0);
+  
+  if (chunks.length === 0) return html;
+
+  let translatedHtml = '';
+  for (const chunk of chunks) {
+    if (chunk.trim() === '') {
+      translatedHtml += chunk;
+      continue;
+    }
+    try {
+      const res = await translate(chunk, { to, rejectOnPartialFail: false, forceBatch: false });
+      translatedHtml += res.text || chunk;
+    } catch (e) {
+      console.error('Failed to translate chunk:', e);
+      translatedHtml += chunk; // fallback to original English for this chunk if it fails
+    }
+  }
+  return translatedHtml;
+}
+
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -59,33 +84,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });
     }
 
-    // 3. Prepare content for translation
-    const textsToTranslate = [
-      protectContent(question.questionText),
-      protectContent(question.explanation),
-    ];
-
+    // 3. Translate content individually using chunking to avoid character limits
+    const translatedQuestionText = await translateLargeText(protectContent(question.questionText), targetLanguage);
+    const translatedExplanation = await translateLargeText(protectContent(question.explanation), targetLanguage);
+    
     const options = question.options as any[];
-    options.forEach(opt => {
-      textsToTranslate.push(protectContent(opt.text));
-    });
-
-    // 4. Send to google-translate-api-x (free web API)
-    // google-translate-api-x supports arrays for batch translation
-    const res = await translate(textsToTranslate, {
-      to: targetLanguage,
-      rejectOnPartialFail: false,
-      forceBatch: false,
-      // The free web API doesn't have an explicit format='html' flag like the cloud API,
-      // but it attempts to preserve HTML inherently. The 'no' tags we added above will still protect terms.
-    });
-
-    const translatedQuestionText = res[0]?.text || textsToTranslate[0];
-    const translatedExplanation = res[1]?.text || textsToTranslate[1];
-    const translatedOptions = options.map((opt, index) => ({
-      ...opt,
-      text: res[index + 2]?.text || textsToTranslate[index + 2]
-    }));
+    const translatedOptions = [];
+    for (const opt of options) {
+      const t = await translateLargeText(protectContent(opt.text), targetLanguage);
+      translatedOptions.push({ ...opt, text: t });
+    }
 
     const translatedData = {
       questionText: translatedQuestionText,
