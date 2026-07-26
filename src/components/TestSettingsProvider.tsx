@@ -22,6 +22,7 @@ export interface TestSettings {
   answerLayout: 'standard' | 'compact';
   highContrast: boolean;
   showShortcuts: boolean;
+  targetLanguage?: string | null;
 }
 
 interface TestSettingsContextType {
@@ -46,6 +47,7 @@ const defaultSettings: TestSettings = {
   answerLayout: 'standard',
   highContrast: false,
   showShortcuts: false,
+  targetLanguage: null,
 };
 
 const TestSettingsContext = createContext<TestSettingsContextType | undefined>(undefined);

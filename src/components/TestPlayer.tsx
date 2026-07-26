@@ -17,6 +17,11 @@ import { TimerDisplay, QuestionTimerDisplay } from '@/features/test-player/compo
 
 
 import { useTestPlayerStore } from '@/store/useTestPlayerStore';
+import { useTranslation } from '@/hooks/useTranslation';
+import { useHighlighter } from '@/hooks/useHighlighter';
+import { HighlightWrapper } from '@/components/HighlightWrapper';
+import { HighlightToolbar } from '@/components/HighlightToolbar';
+
 const sanitizeHTML = (html: string) => {
   return DOMPurify.sanitize(html, { 
     ADD_ATTR: ['style', 'data-url', 'class', 'target', 'color', 'size', 'face'], 
@@ -360,6 +365,14 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
   const currentQ = questions[currentIndex];
   
+  const testPlayerMainRef = useRef<HTMLDivElement>(null);
+  const { translatedData, isTranslating } = useTranslation(currentQ?.question.id, settings.targetLanguage);
+  
+  const { highlights, selectionRect, addHighlight, currentSelection } = useHighlighter({
+    questionId: currentQ?.question.id || '',
+    containerRef: testPlayerMainRef,
+  });
+
   // Single source of truth for "answer feedback is currently visible" — reused by the
   // options fieldset, the explanation panel, and the strikethrough lock.
   const showFeedback = (session.mode === 'tutor' && !!currentQ?.selectedOptionId) || session.mode === 'review';
@@ -881,6 +894,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
           </header>
 
           <main 
+            ref={testPlayerMainRef}
             className={`flex-1 flex flex-col relative ${settings.splitScreen ? 'overflow-hidden' : 'overflow-y-auto p-4'}`}
             style={{ fontSize: `${settings.fontSize}px`, lineHeight: 1.5 }}
           >
@@ -909,11 +923,23 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 
                 {/* Vignette Wrapper */}
                 <div className={`${settings.splitScreen ? 'flex-1 overflow-y-auto pr-6 border-r border-gray-300 mr-6' : ''}`}>
-                  <div 
-                    ref={questionContentRef}
+                  <HighlightWrapper 
+                    html={sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText)}
+                    highlights={highlights}
+                    section="stem"
                     className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
-                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
                   />
+                  {settings.targetLanguage && translatedData && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                      <div className="text-[10px] font-bold text-blue-600 uppercase mb-2">Translation</div>
+                      <HighlightWrapper 
+                        html={translatedData.questionText}
+                        highlights={highlights}
+                        section="stem"
+                        className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
+                      />
+                    </div>
+                  )}
                 </div>
                 
                 {/* Options & Explanations Wrapper */}
@@ -1422,11 +1448,23 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
              
              {/* Vignette & Options */}
              <div className="flex-1 pr-8 flex flex-col max-w-[800px]">
-                <div 
-                  ref={questionContentRef}
+                <HighlightWrapper 
+                  html={sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText)}
+                  highlights={highlights}
+                  section="stem"
                   className="vignette-text text-[15px] leading-relaxed mb-6 font-medium text-black"
-                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
                 />
+                {settings.targetLanguage && translatedData && (
+                  <div className="mt-4 mb-6 p-4 bg-gray-100 border border-gray-300">
+                    <div className="text-[10px] font-bold text-gray-600 uppercase mb-2">Translation</div>
+                    <HighlightWrapper 
+                      html={translatedData.questionText}
+                      highlights={highlights}
+                      section="stem"
+                      className="vignette-text text-[15px] leading-relaxed font-medium text-black"
+                    />
+                  </div>
+                )}
 
                 {/* NBME Options Box */}
                 <div className="border border-[#4477aa] w-[450px]">
@@ -1575,5 +1613,13 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   );
 
 
-  return settings.appTheme === 'NBME' ? renderNbmeTheme() : renderMqbTheme();
+  return (
+    <>
+      <HighlightToolbar 
+        rect={selectionRect} 
+        onHighlight={addHighlight} 
+      />
+      {settings.appTheme === 'NBME' ? renderNbmeTheme() : renderMqbTheme()}
+    </>
+  );
 }

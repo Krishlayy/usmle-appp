@@ -31,6 +31,7 @@ model User {
   testSessions  TestSession[]
   flashcards    Flashcard[]
   issues        QuestionIssue[]
+  highlights    Highlight[]
   editedQBanks  QBank[]    @relation("QBankLastEditedBy")
 }
 
@@ -87,6 +88,8 @@ model Question {
   progress          UserProgress[]
   flashcards        Flashcard[]
   issues            QuestionIssue[]
+  highlights        Highlight[]
+  translations      TranslationCache[]
 
   @@index([qbankId])
   @@index([qbankId, subtopic])
@@ -196,6 +199,35 @@ model UserProgress {
   @@unique([userId, questionId, testSessionId])
   @@index([userId, qbankId])
   @@index([userId, questionId])
+}
+
+model Highlight {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  section     String   // "stem", "option", "explanation", "pearl"
+  text        String
+  startOffset Int
+  endOffset   Int
+  color       String   // "yellow", "green", "blue", "red", "purple"
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId, questionId])
+}
+
+model TranslationCache {
+  id           String   @id @default(cuid())
+  questionId   String
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  languageCode String
+  translatedData Json   // Stores the translated questionText, options, explanation
+  createdAt    DateTime @default(now())
+
+  @@unique([questionId, languageCode])
 }
 
 model Flashcard {

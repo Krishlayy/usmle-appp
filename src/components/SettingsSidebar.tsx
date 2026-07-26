@@ -62,6 +62,33 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
                   >NBME (Classic)</button>
                 </div>
               </div>
+
+              {/* Translation Language */}
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center justify-between">
+                  <span>Translation Language</span>
+                  <span className="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded font-bold">BETA</span>
+                </div>
+                <select
+                  value={settings.targetLanguage || ''}
+                  onChange={(e) => updateSetting('targetLanguage', e.target.value || null)}
+                  className="w-full bg-white border border-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                >
+                  <option value="">None (English Only)</option>
+                  <option value="hi">Hindi</option>
+                  <option value="es">Spanish</option>
+                  <option value="ta">Tamil</option>
+                  <option value="te">Telugu</option>
+                  <option value="bn">Bengali</option>
+                  <option value="mr">Marathi</option>
+                  <option value="gu">Gujarati</option>
+                  <option value="ur">Urdu</option>
+                  <option value="fr">French</option>
+                  <option value="ar">Arabic</option>
+                  <option value="zh-CN">Chinese (Simplified)</option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-2 leading-tight">Selecting a language will display a side-by-side translation of the vignette and options.</p>
+              </div>
               
               {/* Font Size */}
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
