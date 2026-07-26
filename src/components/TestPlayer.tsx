@@ -706,7 +706,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   };
 
   const renderMqbTheme = () => (
-   <div className={`flex flex-col h-screen overflow-hidden font-sans ${mainBg} ${mainText}`} style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+   <div className={`flex flex-col h-screen overflow-hidden font-sans bg-[var(--background)] text-[var(--primary)]`}>
       
       {isPaused && (
         <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center backdrop-blur-sm">
@@ -727,33 +727,33 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
       <div className="flex flex-1 overflow-hidden">
         
         {/* Left Sidebar */}
-        <aside className={`w-[110px] flex flex-col shrink-0 overflow-hidden border-r ${borderCol} ${sidebarBg}`}>
-          <div className={`h-[45px] flex items-center justify-center text-center leading-tight font-bold text-[11px] ${isDark ? 'bg-black border-[#00e5ff] text-[#00e5ff]' : 'bg-white border-black text-black'} border-b`}>
-            Question<br/>Status
-          </div>
+        <aside className={`w-16 flex flex-col shrink-0 overflow-hidden border-r border-[var(--color-border-subtle)] bg-white`}>
+          <div className="h-14 flex items-center justify-center border-b border-[var(--color-border-subtle)] text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-widest bg-white">Q</div>
           <div className="flex-1 overflow-y-auto bg-white">
             {questions.map((q, idx) => {
               const isActive = idx === currentIndex;
               const isAnswered = !!q.selectedOptionId;
               const isFlagged = q.isFlagged;
               
-              let itemClass = isActive ? sidebarActiveBg : sidebarItemBg;
+              let itemClass = isActive ? 'bg-[var(--color-accent)] text-white shadow-sm' : 'text-[var(--color-text-secondary)] hover:bg-gray-50';
               
               return (
                 <div 
                   key={q.id}
                   onClick={() => navigateToIndex(idx)}
-                  className={`flex items-center pl-2 py-1.5 my-0.5 border-b border-transparent text-[12px] font-bold cursor-pointer transition-colors ${itemClass} hover:bg-slate-100`}
+                  className={`flex flex-col items-center justify-center h-12 my-1 mx-2 rounded-lg text-[13px] font-medium cursor-pointer transition-colors ${itemClass}`}
                 >
-                  <div className="w-5 flex items-center justify-center gap-[2px] mr-1 shrink-0">
+                  {idx + 1}
+                  <div className="flex items-center justify-center gap-1 mt-0.5 h-2">
+                    
                     {isAnswered && (
                       <div className="w-2 h-2 rounded-full bg-black shrink-0" />
                     )}
                     {isFlagged && (
                       <Flag size={10} className="fill-red-500 text-red-500 shrink-0" />
                     )}
+                  
                   </div>
-                  {idx + 1}
                 </div>
               );
             })}
@@ -764,7 +764,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         <div className="flex-1 flex flex-col overflow-hidden">
           
           {/* Top Header */}
-          <header className={`min-h-[60px] flex items-center justify-between px-4 shrink-0 select-none border-b ${headerFooterBg} ${headerFooterText}`}>
+          <header className={`h-14 flex items-center justify-between px-6 shrink-0 select-none border-b border-[var(--color-border-subtle)] bg-white text-[var(--primary)]`}>
             
             {/* Left Column: Info & Font Tools */}
             <div className="flex-1 flex items-center gap-6">
@@ -892,7 +892,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
           <main 
             ref={testPlayerMainRef}
-            className={`flex-1 flex flex-col relative ${settings.splitScreen ? 'overflow-hidden' : 'overflow-y-auto p-4'}`}
+            className={`flex-1 flex flex-col relative ${settings.splitScreen ? "overflow-hidden" : "overflow-y-auto p-8"}`}
             style={{ fontSize: `${settings.fontSize}px`, lineHeight: 1.5 }}
           >
             
@@ -938,15 +938,17 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                           const isSelected = currentQ.selectedOptionId === opt.id;
                           const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
                           
-                          let bgClass = "bg-transparent";
-                          if (showFeedback && opt.isCorrect) {
-                            bgClass = isDark ? 'bg-green-900/40' : (settings.highContrast ? 'bg-[#005a00]/20' : 'bg-[#008000]/10');
-                          } else if (showFeedback && isSelected) {
-                            bgClass = isDark ? 'bg-red-900/40' : (settings.highContrast ? 'bg-[#d9534f]/20' : 'bg-[#f8d7da]/50');
-                          }
+                          let bgClass = "bg-white border-[var(--color-border-subtle)] hover:border-gray-300 shadow-sm";
+                            if (showFeedback && opt.isCorrect) {
+                              bgClass = 'bg-[var(--color-success)]/10 border-[var(--color-success)]/30';
+                            } else if (showFeedback && isSelected) {
+                              bgClass = 'bg-[var(--color-error)]/10 border-[var(--color-error)]/30';
+                            } else if (isSelected) {
+                              bgClass = 'border-[var(--color-accent)] ring-1 ring-[var(--color-accent)] bg-[var(--color-accent)]/5';
+                            }
 
                           return (
-                            <div key={opt.id} className={`flex items-start justify-between group ${bgClass} py-2 px-1 rounded transition-colors`}>
+                            <div key={opt.id} className={`flex items-start justify-between group border ${bgClass} p-4 rounded-xl transition-all`}>
                               <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
                                 <input 
                                   type="radio" 
@@ -1041,7 +1043,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                             }
 
                             return (
-                              <div key={opt.id} className={`flex items-start justify-between group ${bgClass} py-2 px-1 rounded transition-colors`}>
+                              <div key={opt.id} className={`flex items-start justify-between group border ${bgClass} p-4 rounded-xl transition-all`}>
                                 <div className="flex items-start flex-1 opacity-90">
                                   <input 
                                     type="radio" 
@@ -1132,7 +1134,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     </div>
 
                     {/* Right Blue Exhibit Panel */}
-                    <div className="flex-1 flex flex-col bg-[#0000ff] rounded-sm overflow-hidden">
+                    <div className="flex-1 flex flex-col bg-slate-900 rounded-sm overflow-hidden">
                       <div className="flex-1 flex items-center justify-center p-2 pb-0 relative">
                         {currentQ.question.media.map(m => (
                           <div key={m.id} className="relative w-full h-full flex items-center justify-center bg-white rounded-t-xl overflow-hidden border border-gray-300">
@@ -1140,7 +1142,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                           </div>
                         ))}
                       </div>
-                      <div className="text-center text-[#5555ff] text-[11px] font-medium py-1.5 bg-[#0000ff]">
+                      <div className="text-center text-slate-300 text-[11px] font-medium py-1.5 bg-slate-900">
                         Clinical Exhibit
                       </div>
                     </div>
@@ -1161,7 +1163,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         </div>
       </div>
 
-      <footer className={`relative h-[40px] flex items-center justify-between px-4 shrink-0 select-none w-full ${headerFooterBg} ${headerFooterText} border-t ${borderCol}`}>
+      <footer className={`relative h-12 flex items-center justify-between px-6 shrink-0 select-none w-full bg-white text-[var(--color-text-secondary)] border-t border-[var(--color-border-subtle)]`}>
         <div className={`flex flex-col text-[11px] font-semibold leading-none px-1.5 py-0.5 justify-center h-full`}>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -1240,14 +1242,14 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
       {omissionWarning && (
         <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">
-          <div className={`${mainBg} ${mainText} border ${borderCol} w-[400px] shadow-[4px_4px_0px_rgba(0,0,0,0.2)]`}>
-            <div className={`${headerFooterBg} ${headerFooterText} font-bold p-2 text-[14px]`}>
+          <div className={`bg-white text-[var(--primary)] border border-[var(--color-border-subtle)] w-[400px] shadow-xl rounded-2xl overflow-hidden`}>
+            <div className={`bg-gray-50 text-[var(--primary)] font-semibold p-4 text-[14px] border-b border-[var(--color-border-subtle)]`}>
               Warning
             </div>
             <div className="p-8 text-center text-[14px]">
               You have not answered all questions in this block. Are you sure you want to proceed?
             </div>
-            <div className={`bg-[#f0f0f0] text-black p-3 flex justify-end gap-2 border-t border-gray-300`}>
+            <div className={`bg-gray-50 p-4 flex justify-end gap-3 border-t border-[var(--color-border-subtle)]`}>
               <button onClick={() => setOmissionWarning(null)} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">{t('Cancel')}</button>
               <button onClick={() => { omissionWarning(); setOmissionWarning(null); }} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">{t('Proceed')}</button>
             </div>

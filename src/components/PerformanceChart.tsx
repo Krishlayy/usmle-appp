@@ -19,18 +19,18 @@ export function PerformanceChart({ data }: { data: DataPoint[] }) {
           data={data}
           margin={{ top: 20, right: 30, left: 10, bottom: 25 }}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E5E7EB" />
+          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#F3F4F6" />
           <XAxis 
             dataKey="name" 
-            tick={{ fontSize: 12, fill: '#64748B' }} 
+            tick={{ fontSize: 12, fill: '#94A3B8' }} 
             tickLine={false}
-            axisLine={{ stroke: '#E5E7EB' }}
+            axisLine={{ stroke: '#F3F4F6' }}
             dy={10}
           />
           <YAxis 
             type="number"
             domain={[0, 100]}
-            tick={{ fontSize: 12, fill: '#64748B' }} 
+            tick={{ fontSize: 12, fill: '#94A3B8' }} 
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => `${value}%`}
@@ -38,17 +38,17 @@ export function PerformanceChart({ data }: { data: DataPoint[] }) {
           />
           <Tooltip 
             cursor={{ fill: 'transparent' }}
-            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+            contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)' }}
             formatter={(value: number) => [`${value.toFixed(1)}%`, 'Accuracy']}
-            labelStyle={{ color: '#0f172a', fontWeight: 'bold', marginBottom: '4px' }}
+            labelStyle={{ color: '#14161A', fontWeight: '600', marginBottom: '4px' }}
           />
           <Line 
             type="monotone" 
             dataKey="accuracy" 
-            stroke="#2563EB" 
-            strokeWidth={3}
-            dot={{ r: 4, fill: '#2563EB', strokeWidth: 2, stroke: '#FFFFFF' }}
-            activeDot={{ r: 6, fill: '#1E40AF', strokeWidth: 2, stroke: '#FFFFFF' }}
+            stroke="#0D9488" 
+            strokeWidth={2}
+            dot={{ r: 3, fill: '#0D9488', strokeWidth: 2, stroke: '#FFFFFF' }}
+            activeDot={{ r: 5, fill: '#0F766E', strokeWidth: 2, stroke: '#FFFFFF' }}
           />
         </LineChart>
       </ResponsiveContainer>

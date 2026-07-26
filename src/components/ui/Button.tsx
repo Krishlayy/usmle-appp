@@ -10,13 +10,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', isLoading = false, children, disabled, ...props }, ref) => {
     
-    const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center font-medium transition-colors duration-150 rounded focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] disabled:opacity-50 disabled:cursor-not-allowed';
     
     const variants = {
-      primary: 'bg-primary text-white hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow-sm border border-transparent',
-      secondary: 'bg-white border-2 border-[var(--color-border-subtle)] text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-primary shadow-sm active:bg-slate-100',
-      tertiary: 'bg-transparent text-slate-500 hover:text-primary underline-offset-4 hover:underline',
-      ghost: 'bg-transparent text-slate-500 hover:bg-slate-100 hover:text-primary active:bg-slate-200',
+      primary: 'bg-[var(--color-accent)] text-white hover:bg-[#0F766E] shadow-none border border-transparent',
+      secondary: 'bg-white border border-[var(--color-border-subtle)] text-primary hover:border-gray-300 hover:bg-gray-50 shadow-none',
+      tertiary: 'bg-transparent text-secondary hover:text-primary underline-offset-4 hover:underline',
+      ghost: 'bg-transparent text-secondary hover:bg-gray-100 hover:text-primary active:bg-gray-200',
     };
 
     const sizes = {

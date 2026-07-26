@@ -16,7 +16,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({ label, value, subValue, ic
         {icon && <div className="text-muted">{icon}</div>}
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-[28px] font-bold text-primary tracking-tight">{value}</span>
+        <span className="text-[28px] font-bold text-primary tracking-tight tabular-nums">{value}</span>
         {subValue && <span className="text-[14px] font-medium text-muted">{subValue}</span>}
       </div>
     </Card>

@@ -8,14 +8,14 @@ export interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
   ({ className = '', variant = 'neutral', size = 'sm', children, ...props }, ref) => {
     
-    const baseStyles = 'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap';
+    const baseStyles = 'inline-flex items-center justify-center rounded font-medium whitespace-nowrap';
     
     const variants = {
-      neutral: 'bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]', // Slate 100/600/200
-      accent: 'bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]',  // Blue 50/700/200
-      success: 'bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]', // Green 50/700/200
-      warning: 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]', // Amber 50/700/200
-      error: 'bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]',   // Red 50/700/200
+      neutral: 'bg-gray-100 text-gray-700 border border-transparent',
+      accent: 'bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-transparent',
+      success: 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-transparent',
+      warning: 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-transparent',
+      error: 'bg-[var(--color-error)]/10 text-[var(--color-error)] border border-transparent',
     };
 
     const sizes = {
