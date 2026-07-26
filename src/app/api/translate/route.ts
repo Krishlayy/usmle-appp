@@ -74,15 +74,17 @@ export async function POST(req: Request) {
     // google-translate-api-x supports arrays for batch translation
     const res = await translate(textsToTranslate, {
       to: targetLanguage,
+      rejectOnPartialFail: false,
+      forceBatch: false,
       // The free web API doesn't have an explicit format='html' flag like the cloud API,
       // but it attempts to preserve HTML inherently. The 'no' tags we added above will still protect terms.
     });
 
-    const translatedQuestionText = res[0].text;
-    const translatedExplanation = res[1].text;
+    const translatedQuestionText = res[0]?.text || textsToTranslate[0];
+    const translatedExplanation = res[1]?.text || textsToTranslate[1];
     const translatedOptions = options.map((opt, index) => ({
       ...opt,
-      text: res[index + 2].text
+      text: res[index + 2]?.text || textsToTranslate[index + 2]
     }));
 
     const translatedData = {
