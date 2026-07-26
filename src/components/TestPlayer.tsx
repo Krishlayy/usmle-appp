@@ -920,20 +920,111 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
             <div className={`flex flex-1 ${settings.splitScreen ? 'overflow-hidden p-4 pt-0' : ''}`}>
               
+              
               {/* Main Content Area */}
-              <div className={`flex flex-1 ${settings.splitScreen ? 'flex-row' : 'flex-col pr-6'}`}>
+              <div className={`flex flex-1 ${settings.targetLanguage ? 'flex-row gap-6' : ''}`}>
                 
-                {/* Vignette Wrapper */}
-                <div className={`${settings.splitScreen ? 'flex-1 overflow-y-auto pr-6 border-r border-gray-300 mr-6' : ''}`}>
-                  <HighlightWrapper 
-                    html={sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText)}
-                    highlights={highlights}
-                    section="stem"
-                    className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
-                  />
-                  {settings.targetLanguage && translatedData && (
-                    <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                      <div className="text-[10px] font-bold text-blue-600 uppercase mb-2">Translation</div>
+                {/* English Panel */}
+                <div className={`flex flex-1 ${settings.targetLanguage ? 'flex-col' : (settings.splitScreen ? 'flex-row' : 'flex-col pr-6')}`}>
+                  {/* Vignette Wrapper */}
+                  <div className={`${settings.splitScreen && !settings.targetLanguage ? 'flex-1 overflow-y-auto pr-6 border-r border-gray-300 mr-6' : ''}`}>
+                    <HighlightWrapper 
+                      html={sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText)}
+                      highlights={highlights}
+                      section="stem"
+                      className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
+                    />
+                  </div>
+                  
+                  {/* Options & Explanations Wrapper */}
+                  <div className={`${settings.splitScreen && !settings.targetLanguage ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
+                    <div className={settings.answerLayout === 'compact' ? 'space-y-2' : 'space-y-4'}>
+                      <fieldset className={`flex flex-col gap-2 ${settings.answerLayout === 'compact' ? 'mt-2' : 'mt-4'}`}>
+                        {currentQ.question.options.map((opt, i) => {
+                          const isSelected = currentQ.selectedOptionId === opt.id;
+                          const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
+                          
+                          let bgClass = "bg-transparent";
+                          if (showFeedback && opt.isCorrect) {
+                            bgClass = isDark ? 'bg-green-900/40' : (settings.highContrast ? 'bg-[#005a00]/20' : 'bg-[#008000]/10');
+                          } else if (showFeedback && isSelected) {
+                            bgClass = isDark ? 'bg-red-900/40' : (settings.highContrast ? 'bg-[#d9534f]/20' : 'bg-[#f8d7da]/50');
+                          }
+
+                          return (
+                            <div key={opt.id} className={`flex items-start justify-between group ${bgClass} py-2 px-1 rounded transition-colors`}>
+                              <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
+                                <input 
+                                  type="radio" 
+                                  name={`q-${currentQ.id}`}
+                                  checked={isSelected}
+                                  onChange={() => handleOptionSelect(opt.id)}
+                                  disabled={!!showFeedback}
+                                  className={`mt-1.5 w-4 h-4 cursor-pointer accent-slate-600 shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
+                                />
+                                <div className="ml-4 flex-1 flex flex-col">
+                                  <div className={`flex items-start ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
+                                    <span className={`mr-3 ${settings.highContrast ? 'font-black' : 'font-semibold'}`}>{String.fromCharCode(65 + i)}.</span>
+                                    {settings.showShortcuts && !showFeedback && (
+                                      <kbd className="mr-3 mt-0.5 px-1.5 py-0.5 border border-gray-300 rounded text-[9px] text-gray-500 bg-white shadow-sm font-mono hidden sm:inline-block">
+                                        {String.fromCharCode(65 + i)}
+                                      </kbd>
+                                    )}
+                                    <div className={`leading-relaxed [&>p]:inline ${settings.highContrast ? 'text-black font-medium' : ''}`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
+                                  </div>
+                                  {showFeedback && (opt as any).explanation && (
+                                    <div className={`mt-3 text-[13px] ${settings.highContrast ? 'text-black bg-gray-100 border-gray-400' : 'text-slate-700 bg-slate-50 border-slate-200'} p-3 rounded-md border`}>
+                                      <div dangerouslySetInnerHTML={{ __html: sanitizeHTML((opt as any).explanation) }} />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {session.mode !== 'review' && (
+                                <button 
+                                  type="button"
+                                  onClick={() => toggleStrikethrough(opt.id)}
+                                  disabled={showFeedback}
+                                  className={`ml-4 p-1.5 rounded transition-all shrink-0 ${settings.highContrast ? 'text-gray-800' : 'text-slate-400'} hover:text-slate-900 hover:bg-slate-200/50 opacity-70 sm:opacity-50 sm:group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:!opacity-100 disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:!opacity-20 disabled:hover:bg-transparent`}
+                                >
+                                  <Strikethrough size={16} />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </fieldset>
+                      
+                      {showFeedback && (
+                        <div className={`mt-8 pt-4 border-t ${settings.highContrast ? 'border-gray-400' : borderCol}`}>
+                          <div className={`font-bold mb-2 uppercase text-[13px] ${settings.highContrast ? 'text-black' : ''}`}>Explanation:</div>
+                          <div 
+                            ref={explanationContentRef}
+                            className={`leading-relaxed [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedExplanation || currentQ.question.explanation || '') }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="mt-8 pb-10 flex items-center">
+                      <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
+                        {t('Next')} Item
+                      </button>
+                      {settings.showShortcuts && (
+                        <kbd className="ml-3 px-2 py-1 border border-gray-400 rounded text-[11px] text-gray-500 bg-white font-mono hidden sm:inline-block">
+                          Space
+                        </kbd>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Translated Panel */}
+                {settings.targetLanguage && translatedData && (
+                  <div className="flex flex-1 flex-col pl-6 border-l border-gray-300 bg-blue-50/30">
+                    <div className="text-[10px] font-bold text-blue-600 uppercase mb-2">Translation</div>
+                    <div className="mb-6">
                       <HighlightWrapper 
                         html={translatedData.questionText}
                         highlights={highlights}
@@ -941,103 +1032,64 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
                       />
                     </div>
-                  )}
-                </div>
-                
-                {/* Options & Explanations Wrapper */}
-                <div className={`${settings.splitScreen ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
-                  {/* Options List */}
-                  <div className={settings.answerLayout === 'compact' ? 'space-y-2' : 'space-y-4'}>
-                    <fieldset className={`flex flex-col gap-2 ${settings.answerLayout === 'compact' ? 'mt-2' : 'mt-4'}`}>
-                      {currentQ.question.options.map((opt, i) => {
-                        const isSelected = currentQ.selectedOptionId === opt.id;
-                        const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
-                        
-                        let bgClass = "bg-transparent";
-                        if (showFeedback && opt.isCorrect) {
-                          bgClass = isDark ? 'bg-green-900/40' : (settings.highContrast ? 'bg-[#005a00]/20' : 'bg-[#008000]/10');
-                        } else if (showFeedback && isSelected) {
-                          bgClass = isDark ? 'bg-red-900/40' : (settings.highContrast ? 'bg-[#d9534f]/20' : 'bg-[#f8d7da]/50');
-                        }
-
-                        return (
-                          <div key={opt.id} className={`flex items-start justify-between group ${bgClass} py-2 px-1 rounded transition-colors`}>
-                            <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(opt.id)}>
-                              <input 
-                                type="radio" 
-                                name={`q-${currentQ.id}`}
-                                checked={isSelected}
-                                onChange={() => handleOptionSelect(opt.id)}
-                                disabled={!!showFeedback}
-                                className={`mt-1.5 w-4 h-4 cursor-pointer accent-slate-600 shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
-                              />
-                              <div className="ml-4 flex-1 flex flex-col">
-                                <div className={`flex items-start ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
-                                  <span className={`mr-3 ${settings.highContrast ? 'font-black' : 'font-semibold'}`}>{String.fromCharCode(65 + i)}.</span>
-                                  {settings.showShortcuts && !showFeedback && (
-                                    <kbd className="mr-3 mt-0.5 px-1.5 py-0.5 border border-gray-300 rounded text-[9px] text-gray-500 bg-white shadow-sm font-mono hidden sm:inline-block">
-                                      {String.fromCharCode(65 + i)}
-                                    </kbd>
-                                  )}
-                                  <div className={`leading-relaxed [&>p]:inline ${settings.highContrast ? 'text-black font-medium' : ''}`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
-                                </div>
-                                {showFeedback && (opt as any).explanation && (
-                                  <div className={`mt-3 text-[13px] ${settings.highContrast ? 'text-black bg-gray-100 border-gray-400' : 'text-slate-700 bg-slate-50 border-slate-200'} p-3 rounded-md border`}>
-                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHTML((opt as any).explanation) }} />
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Strike Through Button */}
-                            {session.mode !== 'review' && (
-                              <button 
-                                type="button"
-                                onClick={() => toggleStrikethrough(opt.id)}
-                                disabled={showFeedback}
-                                aria-label={isStruckThrough ? `Remove strikethrough from option ${String.fromCharCode(65 + i)}` : `Strike out option ${String.fromCharCode(65 + i)}`}
-                                aria-pressed={!!isStruckThrough}
-                                className={`ml-4 p-1.5 rounded transition-all shrink-0 ${settings.highContrast ? 'text-gray-800' : 'text-slate-400'} hover:text-slate-900 hover:bg-slate-200/50
-                                  opacity-70 sm:opacity-50
-                                  sm:group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:!opacity-100
-                                  disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:!opacity-20 disabled:hover:bg-transparent`}
-                                title="Strike out option"
-                              >
-                                <Strikethrough size={16} />
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </fieldset>
                     
-                    {showFeedback && (
-                      <div className={`mt-8 pt-4 border-t ${settings.highContrast ? 'border-gray-400' : borderCol}`}>
-                        <div className={`font-bold mb-2 uppercase text-[13px] ${settings.highContrast ? 'text-black' : ''}`}>Explanation:</div>
-                        <div 
-                          ref={explanationContentRef}
-                          className={`leading-relaxed [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
-                          dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedExplanation || currentQ.question.explanation || '') }}
-                        />
+                    <div>
+                      <div className={settings.answerLayout === 'compact' ? 'space-y-2' : 'space-y-4'}>
+                        <fieldset className={`flex flex-col gap-2 ${settings.answerLayout === 'compact' ? 'mt-2' : 'mt-4'}`}>
+                          {translatedData.options.map((opt, i) => {
+                            const originalOpt = currentQ.question.options[i];
+                            const isSelected = currentQ.selectedOptionId === originalOpt.id;
+                            const isStruckThrough = currentQ.strikethroughs?.includes(originalOpt.id);
+                            
+                            let bgClass = "bg-transparent";
+                            if (showFeedback && originalOpt.isCorrect) {
+                              bgClass = isDark ? 'bg-green-900/40' : (settings.highContrast ? 'bg-[#005a00]/20' : 'bg-[#008000]/10');
+                            } else if (showFeedback && isSelected) {
+                              bgClass = isDark ? 'bg-red-900/40' : (settings.highContrast ? 'bg-[#d9534f]/20' : 'bg-[#f8d7da]/50');
+                            }
+
+                            return (
+                              <div key={opt.id} className={`flex items-start justify-between group ${bgClass} py-2 px-1 rounded transition-colors`}>
+                                <div className="flex items-start flex-1 opacity-90">
+                                  <input 
+                                    type="radio" 
+                                    checked={isSelected}
+                                    readOnly
+                                    className={`mt-1.5 w-4 h-4 accent-slate-600 shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
+                                  />
+                                  <div className="ml-4 flex-1 flex flex-col">
+                                    <div className={`flex items-start ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
+                                      <span className={`mr-3 ${settings.highContrast ? 'font-black' : 'font-semibold'}`}>{String.fromCharCode(65 + i)}.</span>
+                                      <div className={`leading-relaxed [&>p]:inline ${settings.highContrast ? 'text-black font-medium' : ''}`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
+                                    </div>
+                                    {showFeedback && (originalOpt as any).explanation && (
+                                      <div className={`mt-3 text-[13px] ${settings.highContrast ? 'text-black bg-gray-100 border-gray-400' : 'text-slate-700 bg-slate-50 border-slate-200'} p-3 rounded-md border`}>
+                                        <div dangerouslySetInnerHTML={{ __html: sanitizeHTML((opt as any).explanation || '') }} />
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </fieldset>
+                        
+                        {showFeedback && translatedData.explanation && (
+                          <div className={`mt-8 pt-4 border-t ${settings.highContrast ? 'border-gray-400' : borderCol}`}>
+                            <div className={`font-bold mb-2 uppercase text-[13px] ${settings.highContrast ? 'text-black' : ''}`}>{t('Explanation')}:</div>
+                            <div 
+                              className={`leading-relaxed [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
+                              dangerouslySetInnerHTML={{ __html: sanitizeHTML(translatedData.explanation) }}
+                            />
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                  
-                  {/* Proceed Button */}
-                  <div className="mt-8 pb-10 flex items-center">
-                    <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
-                      {t('Next')} Item
-                    </button>
-                    {settings.showShortcuts && (
-                      <kbd className="ml-3 px-2 py-1 border border-gray-400 rounded text-[11px] text-gray-500 bg-white font-mono hidden sm:inline-block">
-                        Space
-                      </kbd>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
               
-              {/* Media Side */}
+{/* Media Side */}
               {currentQ.question.media && currentQ.question.media.length > 0 && (
                 <div className="w-[350px] shrink-0 pl-4">
                   <div className="border border-gray-300 shadow-md bg-white p-1 flex h-[300px]">
