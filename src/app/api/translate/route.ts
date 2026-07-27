@@ -2,8 +2,26 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import translate from 'google-translate-api-x';
 import { getProtectedTermsRegex } from '@/utils/medicalDictionary';
+
+// MyMemory free translation API — no API key required, 1000 words/day free
+// Docs: https://mymemory.translated.net/doc/spec.php
+async function translateWithMyMemory(text: string, to: string): Promise<string> {
+  if (!text || !text.trim()) return text;
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${to}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error(`MyMemory HTTP ${res.status}`);
+    const data = await res.json();
+    const translated = data?.responseData?.translatedText;
+    if (!translated || translated === 'PLEASE SELECT TWO DISTINCT LANGUAGES') return text;
+    return translated;
+  } catch (e) {
+    console.error('MyMemory translation failed:', e);
+    return text; // graceful fallback to original English
+  }
+}
+
 
 // A robust regex to find numbers, specific medical units, and math expressions
 // We use a Placeholder Replacement Algorithm for safety with the free API
@@ -61,22 +79,16 @@ async function translateLargeText(html: string, to: string): Promise<string> {
   
   if (chunks.length === 0) return restoreContent(protectedHtml, placeholders);
 
-  let translatedHtml = '';
-  for (const chunk of chunks) {
-    if (chunk.trim() === '') {
-      translatedHtml += chunk;
-      continue;
-    }
-    try {
-      const res = await translate(chunk, { to, rejectOnPartialFail: false, forceBatch: false });
-      translatedHtml += res.text || chunk;
-    } catch (e) {
-      console.error('Failed to translate chunk:', e);
-      translatedHtml += chunk; // fallback to original English for this chunk if it fails
-    }
+  const results: string[] = [];
+  for (let i = 0; i < chunks.length; i += 3) {
+    const batch = chunks.slice(i, i + 3);
+    const batchResults = await Promise.all(
+      batch.map(chunk => chunk.trim() ? translateWithMyMemory(chunk, to) : Promise.resolve(chunk))
+    );
+    results.push(...batchResults);
   }
   
-  return restoreContent(translatedHtml, placeholders);
+  return restoreContent(results.join(''), placeholders);
 }
 
 export async function POST(req: Request) {

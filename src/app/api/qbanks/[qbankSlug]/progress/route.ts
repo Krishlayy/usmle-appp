@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 export async function GET(
   req: NextRequest,
@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const params = await props.params;
@@ -21,28 +21,43 @@ export async function GET(
     });
 
     if (!qbank) {
-      return NextResponse.json({ error: 'QBank not found' }, { status: 404 });
+      return NextResponse.json({ error: "QBank not found" }, { status: 404 });
     }
 
-    // Get unique attempted questions
-    const progress = await prisma.userProgress.findMany({
-      where: {
-        userId: session.user.id,
-        qbankId: qbank.id,
-        selectedAnswer: { not: null },
-      },
-      select: { questionId: true },
-    });
+    const [progress, firstTutorSession, subtopicRows] = await Promise.all([
+      prisma.userProgress.findMany({
+        where: { userId: session.user.id, qbankId: qbank.id, selectedAnswer: { not: null } },
+        select: { questionId: true, isCorrect: true, flagged: true },
+      }),
+      prisma.testSession.findFirst({
+        where: { userId: session.user.id, qbankId: qbank.id, status: "completed", mode: "tutor" },
+        select: { id: true },
+      }),
+      prisma.question.findMany({
+        where: { qbankId: qbank.id, status: "PUBLISHED", subtopic: { not: null } },
+        select: { subtopic: true },
+        distinct: ["subtopic"],
+        orderBy: { subtopic: "asc" },
+      }),
+    ]);
 
-    const completedQuestions = new Set(progress.map(p => p.questionId)).size;
+    const completedQuestions = new Set(progress.map((p) => p.questionId)).size;
+    const incorrectCount = progress.filter((p) => p.isCorrect === false).length;
+    const flaggedCount = progress.filter((p) => p.flagged).length;
+    const unusedCount = Math.max(0, qbank.totalQuestions - completedQuestions);
 
     return NextResponse.json({
       title: qbank.title,
       totalQuestions: qbank.totalQuestions,
       completedQuestions,
+      unusedCount,
+      incorrectCount,
+      flaggedCount,
+      hasCompletedFirstTutorSession: !!firstTutorSession,
+      subtopics: subtopicRows.map((s) => s.subtopic).filter(Boolean),
     });
   } catch (error) {
-    console.error('Failed to fetch progress:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error("Failed to fetch progress:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

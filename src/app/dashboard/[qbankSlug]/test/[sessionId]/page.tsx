@@ -49,11 +49,17 @@ export default async function TestSessionPage(
     redirect(`/dashboard/${params.qbankSlug}/session/${testSession.id}/results`);
   }
 
+  // Derive real block number: count how many sessions this user has started for this qbank
+  const blockNumber = await prisma.testSession.count({
+    where: { userId: session.user.id, qbankId: testSession.qbankId },
+  });
+
   const mappedSession = {
     id: testSession.id,
     qbankSlug: params.qbankSlug,
     mode: testSession.mode as 'timed' | 'tutor',
     durationSec: testSession.durationSec,
+    blockNumber,
     questions: testSession.progress.map((p, index) => ({
       id: p.id,
       order: index,

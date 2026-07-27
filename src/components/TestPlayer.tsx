@@ -73,6 +73,7 @@ export interface TestSession {
   qbankSlug?: string;
   mode: 'timed' | 'tutor' | 'review';
   durationSec: number | null;
+  blockNumber?: number;
   questions: SessionQuestion[];
 };
 
@@ -771,7 +772,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             <div className="flex-1 flex items-center gap-6">
               <div className={`flex flex-col text-[12px] font-semibold leading-tight`}>
                 <div className="text-slate-500 text-[10px] uppercase tracking-wider">Item {currentIndex + 1} of {session.questions.length}</div>
-                <div className="text-slate-700">Block 1</div>
+                <div className="text-slate-700">Block {session.blockNumber ?? 1}</div>
               </div>
               <div className="flex items-center gap-3">
                 <button 
@@ -1421,7 +1422,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         {/* Item & Block Info */}
         <div className="flex flex-col text-[13px] font-bold leading-tight px-4 min-w-[120px]">
           <div>Item: {currentIndex + 1} of {session.questions.length}</div>
-          <div>Block: 1 of 6</div>
+          <div>Block: {session.blockNumber ?? 1} of —</div>
         </div>
         
         {/* Navigation */}

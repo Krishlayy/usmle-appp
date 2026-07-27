@@ -25,26 +25,20 @@ export default async function DashboardPage() {
 
   const isAdmin = ['ADMIN', 'SUPERADMIN'].includes(session.user.role);
 
-  let purchases = await prisma.purchase.findMany({
+  const purchases = await prisma.purchase.findMany({
     where: { userId: session.user.id, status: 'active' },
     include: { qbank: true },
   });
 
-  if (isAdmin) {
-    purchases = allActiveQbanks.map(qbank => ({
-      id: `admin_bypass_${qbank.id}`,
-      userId: session.user.id,
-      qbankId: qbank.id,
-      status: 'active',
-      amountPaidCents: 0,
-      stripeSessionId: null,
-      purchasedAt: new Date(),
-      expiresAt: null,
-      qbank: qbank
-    } as any));
-  }
+  // Admins see all QBanks as unlocked without needing purchase records
+  const purchasedQbankIds = isAdmin
+    ? allActiveQbanks.map(q => q.id)
+    : purchases.map((p) => p.qbankId);
 
-  const purchasedQbankIds = purchases.map((p) => p.qbankId);
+  // For admins, build a display-only purchase list from the real qbank data
+  const displayPurchases = isAdmin
+    ? allActiveQbanks.map(qbank => ({ qbankId: qbank.id, qbank }))
+    : purchases.map(p => ({ qbankId: p.qbankId, qbank: p.qbank }));
 
   const availableQbanks = allActiveQbanks.filter(qb => !purchasedQbankIds.includes(qb.id));
 
@@ -146,7 +140,7 @@ export default async function DashboardPage() {
               <h2 className="text-lg font-bold text-gray-900">Your QBanks</h2>
             </div>
 
-            {purchases.length === 0 ? (
+            {displayPurchases.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-white p-12 text-center">
                 <Lock className="mb-4 h-12 w-12 text-gray-300" />
                 <h3 className="mb-2 text-xl font-bold text-gray-900">No active QBanks</h3>
@@ -154,7 +148,7 @@ export default async function DashboardPage() {
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {purchases.map(({ qbank }, index) => {
+                {displayPurchases.map(({ qbank }) => {
                   const attemptedCount = analyticsMap[qbank.id]?.attempted.size || 0;
                   const correctCount = analyticsMap[qbank.id]?.correct.size || 0;
                   const totalCount = qbank.totalQuestions || 1;
