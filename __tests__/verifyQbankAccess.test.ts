@@ -4,6 +4,9 @@ import { prisma } from '../src/lib/db';
 
 vi.mock('../src/lib/db', () => ({
   prisma: {
+    user: {
+      findUnique: vi.fn().mockResolvedValue(null), // default: not an admin
+    },
     purchase: {
       findUnique: vi.fn(),
     },
