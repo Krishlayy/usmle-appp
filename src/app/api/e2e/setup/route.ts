@@ -56,6 +56,7 @@ export async function POST(req: Request) {
       email,
       passwordHash,
       name: 'E2E User',
+      emailVerified: new Date(),
     }
   });
 
