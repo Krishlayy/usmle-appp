@@ -102,6 +102,6 @@ test.describe('E2E User Journey', () => {
     await expect(page).toHaveURL(/.*\/results/, { timeout: 30000 });
     
     // Verify Results Page
-    await expect(page.locator('text=Score')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Session Complete!/i })).toBeVisible();
   });
 });
