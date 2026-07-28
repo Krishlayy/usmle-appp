@@ -21,6 +21,13 @@ export const webhookRateLimiter = isMock ? { limit: async () => ({ success: true
   analytics: true,
 });
 
+// Strict rate limiter for authentication endpoints (e.g. 5 requests per minute)
+export const authRateLimiter = isMock ? { limit: async () => ({ success: true }) } as any : new Ratelimit({
+  redis: redis,
+  limiter: Ratelimit.slidingWindow(5, "1 m"),
+  analytics: true,
+});
+
 /**
  * Generic caching utility to check Redis first, and if miss, fetch and cache.
  * @param key Redis cache key

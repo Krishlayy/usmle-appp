@@ -1019,7 +1019,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 </div>
 
                 {/* Translated Panel */}
-                {settings.targetLanguage && (translatedData || isTranslating || error) && (
+                {settings.appTheme === 'MQB' && settings.targetLanguage && (translatedData || isTranslating || error) && (
                   <div className="flex flex-1 flex-col pl-6 border-l border-[var(--color-border-subtle)] bg-[var(--color-accent)]/5">
                     <div className="text-[10px] font-bold text-[var(--color-accent)] uppercase mb-2">Translation</div>
                     
@@ -1500,7 +1500,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         </aside>
 
         {/* Content Pane */}
-        <main className="flex-1 flex flex-col overflow-y-auto p-4 pl-6 relative pb-20">
+        <main ref={testPlayerMainRef} className="flex-1 flex flex-col overflow-y-auto p-4 pl-6 relative pb-20">
           
           <div className="flex justify-between items-start mb-6">
              {/* Mark Question Checkbox */}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, Suspense, use } from "react";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,8 @@ function SetupTestForm({ qbankSlug, data }: { qbankSlug: string; data: ProgressD
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const unlocked = data.hasCompletedFirstTutorSession;
+  // Removed the first session lock for live launch
+  const unlocked = true;
 
   // Max available based on filter
   const filterMax =
