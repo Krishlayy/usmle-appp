@@ -9,35 +9,35 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#0a0d14]/80 backdrop-blur-md border-b border-[rgba(255,255,255,0.08)]">
+    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/80">
       <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
         <Link className="flex items-center gap-2 group" href="/">
-          <div className="bg-gradient-to-br from-[#8b5cf6] to-[#06b6d4] text-white rounded-md p-1.5 shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform">
+          <div className="bg-gradient-to-br from-[#0f172a] to-[#0891b2] text-white rounded-md p-1.5 shadow-md shadow-cyan-500/10 group-hover:scale-105 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
             </svg>
           </div>
-          <span className="font-bold text-xl tracking-tight text-white font-serif">
-            Micro <span className="bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] bg-clip-text text-transparent">Q-Bank</span>
+          <span className="font-bold text-xl tracking-tight text-slate-900 font-serif">
+            Micro <span className="bg-gradient-to-r from-[#0f172a] to-[#0891b2] bg-clip-text text-transparent">Q-Bank</span>
           </span>
         </Link>
         <nav className="flex items-center gap-6">
           {(!session || !['ADMIN', 'SUPERADMIN'].includes(session.user?.role)) && (
             <Link 
               href="/store" 
-              className={`text-sm font-medium transition-colors hover:text-white ${pathname.startsWith('/store') ? 'text-white' : 'text-gray-400'}`}
+              className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/store') ? 'text-slate-900' : 'text-slate-500'}`}
             >
               Store
             </Link>
           )}
           
           {status === 'loading' ? (
-            <div className="w-20 h-8 animate-pulse bg-white/5 rounded-md"></div>
+            <div className="w-20 h-8 animate-pulse bg-slate-100 rounded-md"></div>
           ) : session ? (
             <>
               <Link 
                 href="/dashboard" 
-                className={`text-sm font-medium transition-colors hover:text-white ${pathname.startsWith('/dashboard') ? 'text-white' : 'text-gray-400'}`}
+                className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/dashboard') ? 'text-slate-900' : 'text-slate-500'}`}
               >
                 Dashboard
               </Link>
@@ -45,7 +45,7 @@ export default function Navbar() {
               {['ADMIN', 'SUPERADMIN'].includes(session.user?.role) && (
                 <Link 
                   href="/admin" 
-                  className={`text-sm font-medium transition-colors hover:text-white ${pathname.startsWith('/admin') ? 'text-white' : 'text-gray-400'}`}
+                  className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/admin') ? 'text-slate-900' : 'text-slate-500'}`}
                 >
                   Admin
                 </Link>
@@ -53,7 +53,7 @@ export default function Navbar() {
               
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="text-sm font-medium text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
               >
                 Log Out
               </button>
@@ -62,13 +62,13 @@ export default function Navbar() {
             <>
               <Link 
                 href="/login" 
-                className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
               >
                 Log In
               </Link>
               <Link 
                 href="/signup" 
-                className="text-sm font-medium bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] text-white px-4 py-2 hover:opacity-90 transition-opacity rounded-md shadow-md shadow-purple-500/10"
+                className="text-sm font-medium bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 transition-colors rounded-md shadow-sm"
               >
                 Sign Up
               </Link>

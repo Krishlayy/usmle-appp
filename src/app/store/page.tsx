@@ -35,8 +35,8 @@ export default async function StorePage() {
       </div>
       
       {qbanks.length === 0 ? (
-        <Card elevation="subtle" className="text-center py-20 bg-[#111524] border-dashed border-2 border-white/10">
-          <Database className="mx-auto h-12 w-12 text-gray-500 mb-4" strokeWidth={1.5} />
+        <Card elevation="subtle" className="text-center py-20 bg-slate-50 border-dashed border-2 border-slate-200">
+          <Database className="mx-auto h-12 w-12 text-slate-400 mb-4" strokeWidth={1.5} />
           <h3 className="text-scale-lg text-primary mb-2 font-bold font-serif">No Modules Available</h3>
           <p className="text-secondary text-scale-sm font-medium">We are currently preparing new question banks. Please check back soon.</p>
         </Card>
@@ -44,7 +44,7 @@ export default async function StorePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {qbanks.map((qbank) => {
             return (
-              <Card key={qbank.id} elevation="subtle" className="flex flex-col h-full group hover:shadow-md hover:border-[var(--color-primary)] transition-all duration-300 ease-out border-[var(--color-border-subtle)]">
+              <Card key={qbank.id} elevation="subtle" className="flex flex-col h-full group hover:shadow-md hover:border-[var(--color-primary)] transition-all duration-300 ease-out border-[var(--color-border-subtle)] bg-white">
                 <div className="p-8 flex-1 flex flex-col">
                   
                   <h2 className="text-[20px] text-primary mb-2 font-bold leading-tight font-serif">{qbank.title}</h2>
@@ -57,15 +57,15 @@ export default async function StorePage() {
                   </p>
                   
                   {/* High Density Info Grid */}
-                  <div className="grid grid-cols-1 gap-y-4 gap-x-6 text-[13px] font-medium text-secondary bg-[#0a0d14] p-4 rounded-xl border border-[var(--color-border-subtle)]">
+                  <div className="grid grid-cols-1 gap-y-4 gap-x-6 text-[13px] font-medium text-secondary bg-slate-50 p-4 rounded-xl border border-[var(--color-border-subtle)]">
                     <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-cyan-400" />
+                      <BookOpen className="w-4 h-4 text-cyan-600" />
                       <span className="text-primary font-bold">{qbank.totalQuestions}</span> Qs
                     </div>
                   </div>
                 </div>
                 
-                <div className="px-8 py-5 border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-subtle)] flex items-center justify-between group-hover:bg-white/5 transition-colors">
+                <div className="px-8 py-5 border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-subtle)] flex items-center justify-between group-hover:bg-cyan-50/50 transition-colors">
                   <div className="flex flex-col">
                     <span className="text-[11px] text-secondary font-bold uppercase tracking-wider mb-0.5">Lifetime License</span>
                     <span className="text-[20px] text-primary font-bold tracking-tight">
@@ -73,7 +73,7 @@ export default async function StorePage() {
                     </span>
                   </div>
                   <Link href={`/qbanks/${qbank.slug}`}>
-                    <Button variant="primary" className="gap-2 shadow-sm font-semibold">
+                    <Button variant="primary" className="gap-2 shadow-sm font-semibold bg-slate-900 border-none text-white hover:bg-slate-800">
                       View Curriculum <ChevronRight className="w-4 h-4" />
                     </Button>
                   </Link>

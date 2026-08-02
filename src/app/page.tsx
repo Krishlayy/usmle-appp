@@ -7,11 +7,11 @@ import { ArrowRight, BookOpen, BarChart2, ShieldCheck, Play, Layers, Sparkles } 
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-[#0a0d14] text-white font-sans overflow-hidden relative">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-[#f8fafc] text-[#0f172a] font-sans overflow-hidden relative">
       {/* Background Gradients */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[10%] w-[500px] h-[500px] rounded-full bg-purple-900/10 blur-[120px] animate-pulse duration-[8000ms]"></div>
-        <div className="absolute bottom-[-10%] left-[10%] w-[450px] h-[450px] rounded-full bg-cyan-950/15 blur-[120px] animate-pulse duration-[6000ms]"></div>
+        <div className="absolute top-[-10%] right-[10%] w-[500px] h-[500px] rounded-full bg-cyan-500/5 blur-[120px] animate-pulse duration-[8000ms]"></div>
+        <div className="absolute bottom-[-10%] left-[10%] w-[450px] h-[450px] rounded-full bg-blue-500/5 blur-[120px] animate-pulse duration-[6000ms]"></div>
       </div>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 z-10">
@@ -20,51 +20,51 @@ export default function Home() {
         <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 py-24 md:py-32 items-center">
           
           <div className="lg:col-span-6 space-y-6 text-left flex flex-col items-start">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-gray-300 text-sm font-medium animate-fade-slide-up">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-slate-200 bg-white text-slate-600 text-sm font-medium shadow-sm animate-fade-slide-up">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
               </span>
               The New Standard in USMLE Prep
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1] font-serif tracking-tight">
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1] font-serif tracking-tight text-slate-900">
               Master USMLE Concepts <br />
-              <span className="bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] bg-clip-text text-transparent italic">
+              <span className="bg-gradient-to-r from-[#0f172a] to-[#0891b2] bg-clip-text text-transparent italic">
                 One Topic at a Time
               </span>
             </h1>
             
-            <p className="max-w-xl text-lg text-gray-400 leading-relaxed mt-4">
+            <p className="max-w-xl text-lg text-slate-600 leading-relaxed mt-4">
               Experience the exact cognitive environment of the board exams. Build custom sessions from high-yield, peer-reviewed question banks tailored to your targets.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-6 w-full sm:w-auto">
               <Link href="/store" className="w-full sm:w-auto">
-                <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-lg shadow-purple-500/20 gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] border-none text-white hover:scale-[1.02] transition-transform">
+                <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-lg shadow-cyan-500/10 gap-2 bg-gradient-to-r from-[#0f172a] to-[#0891b2] border-none text-white hover:scale-[1.02] transition-transform">
                   Explore Q-Banks <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
               
               <Link href="/signup" className="w-full sm:w-auto">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto bg-white/5 border-white/10 hover:bg-white/10 text-white">
+                <Button variant="secondary" size="lg" className="w-full sm:w-auto bg-white border-slate-200 hover:bg-slate-50 text-slate-800">
                   Create Free Account
                 </Button>
               </Link>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 pt-10 border-t border-white/5 w-full mt-8">
+            <div className="grid grid-cols-3 gap-6 pt-10 border-t border-slate-200/60 w-full mt-8">
               <div>
-                <div className="text-2xl font-bold text-white">99.4%</div>
-                <div className="text-xs text-gray-500 mt-1">Interface Match</div>
+                <div className="text-2xl font-bold text-slate-900">99.4%</div>
+                <div className="text-xs text-slate-500 mt-1">Interface Match</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-white">4,200+</div>
-                <div className="text-xs text-gray-500 mt-1">High-Yield Qs</div>
+                <div className="text-2xl font-bold text-slate-900">4,200+</div>
+                <div className="text-xs text-slate-500 mt-1">High-Yield Qs</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-white">+24</div>
-                <div className="text-xs text-gray-500 mt-1">Avg Score Boost</div>
+                <div className="text-2xl font-bold text-slate-900">+24</div>
+                <div className="text-xs text-slate-500 mt-1">Avg Score Boost</div>
               </div>
             </div>
           </div>
@@ -73,60 +73,60 @@ export default function Home() {
           <div className="lg:col-span-6 flex justify-center w-full">
             <div className="relative group w-full max-w-lg">
               {/* Outer Glow */}
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] rounded-2xl blur-lg opacity-30 group-hover:opacity-40 transition-opacity"></div>
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl blur-lg opacity-10 group-hover:opacity-20 transition-opacity"></div>
               
               {/* Card Container */}
-              <div className="relative bg-[#111524]/90 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl">
                 {/* Header Window Buttons */}
-                <div className="flex items-center justify-between px-4 py-3 bg-[#0a0d14]/80 border-b border-white/5">
+                <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200/80">
                   <div className="flex gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-red-500/80"></span>
-                    <span className="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-                    <span className="w-3 h-3 rounded-full bg-green-500/80"></span>
+                    <span className="w-3 h-3 rounded-full bg-red-400"></span>
+                    <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
+                    <span className="w-3 h-3 rounded-full bg-green-400"></span>
                   </div>
-                  <span className="text-xs text-gray-500 font-mono">block_1_cardiology.exe</span>
+                  <span className="text-xs text-slate-500 font-mono">block_1_cardiology.exe</span>
                   <div className="w-12"></div>
                 </div>
 
                 {/* Simulator Content Preview */}
                 <div className="flex min-h-[220px]">
                   {/* Miniature Sidebar */}
-                  <div className="w-20 border-r border-white/5 bg-[#0e111d] p-2 flex flex-col gap-1.5">
-                    <div className="text-[10px] text-gray-600 font-bold tracking-wider mb-1">NAVIGATOR</div>
-                    <div className="flex items-center gap-1 bg-[#1c223a] text-xs text-cyan-400 p-1.5 rounded border border-cyan-400/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  <div className="w-20 border-r border-slate-200 bg-slate-50 p-2 flex flex-col gap-1.5">
+                    <div className="text-[10px] text-slate-400 font-bold tracking-wider mb-1">NAVIGATOR</div>
+                    <div className="flex items-center gap-1 bg-cyan-50 text-xs text-cyan-600 p-1.5 rounded border border-cyan-200/50">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
                       <span>1</span>
                       <span className="text-red-500 ml-auto">🚩</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 p-1.5 rounded">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-600"></span>
+                    <div className="flex items-center gap-1 text-xs text-slate-500 p-1.5 rounded">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                       <span>2</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 p-1.5 rounded">
+                    <div className="flex items-center gap-1 text-xs text-slate-500 p-1.5 rounded">
                       <span>3</span>
                       <span className="text-red-500 ml-auto">🚩</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 p-1.5 rounded">
+                    <div className="flex items-center gap-1 text-xs text-slate-500 p-1.5 rounded">
                       <span>4</span>
                     </div>
                   </div>
 
                   {/* Miniature Main Area */}
-                  <div className="flex-1 p-4 space-y-3.5 text-left">
-                    <span className="inline-block text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  <div className="flex-1 p-4 space-y-3.5 text-left bg-white">
+                    <span className="inline-block text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-cyan-50 text-cyan-600 border border-cyan-200">
                       CARDIOLOGY
                     </span>
-                    <p className="text-xs text-gray-300 leading-relaxed font-sans">
+                    <p className="text-xs text-slate-800 leading-relaxed font-sans font-medium">
                       A 62-year-old man presents to the emergency department with severe, crushing substernal chest pain radiating to his left arm for the past 45 minutes...
                     </p>
                     
                     <div className="space-y-1.5 pt-2">
-                      <div className="text-xs p-2 rounded bg-cyan-500/10 border border-cyan-500/30 text-white font-medium flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-cyan-500 text-black text-[10px] font-bold flex items-center justify-center">A</span>
+                      <div className="text-xs p-2 rounded bg-cyan-50 border border-cyan-200 text-cyan-900 font-semibold flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-cyan-500 text-white text-[10px] font-bold flex items-center justify-center">A</span>
                         <span>Acute myocardial infarction</span>
                       </div>
-                      <div className="text-xs p-2 rounded bg-white/5 border border-white/5 text-gray-500 line-through flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-white/5 text-gray-500 text-[10px] font-bold flex items-center justify-center">B</span>
+                      <div className="text-xs p-2 rounded bg-slate-50 border border-slate-100 text-slate-400 line-through flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-400 text-[10px] font-bold flex items-center justify-center">B</span>
                         <span>Acute pulmonary embolism</span>
                       </div>
                     </div>
@@ -173,9 +173,9 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t border-white/5 py-12 text-center text-gray-500 z-10 bg-[#0a0d14]">
+      <footer className="border-t border-slate-200/80 py-12 text-center text-slate-500 z-10 bg-white">
         <p className="mb-2 font-medium">© {new Date().getFullYear()} Micro Q-Bank.</p>
-        <p className="text-xs text-gray-600">Micro Q-Bank is an independent clinical educational platform. USMLE® is a registered trademark of the NBME.</p>
+        <p className="text-xs text-slate-400">Micro Q-Bank is an independent clinical educational platform. USMLE® is a registered trademark of the NBME.</p>
       </footer>
     </div>
   );

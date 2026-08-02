@@ -91,26 +91,26 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button 
                 onClick={() => setMode('tutor')}
-                className={`text-left p-4 rounded-xl border transition-all duration-200 cursor-pointer ${mode === 'tutor' ? 'border-[var(--color-primary)] bg-white/5 shadow-md shadow-purple-500/5' : 'border-white/10 hover:border-[var(--color-primary)] bg-[#0f121e]'}`}
+                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer ${mode === 'tutor' ? 'border-[var(--color-primary)] bg-[var(--color-surface-subtle)] shadow-sm' : 'border-[var(--color-border-subtle)] hover:border-[var(--color-primary)] bg-white'}`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <GraduationCap className={`w-5 h-5 ${mode === 'tutor' ? 'text-[var(--color-primary)]' : 'text-slate-500'}`} />
-                  <span className={`font-bold ${mode === 'tutor' ? 'text-[var(--color-primary)]' : 'text-slate-300'}`}>Tutor Mode</span>
+                  <GraduationCap className={`w-5 h-5 ${mode === 'tutor' ? 'text-[var(--color-primary)]' : 'text-slate-400'}`} />
+                  <span className={`font-bold ${mode === 'tutor' ? 'text-[var(--color-primary)]' : 'text-slate-700'}`}>Tutor Mode</span>
                 </div>
-                <p className="text-[13px] text-gray-400 font-medium leading-snug pl-8">
+                <p className="text-[13px] text-slate-500 font-medium leading-snug pl-8">
                   Explanations shown immediately after each question. No strict timer.
                 </p>
               </button>
 
               <button 
                 onClick={() => setMode('timed')}
-                className={`text-left p-4 rounded-xl border transition-all duration-200 cursor-pointer ${mode === 'timed' ? 'border-[var(--color-primary)] bg-white/5 shadow-md shadow-purple-500/5' : 'border-white/10 hover:border-[var(--color-primary)] bg-[#0f121e]'}`}
+                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer ${mode === 'timed' ? 'border-[var(--color-primary)] bg-[var(--color-surface-subtle)] shadow-sm' : 'border-[var(--color-border-subtle)] hover:border-[var(--color-primary)] bg-white'}`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <Clock className={`w-5 h-5 ${mode === 'timed' ? 'text-[var(--color-primary)]' : 'text-slate-500'}`} />
-                  <span className={`font-bold ${mode === 'timed' ? 'text-[var(--color-primary)]' : 'text-slate-300'}`}>Timed Mode</span>
+                  <Clock className={`w-5 h-5 ${mode === 'timed' ? 'text-[var(--color-primary)]' : 'text-slate-400'}`} />
+                  <span className={`font-bold ${mode === 'timed' ? 'text-[var(--color-primary)]' : 'text-slate-700'}`}>Timed Mode</span>
                 </div>
-                <p className="text-[13px] text-gray-400 font-medium leading-snug pl-8">
+                <p className="text-[13px] text-slate-500 font-medium leading-snug pl-8">
                   Simulates exam conditions. Explanations shown only at the end of the block.
                 </p>
               </button>
@@ -118,7 +118,7 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
           </section>
 
           {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl font-medium">
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl font-medium">
               {error}
             </div>
           )}
@@ -126,12 +126,12 @@ function SetupTestForm({ qbankSlug, title, totalQuestions, completedQuestions }:
 
         {/* Footer Action */}
         <div className="bg-[var(--color-surface-subtle)] border-t border-[var(--color-border-subtle)] px-8 py-5 flex items-center justify-between">
-          <p className="text-[13px] text-gray-400 flex items-center gap-1.5 font-medium">
+          <p className="text-[13px] text-slate-500 flex items-center gap-1.5 font-medium">
             <CheckCircle2 className="w-4 h-4 text-[var(--color-success)]" /> Auto-saves progress
           </p>
           <Button 
             size="lg" 
-            className="w-48 text-[15px] shadow-md font-bold gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] border-none text-white hover:opacity-95" 
+            className="w-48 text-[15px] shadow-sm font-bold gap-2 bg-slate-900 border-none text-white hover:bg-slate-800" 
             onClick={handleStart} 
             isLoading={loading}
           >
@@ -186,12 +186,12 @@ export default function SetupTestPage(props: { params: Promise<{ qbankSlug: stri
   const params = use(props.params);
   return (
     <div className="min-h-screen bg-[var(--background)] animate-page-enter">
-      <div className="bg-[#0a0d14]/80 border-b border-[var(--color-border-subtle)] sticky top-0 z-10 backdrop-blur-md shadow-sm">
+      <div className="bg-white border-b border-[var(--color-border-subtle)] sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 md:px-8 h-16 flex items-center gap-4 max-w-[1280px]">
-          <Link href={`/dashboard/${params.qbankSlug}`} className="text-gray-400 hover:text-white transition-colors">
+          <Link href={`/dashboard/${params.qbankSlug}`} className="text-slate-500 hover:text-slate-900 transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-scale-lg font-bold text-white tracking-tight font-serif">Start Practice</h1>
+          <h1 className="text-scale-lg font-bold text-slate-900 tracking-tight font-serif">Start Practice</h1>
         </div>
       </div>
       <div className="container mx-auto py-10 px-4 md:px-8 max-w-[1280px]">

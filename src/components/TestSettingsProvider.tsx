@@ -34,7 +34,7 @@ const defaultSettings: TestSettings = {
   appTheme: 'MQB',
   appearance: 'NBME Official',
   fontSize: 15,
-  colorTheme: 'dark',
+  colorTheme: 'light',
   showTimer: true,
   splitScreen: false,
   confirmOmission: true,

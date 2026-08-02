@@ -205,12 +205,12 @@ export default async function QBankDashboardPage(
       <h2 className="text-scale-lg text-primary tracking-tight mb-6">Study Tools</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         <Link href={`/dashboard/${qbank.slug}/notes`} className="group">
-          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-white/10 group-hover:-translate-y-1">
+          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
             <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
                 <FileText className="w-6 h-6" />
               </div>
-              <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-blue-500/20 group-hover:text-blue-400 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600 transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </div>
             </div>
@@ -220,12 +220,12 @@ export default async function QBankDashboardPage(
         </Link>
         
         <Link href={`/dashboard/${qbank.slug}/flashcards`} className="group">
-          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-white/10 group-hover:-translate-y-1">
+          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
             <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
                 <Brain className="w-6 h-6" />
               </div>
-              <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-purple-500/20 group-hover:text-purple-400 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600 transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </div>
             </div>
@@ -235,12 +235,12 @@ export default async function QBankDashboardPage(
         </Link>
 
         <Link href={`/dashboard/${qbank.slug}/previous`} className="group">
-          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-white/10 group-hover:-translate-y-1">
+          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
             <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
                 <LayoutTemplate className="w-6 h-6" />
               </div>
-              <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600 transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </div>
             </div>
