@@ -10,20 +10,20 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', isLoading = false, children, disabled, ...props }, ref) => {
     
-    const baseStyles = 'inline-flex items-center justify-center font-medium transition-colors duration-150 rounded focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-200 ease-out rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 disabled:opacity-50 disabled:cursor-not-allowed';
     
     const variants = {
-      primary: 'bg-[var(--color-accent)] text-white hover:bg-[#0F766E] shadow-none border border-transparent',
-      secondary: 'bg-white border border-[var(--color-border-subtle)] text-primary hover:border-gray-300 hover:bg-gray-50 shadow-none',
-      tertiary: 'bg-transparent text-secondary hover:text-primary underline-offset-4 hover:underline',
-      ghost: 'bg-transparent text-secondary hover:bg-gray-100 hover:text-primary active:bg-gray-200',
+      primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] hover:-translate-y-[1px] hover:shadow-md active:translate-y-0 active:shadow-sm',
+      secondary: 'bg-white/5 border border-white/10 text-white hover:border-white/20 hover:bg-white/10',
+      tertiary: 'bg-transparent text-[var(--color-text-secondary)] hover:text-white underline-offset-4 hover:underline',
+      ghost: 'bg-transparent text-[var(--color-text-secondary)] hover:bg-white/5 hover:text-white',
     };
 
     const sizes = {
-      sm: 'h-9 px-4 text-[13px]',
-      md: 'h-11 px-6 text-[14px]',
-      lg: 'h-14 px-8 text-[16px]',
-      icon: 'h-11 w-11',
+      sm: 'h-8 px-4 text-scale-xs',
+      md: 'h-10 px-5 text-scale-sm',
+      lg: 'h-12 px-8 text-scale-base',
+      icon: 'h-10 w-10',
     };
 
     const combinedClasses = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`;

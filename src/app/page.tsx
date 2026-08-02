@@ -1,503 +1,181 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
-import { motion, useInView } from 'framer-motion';
-
-interface FeatureItem {
-  icon: 'content' | 'analytics' | 'purchase';
-  tileColor: string;
-  title: string;
-  description: string;
-}
-
-function BookIcon({ color }: { color: string }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
-      <path
-        d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v16.5a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 17.5V4.5Zm2.5-.5a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5H18V4H6.5Z"
-        fill={color}
-      />
-    </svg>
-  );
-}
-
-function ArrowIcon({ color }: { color: string }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
-      <path d="M5 12h12.17l-4.58 4.59L14 18l7-7-7-7-1.41 1.41L17.17 10H5v2Z" fill={color} />
-    </svg>
-  );
-}
-
-function FeatureIcon({ variant, color }: { variant: 'content' | 'analytics' | 'purchase'; color: string }) {
-  if (variant === 'content') {
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
-        <path
-          d="M6 3h12a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-4 2V5a2 2 0 0 1 2-2Zm0 2v10.76l2-.99 4 2 4-2 2 .99V5H6Z"
-          fill={color}
-        />
-      </svg>
-    );
-  }
-  if (variant === 'analytics') {
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
-        <path d="M4 19h16v2H2V3h2v16Zm3-2V9h3v8H7Zm5 0V5h3v12h-3Zm5 0v-6h3v6h-3Z" fill={color} />
-      </svg>
-    );
-  }
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
-      <path
-        d="M7 4h10l3 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8l3-4Zm1.05 2L6.5 8h11L16 6H8.05ZM12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"
-        fill={color}
-      />
-    </svg>
-  );
-}
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { ArrowRight, BookOpen, BarChart2, ShieldCheck, Play, Layers, Sparkles } from 'lucide-react';
 
 export default function Home() {
-  const rootRef = React.useRef<HTMLDivElement | null>(null);
-  const inView = useInView(rootRef, { once: true, amount: 0.2 });
-  const shouldAnimate = inView;
-
-  // Config
-  const brand = 'Micro Q Bank';
-  const eyebrow = 'The New Standard in Clinical Education';
-  const emphasizedHeading = 'Master Medical Concepts,';
-  const headingRemainder = 'One Topic at a Time.';
-  const supportingParagraph =
-    'Stop paying for bloated subscriptions. Build your own curriculum with premium, high-yield question banks tailored precisely for your clinical weak spots.';
-  const primaryButtonLabel = 'Explore Question Banks';
-  const primaryButtonHref = '/store';
-  const secondaryButtonLabel = 'Create Free Account';
-  const secondaryButtonHref = '/signup';
-  const features: FeatureItem[] = [
-    {
-      icon: 'content',
-      tileColor: 'rgba(13, 148, 136, 0.08)',
-      title: 'High-Yield Content',
-      description:
-        'Questions crafted by top scorers, focusing on the concepts most frequently tested on the boards. No low-yield fluff.',
-    },
-    {
-      icon: 'analytics',
-      tileColor: 'rgba(13, 148, 136, 0.08)',
-      title: 'Advanced Analytics',
-      description:
-        'Track your performance across micro-topics to identify weaknesses and optimize your study time efficiently.',
-    },
-    {
-      icon: 'purchase',
-      tileColor: 'rgba(13, 148, 136, 0.08)',
-      title: 'Pay Per Module',
-      description: 'Zero subscriptions. Lifetime access to the modules you buy. A fair marketplace built for medical students.',
-    },
-  ];
-  const calloutTitle = 'Ready to elevate your clinical study?';
-  const calloutBody = 'Join a smarter question-bank experience designed for focused learning and measurable growth.';
-  const calloutButtonLabel = 'Get Started Today';
-  const calloutButtonHref = '/signup';
-  const footerBrand = 'Micro Q Bank';
-  const footerCopyright = `© ${new Date().getFullYear()} Micro Q Bank. All rights reserved.`;
-
-  // Colors - Clean Professional Theme
-  const pageBackground = '#FAFAF9'; 
-  const accent = '#0D9488';   // Deep medical teal for primary action
-  const navy = '#14161A';           // Dark slate for headers
-  const cardSurface = '#FFFFFF';
-  const sectionSurface = '#FFFFFF'; // Subtle gray-blue section background
-  const primaryText = '#14161A';
-  const mutedText = '#5C626E';
-  const borderColor = '#E5E7EB';
-  const radius = '8px';
-
   return (
-    <div
-      ref={rootRef}
-      style={{
-        position: 'relative',
-        width: '100%',
-        background: pageBackground,
-        color: primaryText,
-        boxSizing: 'border-box',
-        overflowX: 'hidden',
-      }}
-    >
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-[#0a0d14] text-white font-sans overflow-hidden relative">
+      {/* Background Gradients */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[10%] w-[500px] h-[500px] rounded-full bg-purple-900/10 blur-[120px] animate-pulse duration-[8000ms]"></div>
+        <div className="absolute bottom-[-10%] left-[10%] w-[450px] h-[450px] rounded-full bg-cyan-950/15 blur-[120px] animate-pulse duration-[6000ms]"></div>
+      </div>
 
-      <main
-        style={{
-          width: '100%',
-          padding: '18px 20px 60px',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1120,
-            margin: '0 auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 56,
-          }}
-        >
-          {/* Hero Section */}
-          <section
-            style={{
-              position: 'relative',
-              borderRadius: radius,
-              padding: '74px 20px 70px',
-              textAlign: 'center',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: 0,
-                width: '58%',
-                minWidth: 280,
-                transform: 'translateX(-50%)',
-                height: 230,
-                background: `radial-gradient(circle at center, ${accent}15 0%, transparent 70%)`,
-                pointerEvents: 'none',
-              }}
-            />
-            <motion.div
-              initial={shouldAnimate ? { opacity: 0, y: 14 } : false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 22,
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  border: `1px solid ${borderColor}`,
-                  borderRadius: 999,
-                  padding: '7px 12px',
-                  textTransform: 'uppercase',
-                  color: mutedText,
-                  letterSpacing: '0.06em',
-                  fontSize: 12,
-                  lineHeight: '1em',
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: 999,
-                    background: accent,
-                    display: 'inline-block',
-                  }}
-                />
-                {eyebrow}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 z-10">
+        
+        {/* HERO SECTION */}
+        <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 py-24 md:py-32 items-center">
+          
+          <div className="lg:col-span-6 space-y-6 text-left flex flex-col items-start">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-gray-300 text-sm font-medium animate-fade-slide-up">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
               </span>
+              The New Standard in USMLE Prep
+            </div>
 
-              <h1
-                style={{
-                  fontSize: 'clamp(42px, 7vw, 72px)',
-                  lineHeight: '1.05',
-                  margin: 0,
-                  color: primaryText,
-                  maxWidth: 820,
-                  fontWeight: 600,
-                  letterSpacing: '-0.04em',
-                }}
-              >
-                <span style={{ fontStyle: 'italic', marginRight: 8 }}>{emphasizedHeading}</span>
-                <br />
-                {headingRemainder}
-              </h1>
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1] font-serif tracking-tight">
+              Master USMLE Concepts <br />
+              <span className="bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] bg-clip-text text-transparent italic">
+                One Topic at a Time
+              </span>
+            </h1>
+            
+            <p className="max-w-xl text-lg text-gray-400 leading-relaxed mt-4">
+              Experience the exact cognitive environment of the board exams. Build custom sessions from high-yield, peer-reviewed question banks tailored to your targets.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 pt-6 w-full sm:w-auto">
+              <Link href="/store" className="w-full sm:w-auto">
+                <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-lg shadow-purple-500/20 gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] border-none text-white hover:scale-[1.02] transition-transform">
+                  Explore Q-Banks <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              
+              <Link href="/signup" className="w-full sm:w-auto">
+                <Button variant="secondary" size="lg" className="w-full sm:w-auto bg-white/5 border-white/10 hover:bg-white/10 text-white">
+                  Create Free Account
+                </Button>
+              </Link>
+            </div>
 
-              <p
-                style={{
-                  margin: 0,
-                  color: mutedText,
-                  maxWidth: 680,
-                  fontSize: 16,
-                  lineHeight: '1.35em',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {supportingParagraph}
-              </p>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                  width: '100%',
-                  paddingTop: 8,
-                }}
-              >
-                <Link href={primaryButtonHref}>
-                  <span
-                    style={{
-                      minHeight: 50,
-                      minWidth: 210,
-                      padding: '12px 18px',
-                      borderRadius: radius,
-                      border: '1px solid #000000',
-                      background: '#000000',
-                      color: '#FFFFFF',
-                      textDecoration: 'none',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      boxSizing: 'border-box',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <span>{primaryButtonLabel}</span>
-                    <ArrowIcon color="#FFFFFF" />
-                  </span>
-                </Link>
-                <Link href={secondaryButtonHref}>
-                  <span
-                    style={{
-                      minHeight: 50,
-                      minWidth: 210,
-                      padding: '12px 18px',
-                      borderRadius: radius,
-                      border: `1px solid ${borderColor}`,
-                      background: accent,
-                      color: '#FFFFFF',
-                      textDecoration: 'none',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxSizing: 'border-box',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {secondaryButtonLabel}
-                  </span>
-                </Link>
+            <div className="grid grid-cols-3 gap-6 pt-10 border-t border-white/5 w-full mt-8">
+              <div>
+                <div className="text-2xl font-bold text-white">99.4%</div>
+                <div className="text-xs text-gray-500 mt-1">Interface Match</div>
               </div>
-            </motion.div>
-          </section>
-
-          {/* Features Section */}
-          <section
-            style={{
-              background: sectionSurface,
-              borderRadius: radius,
-              padding: '28px 18px',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: 16,
-              }}
-            >
-              {features.map((feature, index) => (
-                <motion.article
-                  key={`${feature.title}-${index}`}
-                  initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.35,
-                    delay: 0.06 * index,
-                    ease: 'easeOut',
-                  }}
-                  style={{
-                    background: cardSurface,
-                    border: `1px solid ${borderColor}`,
-                    borderRadius: radius,
-                    padding: '24px 20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 14,
-                    minWidth: 0,
-                  }}
-                >
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 10,
-                      background: feature.tileColor,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <FeatureIcon variant={feature.icon} color={primaryText} />
-                  </span>
-                  <h3
-                    style={{
-                      margin: 0,
-                      color: primaryText,
-                      fontWeight: 700,
-                      fontSize: 16,
-                    }}
-                  >
-                    {feature.title}
-                  </h3>
-                  <p
-                    style={{
-                      margin: 0,
-                      color: mutedText,
-                      fontSize: 14,
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    {feature.description}
-                  </p>
-                </motion.article>
-              ))}
+              <div>
+                <div className="text-2xl font-bold text-white">4,200+</div>
+                <div className="text-xs text-gray-500 mt-1">High-Yield Qs</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-white">+24</div>
+                <div className="text-xs text-gray-500 mt-1">Avg Score Boost</div>
+              </div>
             </div>
-          </section>
+          </div>
 
-          {/* Callout Section */}
-          <motion.section
-            initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.4,
-              ease: 'easeOut',
-              delay: 0.08,
-            }}
-            style={{
-              width: '100%',
-              background: navy,
-              borderRadius: radius,
-              padding: '28px 24px',
-              boxSizing: 'border-box',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 20,
-              flexWrap: 'wrap',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-                minWidth: 0,
-                flex: '1 1 360px',
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  color: '#FFFFFF',
-                  fontSize: 'clamp(24px, 3.3vw, 38px)',
-                  lineHeight: '1.08em',
-                  fontWeight: 600,
-                  letterSpacing: '-0.04em',
-                }}
-              >
-                {calloutTitle}
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  color: '#D5DCE8',
-                  maxWidth: 620,
-                  fontSize: 16,
-                  lineHeight: '1.35em',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {calloutBody}
+          {/* SIMULATOR PREVIEW HERO IMAGE */}
+          <div className="lg:col-span-6 flex justify-center w-full">
+            <div className="relative group w-full max-w-lg">
+              {/* Outer Glow */}
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] rounded-2xl blur-lg opacity-30 group-hover:opacity-40 transition-opacity"></div>
+              
+              {/* Card Container */}
+              <div className="relative bg-[#111524]/90 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                {/* Header Window Buttons */}
+                <div className="flex items-center justify-between px-4 py-3 bg-[#0a0d14]/80 border-b border-white/5">
+                  <div className="flex gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-red-500/80"></span>
+                    <span className="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+                    <span className="w-3 h-3 rounded-full bg-green-500/80"></span>
+                  </div>
+                  <span className="text-xs text-gray-500 font-mono">block_1_cardiology.exe</span>
+                  <div className="w-12"></div>
+                </div>
+
+                {/* Simulator Content Preview */}
+                <div className="flex min-h-[220px]">
+                  {/* Miniature Sidebar */}
+                  <div className="w-20 border-r border-white/5 bg-[#0e111d] p-2 flex flex-col gap-1.5">
+                    <div className="text-[10px] text-gray-600 font-bold tracking-wider mb-1">NAVIGATOR</div>
+                    <div className="flex items-center gap-1 bg-[#1c223a] text-xs text-cyan-400 p-1.5 rounded border border-cyan-400/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                      <span>1</span>
+                      <span className="text-red-500 ml-auto">🚩</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 p-1.5 rounded">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-600"></span>
+                      <span>2</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 p-1.5 rounded">
+                      <span>3</span>
+                      <span className="text-red-500 ml-auto">🚩</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 p-1.5 rounded">
+                      <span>4</span>
+                    </div>
+                  </div>
+
+                  {/* Miniature Main Area */}
+                  <div className="flex-1 p-4 space-y-3.5 text-left">
+                    <span className="inline-block text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                      CARDIOLOGY
+                    </span>
+                    <p className="text-xs text-gray-300 leading-relaxed font-sans">
+                      A 62-year-old man presents to the emergency department with severe, crushing substernal chest pain radiating to his left arm for the past 45 minutes...
+                    </p>
+                    
+                    <div className="space-y-1.5 pt-2">
+                      <div className="text-xs p-2 rounded bg-cyan-500/10 border border-cyan-500/30 text-white font-medium flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-cyan-500 text-black text-[10px] font-bold flex items-center justify-center">A</span>
+                        <span>Acute myocardial infarction</span>
+                      </div>
+                      <div className="text-xs p-2 rounded bg-white/5 border border-white/5 text-gray-500 line-through flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-white/5 text-gray-500 text-[10px] font-bold flex items-center justify-center">B</span>
+                        <span>Acute pulmonary embolism</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* FEATURES GRID */}
+        <div className="max-w-6xl w-full mx-auto py-24 border-t border-white/5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
+            <div className="flex flex-col hover:-translate-y-1 transition-transform duration-300 group">
+              <div className="text-purple-400 mb-6 border-b border-white/5 pb-4 inline-flex items-center gap-3">
+                <BookOpen className="w-5 h-5 stroke-[1.5px] group-hover:text-purple-300 transition-colors" />
+                <h3 className="text-lg text-white font-serif m-0 p-0 font-bold">Realistic Simulator</h3>
+              </div>
+              <p className="text-gray-400 leading-relaxed text-sm">
+                Strike through incorrect options, flag items to review, and manage time using exact replicates of the official board examination interface.
               </p>
             </div>
-            <Link href={calloutButtonHref}>
-              <span
-                style={{
-                  background: accent,
-                  color: '#FFFFFF',
-                  textDecoration: 'none',
-                  borderRadius: radius,
-                  border: `1px solid ${accent}`,
-                  minHeight: 48,
-                  minWidth: 220,
-                  padding: '12px 16px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <span>{calloutButtonLabel}</span>
-                <ArrowIcon color="#FFFFFF" />
-              </span>
-            </Link>
-          </motion.section>
+
+            <div className="flex flex-col hover:-translate-y-1 transition-transform duration-300 group" style={{ animationDelay: '100ms' }}>
+              <div className="text-cyan-400 mb-6 border-b border-white/5 pb-4 inline-flex items-center gap-3">
+                <BarChart2 className="w-5 h-5 stroke-[1.5px] group-hover:text-cyan-300 transition-colors" />
+                <h3 className="text-lg text-white font-serif m-0 p-0 font-bold">Smart Analytics</h3>
+              </div>
+              <p className="text-gray-400 leading-relaxed text-sm">
+                Trace accuracy details by organ system, track average answer speed, and identify precise topics needing review before test day.
+              </p>
+            </div>
+
+            <div className="flex flex-col hover:-translate-y-1 transition-transform duration-300 group" style={{ animationDelay: '200ms' }}>
+              <div className="text-purple-400 mb-6 border-b border-white/5 pb-4 inline-flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 stroke-[1.5px] group-hover:text-purple-300 transition-colors" />
+                <h3 className="text-lg text-white font-serif m-0 p-0 font-bold">Pay Per Module</h3>
+              </div>
+              <p className="text-gray-400 leading-relaxed text-sm">
+                Eliminate bloated subscriptions. Purchase only the specific systems or modules you need and retain lifetime access for your prep.
+              </p>
+            </div>
+          </div>
         </div>
       </main>
 
-      <footer
-        style={{
-          width: '100%',
-          background: sectionSurface,
-          borderTop: `1px solid ${borderColor}`,
-          padding: '20px',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1120,
-            margin: '0 auto',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 8,
-            textAlign: 'center',
-          }}
-        >
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <BookIcon color={primaryText} />
-            <span
-              style={{
-                color: primaryText,
-                fontWeight: 700,
-                fontSize: 14,
-              }}
-            >
-              {footerBrand}
-            </span>
-          </div>
-          <span style={{ color: mutedText, fontSize: 12 }}>{footerCopyright}</span>
-        </div>
+      <footer className="border-t border-white/5 py-12 text-center text-gray-500 z-10 bg-[#0a0d14]">
+        <p className="mb-2 font-medium">© {new Date().getFullYear()} Micro Q-Bank.</p>
+        <p className="text-xs text-gray-600">Micro Q-Bank is an independent clinical educational platform. USMLE® is a registered trademark of the NBME.</p>
       </footer>
     </div>
   );
