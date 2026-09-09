@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import dynamic from 'next/dynamic';
-import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark, X, Clock, FlaskConical, PenLine, ArrowLeftCircle, ArrowRightCircle, Lock, XCircle, Flag, Strikethrough, AlertTriangle, Highlighter } from 'lucide-react';
+import { HelpCircle, TestTubes, FileText, Calculator as CalcIcon, Settings as SettingsIcon, ChevronLeft, ChevronRight, Bookmark, X, Clock, FlaskConical, PenLine, ArrowLeftCircle, ArrowRightCircle, Lock, XCircle, Flag, Strikethrough, AlertTriangle, Highlighter, Sparkles, BookOpen, Layers, Video } from 'lucide-react';
 import { MediaRenderer } from '@/components/MediaRenderer';
 import { QuestionNotesModal } from './QuestionNotesModal';
 import { TestSettingsProvider, useTestSettings, TestSettings } from '@/components/TestSettingsProvider';
@@ -1097,6 +1098,40 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                               className={`leading-relaxed [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
                               dangerouslySetInnerHTML={{ __html: sanitizeHTML(translatedData.explanation) }}
                             />
+                            
+                            {/* Cross-Feature Learning Hub */}
+                            <div className="mt-6 p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                              <div className="flex items-center gap-2 text-slate-800 font-bold">
+                                <Sparkles className="w-4 h-4 text-cyan-600" />
+                                <span>High-Yield Reinforcement:</span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Link
+                                  href={`/library?q=${encodeURIComponent(currentQ.question.tags?.[0] || 'Cardiology')}`}
+                                  target="_blank"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-800 hover:bg-indigo-100 font-semibold border border-indigo-200 transition-colors"
+                                >
+                                  <BookOpen className="w-3.5 h-3.5" /> Medical Library
+                                </Link>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFlashcardPrefillText(currentQ.question.questionText);
+                                    setShowFlashcardModal(true);
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold border border-emerald-200 transition-colors cursor-pointer"
+                                >
+                                  <Layers className="w-3.5 h-3.5" /> Create Flashcard
+                                </button>
+                                <Link
+                                  href="/courses"
+                                  target="_blank"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold border border-slate-300 transition-colors"
+                                >
+                                  <Video className="w-3.5 h-3.5" /> Video Lectures
+                                </Link>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1606,6 +1641,40 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                       className="leading-relaxed text-[14px] text-black"
                       dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedExplanation || currentQ.question.explanation || '') }}
                     />
+                    
+                    {/* Cross-Feature Learning Hub */}
+                    <div className="mt-6 p-3 rounded bg-gray-100 border border-gray-300 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2 text-black font-bold">
+                        <Sparkles className="w-4 h-4 text-[#0055a4]" />
+                        <span>High-Yield Reinforcement:</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/library?q=${encodeURIComponent(currentQ.question.tags?.[0] || 'Cardiology')}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white text-[#0055a4] hover:bg-gray-50 font-bold border border-gray-400 transition-colors"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" /> Medical Library
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFlashcardPrefillText(currentQ.question.questionText);
+                            setShowFlashcardModal(true);
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white text-emerald-800 hover:bg-gray-50 font-bold border border-gray-400 transition-colors cursor-pointer"
+                        >
+                          <Layers className="w-3.5 h-3.5" /> Create Flashcard
+                        </button>
+                        <Link
+                          href="/courses"
+                          target="_blank"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white text-slate-800 hover:bg-gray-50 font-bold border border-gray-400 transition-colors"
+                        >
+                          <Video className="w-3.5 h-3.5" /> Video Lectures
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 )}
                 

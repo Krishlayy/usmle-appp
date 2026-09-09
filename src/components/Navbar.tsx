@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
@@ -7,6 +8,28 @@ import { usePathname } from 'next/navigation';
 export default function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const [features, setFeatures] = useState<{
+    READY_DECKS_V2?: boolean;
+    MEDICAL_LIBRARY?: boolean;
+    UNIFIED_SEARCH?: boolean;
+    VIDEO_LEARNING?: boolean;
+    STUDY_PLANNER?: boolean;
+  }>({
+    MEDICAL_LIBRARY: true,
+    VIDEO_LEARNING: true,
+    STUDY_PLANNER: true,
+  });
+
+  useEffect(() => {
+    fetch('/api/features')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.flags) {
+          setFeatures(data.flags);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/80">
@@ -21,7 +44,7 @@ export default function Navbar() {
             Micro <span className="bg-gradient-to-r from-[#0f172a] to-[#0891b2] bg-clip-text text-transparent">Q-Bank</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-5 sm:gap-6">
           {(!session || !['ADMIN', 'SUPERADMIN'].includes(session.user?.role)) && (
             <Link 
               href="/store" 
@@ -30,14 +53,41 @@ export default function Navbar() {
               Store
             </Link>
           )}
+
+          {features.MEDICAL_LIBRARY && (
+            <Link 
+              href="/library" 
+              className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/library') ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}
+            >
+              Library
+            </Link>
+          )}
+
+          {features.VIDEO_LEARNING && (
+            <Link 
+              href="/courses" 
+              className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/courses') ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}
+            >
+              Videos
+            </Link>
+          )}
           
           {status === 'loading' ? (
             <div className="w-20 h-8 animate-pulse bg-slate-100 rounded-md"></div>
           ) : session ? (
             <>
+              {features.STUDY_PLANNER && (
+                <Link 
+                  href="/planner" 
+                  className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/planner') ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}
+                >
+                  Planner
+                </Link>
+              )}
+
               <Link 
                 href="/dashboard" 
-                className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/dashboard') ? 'text-slate-900' : 'text-slate-500'}`}
+                className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/dashboard') ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}
               >
                 Dashboard
               </Link>
@@ -45,7 +95,7 @@ export default function Navbar() {
               {['ADMIN', 'SUPERADMIN'].includes(session.user?.role) && (
                 <Link 
                   href="/admin" 
-                  className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/admin') ? 'text-slate-900' : 'text-slate-500'}`}
+                  className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/admin') ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}
                 >
                   Admin
                 </Link>

@@ -21,7 +21,7 @@ export async function POST(req: Request, props: { params: Promise<{ qbankSlug: s
     }
 
     const body = await req.json();
-    const { questionId, front, back } = body;
+    const { questionId, front, back, deckId } = body;
 
     if (!questionId || !front || !back) {
       return new NextResponse('Invalid request', { status: 400 });
@@ -36,6 +36,21 @@ export async function POST(req: Request, props: { params: Promise<{ qbankSlug: s
         back
       }
     });
+
+    if (deckId) {
+      const highest = await prisma.deckCard.findFirst({
+        where: { deckId },
+        orderBy: { position: 'desc' },
+        select: { position: true }
+      });
+      await prisma.deckCard.create({
+        data: {
+          deckId,
+          flashcardId: flashcard.id,
+          position: (highest?.position ?? -1) + 1,
+        }
+      }).catch(e => console.warn('Could not link card to deck:', e));
+    }
 
     return NextResponse.json(flashcard);
   } catch (error) {

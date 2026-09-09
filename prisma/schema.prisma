@@ -41,6 +41,14 @@ model User {
   issues        QuestionIssue[]
   highlights    Highlight[]
   editedQBanks  QBank[]    @relation("QBankLastEditedBy")
+  studyPlans    StudyPlan[]
+  planTasks     PlanTask[]
+  authoredDecks    Deck[]                @relation("DeckAuthor")
+  flashcardReviews FlashcardReview[]
+  authoredArticles Article[]             @relation("ArticleAuthor")
+  editedRevisions  ArticleRevision[]     @relation("RevisionEditor")
+  articleBookmarks ArticleBookmark[]
+  videoProgress    CourseVideoProgress[]
 }
 
 model QBank {
@@ -98,6 +106,7 @@ model Question {
   issues            QuestionIssue[]
   highlights        Highlight[]
   translations      TranslationCache[]
+  articleQuestions  ArticleQuestion[]
 
   @@index([qbankId])
   @@index([qbankId, subtopic])
@@ -252,6 +261,8 @@ model Flashcard {
   easeFactor  Float    @default(2.5)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deckCards   DeckCard[]
+  reviews     FlashcardReview[]
 
   @@index([userId, nextReview])
   @@index([userId, qbankId])
@@ -266,3 +277,277 @@ model PasswordResetToken {
 
   @@index([email])
 }
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  enabled     Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+}
+
+model StudyPlan {
+  id                  String     @id @default(cuid())
+  userId              String
+  user                User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title               String     @default("USMLE Study Plan")
+  targetExamDate      DateTime
+  startDate           DateTime   @default(now())
+  endDate             DateTime?
+  dailyGoalQuestions  Int        @default(40)
+  weeklyGoalQuestions Int        @default(200)
+  isActive            Boolean    @default(true)
+  tasks               PlanTask[]
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  @@index([userId, isActive])
+}
+
+enum PlanTaskType {
+  QUESTION_BLOCK
+  FLASHCARD_REVIEW
+  VIDEO_LESSON
+  READING
+  CUSTOM
+}
+
+model PlanTask {
+  id            String       @id @default(cuid())
+  planId        String
+  plan          StudyPlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  scheduledDate DateTime
+  taskType      PlanTaskType @default(QUESTION_BLOCK)
+  isCompleted   Boolean      @default(false)
+  completedAt   DateTime?
+  order         Int          @default(0)
+
+  // Extensible content link for future QBank blocks, flashcard reviews, video lessons, and library articles
+  contentType     String?      // e.g. "QBANK_BLOCK", "FLASHCARD_DECK", "VIDEO_LESSON", "LIBRARY_TOPIC"
+  contentId       String?      // ID referencing target entity (qbankId, testSessionId, deckId, lessonId)
+  contentMetadata Json?        // Optional parameters (e.g. questionCount, subtopic, mode, durationMin)
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([planId, scheduledDate])
+  @@index([userId, scheduledDate])
+  @@index([isCompleted])
+}
+
+// ----------------------------------------------------
+// PHASE 1: READYDECKS / FLASHCARDS 2.0
+// ----------------------------------------------------
+
+model Deck {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  subject     String     // e.g. "Cardiology", "Pharmacology"
+  tags        String[]   @default([])
+  isPublished Boolean    @default(false)
+  authorId    String
+  author      User       @relation("DeckAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  cards       DeckCard[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([subject])
+  @@index([isPublished])
+  @@index([authorId])
+}
+
+model DeckCard {
+  id          String    @id @default(cuid())
+  deckId      String
+  deck        Deck      @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  flashcardId String
+  flashcard   Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  position    Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@unique([deckId, flashcardId])
+  @@index([deckId, position])
+}
+
+model FlashcardReview {
+  id                 String    @id @default(cuid())
+  flashcardId        String
+  flashcard          Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating             String    // AGAIN | GOOD | EASY
+  reviewedAt         DateTime  @default(now())
+  previousInterval   Int       @default(0) // in days
+  newInterval        Int       @default(1)
+  previousEaseFactor Float     @default(2.5)
+  newEaseFactor      Float     @default(2.5)
+  algorithmVersion   String    @default("sm2_v1")
+
+  @@index([userId, reviewedAt])
+  @@index([flashcardId, userId])
+}
+
+// ----------------------------------------------------
+// PHASE 2: MEDICAL LIBRARY
+// ----------------------------------------------------
+
+model Article {
+  id         String            @id @default(cuid())
+  title      String
+  slug       String            @unique
+  summary    String
+  body       String            // Markdown or HTML body
+  specialty  String            // e.g. "Cardiology", "Pathology"
+  system     String?           // e.g. "Cardiovascular"
+  tags       String[]          @default([])
+  status     String            @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  authorId   String
+  author     User              @relation("ArticleAuthor", fields: [authorId], references: [id])
+  viewsCount Int               @default(0)
+  revisions  ArticleRevision[]
+  questions  ArticleQuestion[]
+  bookmarks  ArticleBookmark[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([specialty])
+  @@index([status])
+  @@index([slug])
+}
+
+model ArticleRevision {
+  id                String   @id @default(cuid())
+  articleId         String
+  article           Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  editorId          String
+  editor            User     @relation("RevisionEditor", fields: [editorId], references: [id])
+  body              String
+  summary           String?
+  changeDescription String?
+  editedAt          DateTime @default(now())
+
+  @@index([articleId, editedAt])
+}
+
+model ArticleQuestion {
+  id         String   @id @default(cuid())
+  articleId  String
+  article    Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, questionId])
+  @@index([articleId])
+  @@index([questionId])
+}
+
+model ArticleBookmark {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([articleId, userId])
+  @@index([userId])
+}
+
+model ArticleView {
+  id        String   @id @default(cuid())
+  articleId String
+  userId    String?
+  viewDate  DateTime @default(now())
+
+  @@index([articleId, viewDate])
+}
+
+// ----------------------------------------------------
+// PHASE 4 & 5: VIDEO LEARNING HUB
+// ----------------------------------------------------
+
+model Course {
+  id           String         @id @default(cuid())
+  title        String
+  slug         String         @unique
+  description  String
+  specialty    String         // e.g. "Cardiology"
+  thumbnailUrl String?
+  status       String         @default("PUBLISHED") // DRAFT | PUBLISHED
+  modules      CourseModule[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([specialty, status])
+}
+
+model CourseModule {
+  id          String         @id @default(cuid())
+  courseId    String
+  course      Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  position    Int            @default(0)
+  lessons     CourseLesson[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([courseId, position])
+}
+
+model CourseLesson {
+  id           String                @id @default(cuid())
+  moduleId     String
+  module       CourseModule          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  videoUrl     String
+  durationSec  Int                   @default(0)
+  position     Int                   @default(0)
+  relatedTopic String?
+  captions     LessonCaption[]
+  progress     CourseVideoProgress[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@index([moduleId, position])
+}
+
+model CourseVideoProgress {
+  id              String       @id @default(cuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId        String
+  lesson          CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  positionSec     Int          @default(0)
+  percentComplete Float        @default(0)
+  isCompleted     Boolean      @default(false)
+  completedAt     DateTime?
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+}
+
+model LessonCaption {
+  id        String       @id @default(cuid())
+  lessonId  String
+  lesson    CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  language  String       // "en", "es", etc.
+  label     String       // "English", "Spanish"
+  fileUrl   String
+  content   String?      // Inline WebVTT content
+  createdAt DateTime     @default(now())
+
+  @@unique([lessonId, language])
+}
+

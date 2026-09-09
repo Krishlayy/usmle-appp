@@ -78,6 +78,24 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
       },
     });
 
+    // Cross-feature sync: mark today's QUESTION_BLOCK study plan tasks as completed
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    prisma.planTask.updateMany({
+      where: {
+        userId: session.user.id,
+        isCompleted: false,
+        taskType: 'QUESTION_BLOCK',
+        scheduledDate: { gte: startOfToday, lte: endOfToday },
+      },
+      data: {
+        isCompleted: true,
+        completedAt: new Date(),
+      },
+    }).catch(e => console.warn('Could not sync study plan on test submit:', e));
+
     return NextResponse.json({
       success: true,
       ...(failedIds.length > 0 && { partialFailure: true, failedIds }),

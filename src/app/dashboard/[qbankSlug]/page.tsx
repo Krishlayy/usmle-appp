@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
 import { StatBlock } from '@/components/ui/StatBlock';
 import { ProgressBar } from '@/components/ui/ProgressBar';
-import { Clock, GraduationCap, ChevronRight, FileText, LayoutTemplate, Brain, ChevronLeft } from 'lucide-react';
+import { isFeatureEnabled } from '@/lib/featureFlags';
+import { Clock, GraduationCap, ChevronRight, FileText, LayoutTemplate, Brain, ChevronLeft, Search, BookOpen, Video, Calendar, Sparkles, Target } from 'lucide-react';
 
 export default async function QBankDashboardPage(
   props: { 
@@ -129,6 +130,50 @@ export default async function QBankDashboardPage(
     };
   });
 
+  // Feature flags
+  const [readyDecksEnabled, plannerEnabled, libraryEnabled, videoEnabled, searchEnabled] = await Promise.all([
+    isFeatureEnabled('READY_DECKS_V2'),
+    isFeatureEnabled('STUDY_PLANNER'),
+    isFeatureEnabled('MEDICAL_LIBRARY'),
+    isFeatureEnabled('VIDEO_LEARNING'),
+    isFeatureEnabled('UNIFIED_SEARCH'),
+  ]);
+
+  // Due flashcards count if ReadyDecks enabled
+  let dueFlashcardsCount = 0;
+  if (readyDecksEnabled) {
+    dueFlashcardsCount = await prisma.flashcard.count({
+      where: {
+        userId: session.user.id,
+        nextReview: { lte: new Date() },
+      },
+    });
+  }
+
+  // Active study plan if Study Planner enabled
+  let activeStudyPlan: any = null;
+  let todayAttemptsCount = 0;
+  let daysRemaining: number | null = null;
+  if (plannerEnabled) {
+    activeStudyPlan = await prisma.studyPlan.findFirst({
+      where: { userId: session.user.id, isActive: true },
+    });
+
+    if (activeStudyPlan) {
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      todayAttemptsCount = await prisma.userProgress.count({
+        where: {
+          userId: session.user.id,
+          attemptedAt: { gte: startOfToday },
+        },
+      });
+      if (activeStudyPlan.targetExamDate) {
+        daysRemaining = Math.max(0, Math.ceil((new Date(activeStudyPlan.targetExamDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+      }
+    }
+  }
+
   return (
     <div className="container mx-auto py-12 px-4 md:px-8 max-w-7xl animate-page-enter">
       {/* Header Section */}
@@ -159,6 +204,30 @@ export default async function QBankDashboardPage(
           </Link>
         </div>
       </div>
+
+      {/* Study Planner Active Banner */}
+      {plannerEnabled && activeStudyPlan && (
+        <div className="mb-8 p-4 rounded-xl bg-gradient-to-r from-teal-900 to-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm border border-teal-800/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-teal-500/20 text-teal-300">
+              <Target className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-teal-300 uppercase tracking-wider">
+                Study Planner Active • {daysRemaining !== null ? `${daysRemaining} Days to Exam` : 'Exam Pace'}
+              </div>
+              <div className="text-sm font-bold text-white mt-0.5">
+                Today: {todayAttemptsCount} of {activeStudyPlan.dailyGoalQuestions} questions completed
+              </div>
+            </div>
+          </div>
+          <Link href="/planner">
+            <Button variant="secondary" size="sm" className="text-xs font-semibold">
+              Open Planner
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -201,8 +270,8 @@ export default async function QBankDashboardPage(
         </Card>
       </div>
 
-      {/* Study Tools */}
-      <h2 className="text-scale-lg text-primary tracking-tight mb-6">Study Tools</h2>
+      {/* Study Tools & High-Yield Learning Modules */}
+      <h2 className="text-scale-lg text-primary tracking-tight mb-6">Study Tools & Resources</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         <Link href={`/dashboard/${qbank.slug}/notes`} className="group">
           <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
@@ -222,14 +291,28 @@ export default async function QBankDashboardPage(
         <Link href={`/dashboard/${qbank.slug}/flashcards`} className="group">
           <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
             <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center relative">
                 <Brain className="w-6 h-6" />
+                {readyDecksEnabled && dueFlashcardsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                    {dueFlashcardsCount}
+                  </span>
+                )}
               </div>
-              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </div>
             </div>
-            <h3 className="text-[18px] font-bold text-primary mb-2">Flashcards</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-[18px] font-bold text-primary">
+                {readyDecksEnabled ? 'ReadyDecks 2.0' : 'Flashcards'}
+              </h3>
+              {readyDecksEnabled && dueFlashcardsCount > 0 && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                  {dueFlashcardsCount} Due
+                </span>
+              )}
+            </div>
             <p className="text-scale-sm text-secondary">Master concepts using spaced-repetition flashcards you've created.</p>
           </Card>
         </Link>
@@ -248,6 +331,57 @@ export default async function QBankDashboardPage(
             <p className="text-scale-sm text-secondary">Review your performance on past blocks and resume suspended sessions.</p>
           </Card>
         </Link>
+
+        {searchEnabled && (
+          <Link href={`/dashboard/${qbank.slug}/search`} className="group">
+            <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <Search className="w-6 h-6" />
+                </div>
+                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </div>
+              <h3 className="text-[18px] font-bold text-primary mb-2">Unified Search</h3>
+              <p className="text-scale-sm text-secondary">Search across board questions, medical library guides, flashcards, and notes.</p>
+            </Card>
+          </Link>
+        )}
+
+        {libraryEnabled && (
+          <Link href="/library" className="group">
+            <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </div>
+              <h3 className="text-[18px] font-bold text-primary mb-2">Medical Library</h3>
+              <p className="text-scale-sm text-secondary">High-yield clinical disease summaries, diagnostic criteria, and board pearls.</p>
+            </Card>
+          </Link>
+        )}
+
+        {videoEnabled && (
+          <Link href="/courses" className="group">
+            <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Video className="w-6 h-6" />
+                </div>
+                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-purple-100 group-hover:text-purple-600 transition-colors">
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </div>
+              <h3 className="text-[18px] font-bold text-primary mb-2">Video Hub</h3>
+              <p className="text-scale-sm text-secondary">Interactive video lectures with closed captions and linked board questions.</p>
+            </Card>
+          </Link>
+        )}
       </div>
 
     </div>
