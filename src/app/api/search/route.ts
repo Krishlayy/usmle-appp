@@ -144,16 +144,25 @@ export async function GET(req: Request) {
     // 3. Search ReadyDecks & Flashcards (if READY_DECKS_V2 is also enabled)
     const flashcardsEnabled = await isFeatureEnabled('READY_DECKS_V2');
     if (flashcardsEnabled && (type === 'all' || type === 'flashcards')) {
+      const deckWhere: any = {
+        OR: [
+          { isPublished: true },
+          ...(userId ? [{ authorId: userId }] : [])
+        ],
+        AND: [
+          {
+            OR: [
+              { title: { contains: query, mode: 'insensitive' } },
+              { description: { contains: query, mode: 'insensitive' } },
+              { subject: { contains: query, mode: 'insensitive' } },
+              { tags: { has: query } },
+            ]
+          }
+        ]
+      };
+
       const decks = await prisma.deck.findMany({
-        where: {
-          isPublished: true,
-          OR: [
-            { title: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
-            { subject: { contains: query, mode: 'insensitive' } },
-            { tags: { has: query } },
-          ],
-        },
+        where: deckWhere,
         select: {
           id: true,
           title: true,

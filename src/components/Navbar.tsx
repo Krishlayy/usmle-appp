@@ -91,6 +91,13 @@ export default function Navbar() {
               >
                 Dashboard
               </Link>
+
+              <Link 
+                href="/profile" 
+                className={`text-sm font-medium transition-colors hover:text-slate-900 ${pathname.startsWith('/profile') ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}
+              >
+                Profile
+              </Link>
               
               {['ADMIN', 'SUPERADMIN'].includes(session.user?.role) && (
                 <Link 

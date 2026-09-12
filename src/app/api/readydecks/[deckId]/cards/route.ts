@@ -4,7 +4,13 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { isFeatureEnabled } from '@/lib/featureFlags';
 
+import DOMPurify from 'isomorphic-dompurify';
+
 export const dynamic = 'force-dynamic';
+
+const MAX_CARDS_PER_DECK = 500;
+const MAX_FRONT_LENGTH = 2000;
+const MAX_BACK_LENGTH = 5000;
 
 export async function GET(
   req: Request,
@@ -15,6 +21,21 @@ export async function GET(
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    // IDOR Check: Ensure user owns private deck or is admin, or deck is published
+    const deck = await prisma.deck.findUnique({
+      where: { id: params.deckId },
+      select: { authorId: true, isPublished: true }
+    });
+
+    if (!deck) {
+      return new NextResponse('Deck not found', { status: 404 });
+    }
+
+    const isAdmin = (session.user as any).role === 'ADMIN' || (session.user as any).role === 'SUPERADMIN';
+    if (!deck.isPublished && deck.authorId !== session.user.id && !isAdmin) {
+      return new NextResponse('Forbidden', { status: 403 });
     }
 
     const cards = await prisma.deckCard.findMany({
@@ -49,7 +70,10 @@ export async function POST(
     }
 
     const deck = await prisma.deck.findUnique({
-      where: { id: params.deckId }
+      where: { id: params.deckId },
+      include: {
+        _count: { select: { cards: true } }
+      }
     });
 
     if (!deck) {
@@ -61,6 +85,11 @@ export async function POST(
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    // Card limit check
+    if (deck._count.cards >= MAX_CARDS_PER_DECK && !isAdmin) {
+      return new NextResponse(`Deck has reached the limit of ${MAX_CARDS_PER_DECK} cards`, { status: 400 });
+    }
+
     const body = await req.json();
     const { flashcardId, front, back, questionId, qbankId } = body;
 
@@ -68,6 +97,17 @@ export async function POST(
 
     // If front and back provided, create the flashcard first
     if (!targetCardId && front && back) {
+      const sanitizedFront = DOMPurify.sanitize(String(front).trim());
+      const sanitizedBack = DOMPurify.sanitize(String(back).trim());
+
+      if (sanitizedFront.length === 0 || sanitizedFront.length > MAX_FRONT_LENGTH) {
+        return new NextResponse(`Front text must be between 1 and ${MAX_FRONT_LENGTH} characters`, { status: 400 });
+      }
+
+      if (sanitizedBack.length === 0 || sanitizedBack.length > MAX_BACK_LENGTH) {
+        return new NextResponse(`Back text must be between 1 and ${MAX_BACK_LENGTH} characters`, { status: 400 });
+      }
+
       // Find a default qbank if not provided
       let finalQbankId = qbankId;
       if (!finalQbankId) {
@@ -90,8 +130,8 @@ export async function POST(
           userId: session.user.id,
           qbankId: finalQbankId,
           questionId: finalQuestionId,
-          front: String(front).trim(),
-          back: String(back).trim(),
+          front: sanitizedFront,
+          back: sanitizedBack,
         }
       });
       targetCardId = newCard.id;

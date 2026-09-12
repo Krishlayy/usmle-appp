@@ -6,12 +6,15 @@ import Link from 'next/link';
 import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import CountrySelect from '@/components/ui/CountrySelect';
 
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [countryCode, setCountryCode] = useState('');
+  const [countryName, setCountryName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -20,11 +23,17 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
 
+    if (!countryCode || !countryName) {
+      setError('Please select your country to continue registration.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, countryCode, countryName }),
       });
 
       const data = await res.json();
@@ -107,6 +116,21 @@ export default function SignupPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-md border border-slate-200 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all bg-white text-slate-900 text-sm"
                   placeholder="name@university.edu"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5" htmlFor="country">
+                  Country
+                </label>
+                <CountrySelect
+                  id="country"
+                  value={countryCode}
+                  onChange={(c) => {
+                    setCountryCode(c.code);
+                    setCountryName(c.name);
+                  }}
+                  required
                 />
               </div>
 

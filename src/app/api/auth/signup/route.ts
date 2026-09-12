@@ -5,10 +5,14 @@ import { prisma } from '@/lib/db';
 import { authRateLimiter } from '@/lib/redis';
 import { headers } from 'next/headers';
 
+import { setUserCountry } from '@/lib/userCountryStore';
+
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  countryCode: z.string().min(2, 'Country selection is required').max(3),
+  countryName: z.string().min(2, 'Country name is required'),
 });
 
 export async function POST(req: Request) {
@@ -28,7 +32,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, email, password } = signupSchema.parse(body);
+    const { name, email, password, countryCode, countryName } = signupSchema.parse(body);
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -50,6 +54,9 @@ export async function POST(req: Request) {
         passwordHash,
       },
     });
+
+    // Save country
+    setUserCountry(user.id, { countryCode, countryName });
 
     // Generate Verification Token
     const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);

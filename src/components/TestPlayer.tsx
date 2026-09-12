@@ -682,28 +682,45 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   const sidebarActiveBg = isDark ? 'bg-slate-800 text-slate-100 shadow-sm rounded-md mx-1' : isSepia ? 'bg-[#f4ecd8] text-[#5b4636] shadow-sm border border-[#d4c6a6] rounded-md mx-1' : 'bg-white text-slate-900 shadow-sm border border-slate-200 rounded-md mx-1';
   const borderCol = isDark ? 'border-slate-800' : isSepia ? 'border-[#d4c6a6]' : 'border-slate-200';
 
+  const [reportError, setReportError] = useState<string | null>(null);
+
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setReportStatus('submitting');
+    setReportError(null);
+
+    if (reportType === 'OTHER' && reportDescription.trim().length < 10) {
+      setReportError('Please provide a description of at least 10 characters for "Other" issues.');
+      setReportStatus('error');
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/test-sessions/${session.id}/report`, {
+      const res = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           questionId: currentQ.question.id,
-          issueType: reportType,
+          reason: reportType,
           description: reportDescription,
         }),
       });
-      if (!res.ok) throw new Error('Failed to submit report');
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || 'Failed to submit report');
+      }
+
       setReportStatus('success');
       setTimeout(() => {
         setShowReportModal(false);
         setReportStatus('idle');
         setReportDescription('');
+        setReportError(null);
       }, 2000);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setReportError(err?.message || 'Failed to submit report. Please try again.');
       setReportStatus('error');
     }
   };
@@ -1339,17 +1356,26 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 </div>
               ) : (
                 <>
+                  {reportError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-xs font-semibold">
+                      {reportError}
+                    </div>
+                  )}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-slate-700 mb-1">Issue Type</label>
                     <select 
                       value={reportType}
                       onChange={(e) => setReportType(e.target.value)}
-                      className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
                     >
-                      <option value="TYPO">Typo / Formatting</option>
-                      <option value="INCORRECT">Incorrect Answer</option>
-                      <option value="OUTDATED">Outdated Medical Info</option>
-                      <option value="OTHER">Other</option>
+                      <option value="INCORRECT_QUESTION">Incorrect Question</option>
+                      <option value="INCORRECT_ANSWER">Incorrect Answer</option>
+                      <option value="INCORRECT_EXPLANATION">Incorrect Explanation</option>
+                      <option value="MULTIPLE_CORRECT_ANSWERS">Multiple Correct Answers</option>
+                      <option value="NO_CORRECT_ANSWER">No Correct Answer</option>
+                      <option value="TYPO">Typographical / Formatting Error</option>
+                      <option value="AMBIGUITY">Ambiguous Question</option>
+                      <option value="OTHER">Other (requires description)</option>
                     </select>
                   </div>
                   <div className="mb-6">

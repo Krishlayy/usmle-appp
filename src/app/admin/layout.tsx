@@ -32,6 +32,9 @@ export default async function AdminLayout({
           <a href="/admin/queue" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900 flex items-center justify-between">
             <span>Review Queue</span>
           </a>
+          <a href="/admin/reports" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900 flex items-center justify-between">
+            <span>Question Reports</span>
+          </a>
           <a href="/admin/students" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900">
             Student Directory
           </a>

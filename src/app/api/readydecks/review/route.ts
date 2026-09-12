@@ -26,6 +26,20 @@ export async function GET(req: Request) {
     const now = new Date();
 
     if (deckId) {
+      const deck = await prisma.deck.findUnique({
+        where: { id: deckId },
+        select: { authorId: true, isPublished: true }
+      });
+
+      if (!deck) {
+        return new NextResponse('Deck not found', { status: 404 });
+      }
+
+      const isAdmin = (session.user as any).role === 'ADMIN' || (session.user as any).role === 'SUPERADMIN';
+      if (!deck.isPublished && deck.authorId !== session.user.id && !isAdmin) {
+        return new NextResponse('Forbidden', { status: 403 });
+      }
+
       // Get cards from specific deck
       const deckCards = await prisma.deckCard.findMany({
         where: { deckId },
@@ -92,6 +106,19 @@ export async function POST(req: Request) {
 
     if (!card) {
       return new NextResponse('Flashcard not found', { status: 404 });
+    }
+
+    const isAdmin = (session.user as any).role === 'ADMIN' || (session.user as any).role === 'SUPERADMIN';
+    if (card.userId !== session.user.id && !isAdmin) {
+      const inPublicDeck = await prisma.deckCard.findFirst({
+        where: {
+          flashcardId: card.id,
+          deck: { isPublished: true }
+        }
+      });
+      if (!inPublicDeck) {
+        return new NextResponse('Forbidden: Cannot review another student\'s private flashcard', { status: 403 });
+      }
     }
 
     // Calculate deterministic next review

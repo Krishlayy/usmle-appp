@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
@@ -114,12 +114,22 @@ export async function POST(req: Request) {
     const isAdmin = (session.user as any).role === 'ADMIN' || (session.user as any).role === 'SUPERADMIN';
     const shouldPublish = Boolean(isPublished && isAdmin);
 
+    const MAX_DECKS_PER_USER = 50;
+    if (!isAdmin) {
+      const existingDeckCount = await prisma.deck.count({
+        where: { authorId: session.user.id }
+      });
+      if (existingDeckCount >= MAX_DECKS_PER_USER) {
+        return new NextResponse(`You have reached the maximum limit of ${MAX_DECKS_PER_USER} decks`, { status: 400 });
+      }
+    }
+
     const deck = await prisma.deck.create({
       data: {
-        title: String(title).trim(),
-        description: description ? String(description).trim() : null,
-        subject: String(subject).trim(),
-        tags: Array.isArray(tags) ? tags.map(t => String(t).trim()) : [],
+        title: String(title).trim().substring(0, 100),
+        description: description ? String(description).trim().substring(0, 500) : null,
+        subject: String(subject).trim().substring(0, 100),
+        tags: Array.isArray(tags) ? tags.map(t => String(t).trim().substring(0, 50)) : [],
         isPublished: shouldPublish,
         authorId: session.user.id,
       },
