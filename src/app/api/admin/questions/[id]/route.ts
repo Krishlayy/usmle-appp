@@ -22,6 +22,7 @@ const questionUpdateSchema = z.object({
   acceptableAnswers: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   options: z.array(z.any()).min(2),
+  videoUrl: z.string().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
 });
 
@@ -78,6 +79,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
         explanation: sanitizedExplanation,
         difficulty: data.difficulty,
         subtopic: data.subtopic || null,
+        videoUrl: data.videoUrl !== undefined ? data.videoUrl : undefined,
         tags: data.tags,
         status: data.status,
         media: data.media && data.media.length > 0 ? {

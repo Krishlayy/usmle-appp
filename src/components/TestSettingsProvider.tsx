@@ -5,8 +5,10 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 type AppearanceMode = 'NBME Official';
 type ColorTheme = 'light' | 'dark' | 'sepia'; // Dark is "Reverse Color"
 
+export type AppTheme = 'UWORLD' | 'MODERN';
+
 export interface TestSettings {
-  appTheme: 'MQB' | 'NBME';
+  appTheme: AppTheme;
   appearance: AppearanceMode;
   fontSize: number;
   colorTheme: ColorTheme;
@@ -31,7 +33,7 @@ interface TestSettingsContextType {
 }
 
 const defaultSettings: TestSettings = {
-  appTheme: 'MQB',
+  appTheme: 'UWORLD',
   appearance: 'NBME Official',
   fontSize: 15,
   colorTheme: 'light',
@@ -60,7 +62,11 @@ export function TestSettingsProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('testSettings');
     if (saved) {
       try {
-        setSettings({ ...defaultSettings, ...JSON.parse(saved) });
+        const parsed = JSON.parse(saved);
+        // Normalize legacy themes if any
+        if (parsed.appTheme === 'NBME') parsed.appTheme = 'MODERN';
+        if (parsed.appTheme === 'MQB') parsed.appTheme = 'UWORLD';
+        setSettings({ ...defaultSettings, ...parsed });
       } catch (e) {
         console.error('Failed to parse test settings', e);
       }

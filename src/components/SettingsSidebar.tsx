@@ -50,16 +50,16 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
 
               {/* App Theme */}
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4">Application Theme</div>
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4">Exam Simulator Theme</div>
                 <div className="flex bg-slate-200/50 p-1 rounded-md border border-slate-200">
                   <button 
-                    onClick={() => updateSetting('appTheme', 'MQB')}
-                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.appTheme === 'MQB' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                  >MQB (Modern)</button>
+                    onClick={() => updateSetting('appTheme', 'UWORLD')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.appTheme === 'UWORLD' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >UWorld Simulator</button>
                   <button 
-                    onClick={() => updateSetting('appTheme', 'NBME')}
-                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.appTheme === 'NBME' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                  >NBME (Classic)</button>
+                    onClick={() => updateSetting('appTheme', 'MODERN')}
+                    className={`flex-1 py-1.5 text-[12px] font-bold rounded-sm transition-colors ${settings.appTheme === 'MODERN' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >Modern Minimalist</button>
                 </div>
               </div>
 

@@ -23,6 +23,7 @@ const questionSchema = z.object({
   acceptableAnswers: z.array(z.string()).optional().default([]),
   tags: z.array(z.string()).optional().default([]),
   options: z.array(z.any()).min(2),
+  videoUrl: z.string().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional().default('PUBLISHED'),
 });
 
@@ -81,6 +82,7 @@ export async function POST(req: Request) {
         explanation: sanitizedExplanation,
         difficulty: data.difficulty,
         subtopic: data.subtopic || null,
+        videoUrl: data.videoUrl || null,
         correctAnswer: data.correctAnswer,
         acceptableAnswers: data.acceptableAnswers,
         tags: data.tags,

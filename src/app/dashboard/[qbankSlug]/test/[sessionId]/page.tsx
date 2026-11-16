@@ -70,6 +70,7 @@ export default async function TestSessionPage(
         explanation: p.question.explanation,
         acceptableAnswers: p.question.acceptableAnswers,
         tags: p.question.tags,
+        videoUrl: p.question.videoUrl || null,
         media: p.question.media,
         options: (p.question.options as { id: string; text: string; isCorrect?: boolean; explanation?: string | null }[]).map(opt => ({
           ...opt,

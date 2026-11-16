@@ -10,6 +10,8 @@ const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), {
 });
 
 import ExplanationMedia, { QuestionMediaItem } from './ExplanationMedia';
+import { VideoMnemonicPlayer } from '@/components/VideoMnemonicPlayer';
+import { Video, PlusCircle, Check } from 'lucide-react';
 
 type Option = {
   id: string;
@@ -30,8 +32,10 @@ export function QuestionForm({
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [questionText, setQuestionText] = useState(initialData?.questionText as string || '');
   const [explanation, setExplanation] = useState(initialData?.explanation as string || '');
+  const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl as string || '');
   const [media, setMedia] = useState<QuestionMediaItem[]>(initialData?.media as QuestionMediaItem[] || []);
   const [difficulty, setDifficulty] = useState(initialData?.difficulty as string || 'medium');
   const [status, setStatus] = useState(initialData?.status as string || 'PUBLISHED');
@@ -131,9 +135,10 @@ export function QuestionForm({
     setOptions(options.map(o => o.id === id ? { ...o, explanation } : o));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, addAnother: boolean = false) => {
     e.preventDefault();
     setLoading(true);
+    setSuccessNotice(null);
 
     try {
       const bestOption = options.find(o => o.answerType === 'best');
@@ -147,6 +152,7 @@ export function QuestionForm({
         qbankId,
         questionText,
         explanation,
+        videoUrl: videoUrl.trim() || undefined,
         media,
         difficulty,
         subtopic,
@@ -165,8 +171,27 @@ export function QuestionForm({
 
       if (!res.ok) throw new Error(await res.text());
 
-      router.push(`/admin/qbanks/${qbankId}/edit`);
-      router.refresh();
+      if (addAnother && !initialData) {
+        // Reset form fields for rapid sequential question entry
+        setQuestionText('');
+        setExplanation('');
+        setVideoUrl('');
+        setMedia([]);
+        setTags([]);
+        setTagInput('');
+        setOptions([
+          { id: Math.random().toString(36).substr(2, 9), text: '', isCorrect: true, answerType: 'best', explanation: '' },
+          { id: Math.random().toString(36).substr(2, 9), text: '', isCorrect: false, answerType: 'wrong', explanation: '' },
+          { id: Math.random().toString(36).substr(2, 9), text: '', isCorrect: false, answerType: 'wrong', explanation: '' },
+          { id: Math.random().toString(36).substr(2, 9), text: '', isCorrect: false, answerType: 'wrong', explanation: '' },
+        ]);
+        setSuccessNotice('Question saved! You can now create the next question.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setLoading(false);
+      } else {
+        router.push(`/admin/qbanks/${qbankId}/edit`);
+        router.refresh();
+      }
     } catch (err: unknown) {
       alert(`Error saving question: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setLoading(false);
@@ -174,7 +199,18 @@ export function QuestionForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-8">
+      {successNotice && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 flex items-center gap-3 animate-fade-in shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+            <Check className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="font-bold text-sm">{successNotice}</div>
+            <div className="text-xs text-emerald-600">The counter incremented and your question is live.</div>
+          </div>
+        </div>
+      )}
       {/* Question Body */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
@@ -367,13 +403,70 @@ export function QuestionForm({
         />
       </div>
 
-      <div className="flex justify-end gap-4 pb-12">
-        <button type="button" onClick={() => router.back()} className="px-6 py-2 text-slate-600 hover:bg-slate-100 rounded-md font-medium">
+      {/* Video Mnemonic */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between border-b pb-2 mb-4">
+          <div className="flex items-center gap-2">
+            <Video className="w-5 h-5 text-teal-600" />
+            <h2 className="text-xl font-bold text-slate-800">4. Video Mnemonic (Clinical Memory Aid)</h2>
+          </div>
+          <span className="text-xs bg-teal-50 text-teal-700 font-semibold px-2.5 py-1 rounded-full border border-teal-200">
+            Tutor Mode & Review Feature
+          </span>
+        </div>
+        <p className="text-sm text-slate-500 mb-4">
+          Add a dedicated video mnemonic for this question. It will be showcased to students in <strong>Tutor Mode</strong> after they answer, helping reinforce high-yield concepts. Supports direct video URLs (MP4 / S3 / CloudFront / BunnyCDN) and video embeds (YouTube / Vimeo / Loom).
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">
+              Video URL (Direct MP4, Cloud Storage, or YouTube/Vimeo)
+            </label>
+            <input 
+              type="url" 
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none"
+              placeholder="e.g., https://your-cloud-storage.com/mnemonics/cardio-vignette-1.mp4 or https://youtu.be/..."
+            />
+          </div>
+
+          {videoUrl.trim() && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Live Preview</div>
+              <div className="max-w-xl">
+                <VideoMnemonicPlayer videoUrl={videoUrl.trim()} title="Preview: Question Video Mnemonic" />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-12 pt-4">
+        <button type="button" onClick={() => router.back()} className="px-6 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg font-medium text-sm transition-colors">
           Cancel
         </button>
-        <button type="submit" disabled={loading} className="px-6 py-2 bg-slate-900 text-white rounded-md font-medium hover:bg-slate-800 disabled:opacity-50 shadow-sm">
-          {loading ? 'Saving...' : (initialData ? 'Update Question' : 'Save New Question')}
-        </button>
+        <div className="flex items-center gap-3">
+          {!initialData && (
+            <button 
+              type="button" 
+              disabled={loading} 
+              onClick={(e) => handleSubmit(e, true)}
+              className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-semibold text-sm transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Save & Add Another Question
+            </button>
+          )}
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="px-6 py-2.5 bg-slate-900 text-white rounded-lg font-semibold text-sm hover:bg-slate-800 disabled:opacity-50 shadow-sm transition-all"
+          >
+            {loading ? 'Saving...' : (initialData ? 'Update Question' : 'Save Question & Return')}
+          </button>
+        </div>
       </div>
     </form>
   );

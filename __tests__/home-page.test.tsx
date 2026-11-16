@@ -7,10 +7,10 @@ describe("HomePage", () => {
     render(<HomePage />)
 
     expect(
-      screen.getByRole("heading", { name: /master\s*medical concepts/i })
+      screen.getByRole("heading", { name: /master\s*usmle concepts/i })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("link", { name: /explore question banks/i })
+      screen.getByRole("link", { name: /explore q-banks/i })
     ).toBeInTheDocument()
   })
 })
