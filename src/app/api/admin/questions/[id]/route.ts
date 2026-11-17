@@ -65,10 +65,6 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
       where: { questionId: id }
     });
 
-    await prisma.translationCache.deleteMany({
-      where: { questionId: id }
-    });
-
     const question = await prisma.question.update({
       where: { id },
       data: {

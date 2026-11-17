@@ -18,8 +18,6 @@ import { TimerDisplay, QuestionTimerDisplay } from '@/features/test-player/compo
 
 
 import { useTestPlayerStore } from '@/store/useTestPlayerStore';
-import { useTranslation } from '@/hooks/useTranslation';
-import { useUITranslation } from '@/hooks/useUITranslation';
 import { HighlightToolbar } from '@/components/HighlightToolbar';
 
 const sanitizeHTML = (html: string) => {
@@ -92,10 +90,6 @@ export function TestPlayer({ session, initialIndex, userEmail = '', userIp = '' 
 function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '' }: { session: TestSession, initialIndex?: number, userEmail?: string, userIp?: string }) {
   const router = useRouter();
   const { settings, updateSetting } = useTestSettings();
-  const { t: baseT } = useUITranslation(settings.targetLanguage);
-  const t = (text: string) => {
-    return baseT(text as any);
-  };
   
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportType, setReportType] = useState('TYPO');
@@ -369,9 +363,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
   const currentQ = questions[currentIndex];
   
   const testPlayerMainRef = useRef<HTMLDivElement>(null);
-  const { translatedData, isTranslating, error } = useTranslation(currentQ?.question.id, settings.targetLanguage);
-  
-
 
   // Single source of truth for "answer feedback is currently visible" — reused by the
   // options fieldset, the explanation panel, and the strikethrough lock.
@@ -803,7 +794,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 className="flex flex-col items-center disabled:opacity-30 hover:text-blue-600 transition-colors"
               >
                 <ArrowLeftCircle size={22} strokeWidth={1.5} />
-                <span className="text-[10px] font-bold mt-1">{t('Previous')}</span>
+                <span className="text-[10px] font-bold mt-1">Previous</span>
               </button>
               
               <div className="text-[14px] font-bold tracking-wide">
@@ -815,7 +806,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 className="flex flex-col items-center hover:text-blue-600 transition-colors"
               >
                 <ArrowRightCircle size={22} strokeWidth={1.5} />
-                <span className="text-[10px] font-bold mt-1">{t('Next')}</span>
+                <span className="text-[10px] font-bold mt-1">Next</span>
               </button>
             </div>
             
@@ -827,7 +818,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   className="flex flex-col items-center justify-center px-3 text-slate-500 hover:text-blue-600 transition-colors rounded"
                 >
                   <Clock size={20} strokeWidth={1.5} className="mb-1" />
-                  <span className="text-[10px] font-bold">{t('Pause')}</span>
+                  <span className="text-[10px] font-bold">Pause</span>
                 </button>
               )}
               {[
@@ -926,12 +917,11 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               
               
               {/* Main Content Area */}
-              <div className={`flex flex-1 ${settings.targetLanguage ? 'flex-row gap-6' : ''}`}>
+              <div className="flex flex-1">
                 
-                {/* English Panel */}
-                <div className={`flex flex-1 ${settings.targetLanguage ? 'flex-col' : (settings.splitScreen ? 'flex-row' : 'flex-col pr-6')}`}>
+                <div className={`flex flex-1 ${settings.splitScreen ? 'flex-row' : 'flex-col pr-6'}`}>
                   {/* Vignette Wrapper */}
-                  <div className={`${settings.splitScreen && !settings.targetLanguage ? 'flex-1 overflow-y-auto pr-6 border-r border-gray-300 mr-6' : ''}`}>
+                  <div className={`${settings.splitScreen ? 'flex-1 overflow-y-auto pr-6 border-r border-gray-300 mr-6' : ''}`}>
                     <div 
                       ref={questionContentRef}
                       dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
@@ -940,7 +930,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   </div>
                   
                   {/* Options & Explanations Wrapper */}
-                  <div className={`${settings.splitScreen && !settings.targetLanguage ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
+                  <div className={`${settings.splitScreen ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
                     <div className={settings.answerLayout === 'compact' ? 'space-y-2' : 'space-y-4'}>
                       <fieldset className={`flex flex-col gap-2 ${settings.answerLayout === 'compact' ? 'mt-2' : 'mt-4'}`}>
                         {currentQ.question.options.map((opt, i) => {
@@ -1029,7 +1019,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     
                     <div className="mt-8 pb-10 flex items-center">
                       <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
-                        {t('Next Item')}
+                        Next Item
                       </button>
                       {settings.showShortcuts && (
                         <kbd className="ml-3 px-2 py-1 border border-gray-400 rounded text-[11px] text-gray-500 bg-white font-mono hidden sm:inline-block">
@@ -1039,100 +1029,6 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     </div>
                   </div>
                 </div>
-
-                {/* Translated Panel */}
-                {settings.targetLanguage && (translatedData || isTranslating || error) && (
-                  <div className="flex flex-1 flex-col pl-6 border-l border-[var(--color-border-subtle)] bg-[var(--color-accent)]/5">
-                    <div className="text-[10px] font-bold text-[var(--color-accent)] uppercase mb-2">Translation</div>
-                    
-                    {isTranslating ? (
-                      <div className="animate-pulse space-y-4 py-4 w-full pr-4">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-full"></div>
-                        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                        <div className="h-4 bg-gray-200 rounded w-full"></div>
-                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                      </div>
-                    ) : error ? (
-                      <div className="mt-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-                        <span>⚠️</span>
-                        <span>Translation unavailable. Please try again later.</span>
-                      </div>
-                    ) : translatedData ? (
-                      <>
-                        <div className="mb-6">
-                          <div 
-                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(translatedData.questionText) }}
-                            className={`vignette-text leading-relaxed cursor-text mb-6 [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
-                          />
-                        </div>
-                        
-                        <div>
-                      <div className={settings.answerLayout === 'compact' ? 'space-y-2' : 'space-y-4'}>
-                        <fieldset className={`flex flex-col gap-2 ${settings.answerLayout === 'compact' ? 'mt-2' : 'mt-4'}`}>
-                          {translatedData.options.map((opt, i) => {
-                            const originalOpt = currentQ.question.options[i];
-                            const isSelected = currentQ.selectedOptionId === originalOpt.id;
-                            const isStruckThrough = currentQ.strikethroughs?.includes(originalOpt.id);
-                            
-                            let bgClass = "bg-white border-[var(--color-border-subtle)] hover:border-gray-300 shadow-sm";
-                            if (showFeedback && originalOpt.isCorrect) {
-                              bgClass = 'bg-[var(--color-success)]/10 border-[var(--color-success)]/30';
-                            } else if (showFeedback && isSelected) {
-                              bgClass = 'bg-[var(--color-error)]/10 border-[var(--color-error)]/30';
-                            } else if (isSelected) {
-                              bgClass = 'border-[var(--color-accent)] ring-1 ring-[var(--color-accent)] bg-[var(--color-accent)]/5';
-                            }
-
-                            return (
-                              <div key={opt.id} className={`flex items-start justify-between group border ${bgClass} p-4 rounded-xl transition-all`}>
-                                <div className="flex items-start flex-1 cursor-pointer" onClick={() => !showFeedback && handleOptionSelect(originalOpt.id)}>
-                                  <input 
-                                    type="radio" 
-                                    name={`q-translated-${currentQ.id}`}
-                                    checked={isSelected}
-                                    onChange={() => handleOptionSelect(originalOpt.id)}
-                                    disabled={!!showFeedback}
-                                    className={`mt-1.5 w-4 h-4 cursor-pointer accent-slate-600 shrink-0 ${settings.highContrast ? 'ring-1 ring-black' : ''}`}
-                                  />
-                                  <div className="ml-4 flex-1 flex flex-col">
-                                    <div className={`flex items-start ${isStruckThrough ? 'line-through opacity-50' : ''}`}>
-                                      <span className={`mr-3 ${settings.highContrast ? 'font-black' : 'font-semibold'}`}>{String.fromCharCode(65 + i)}.</span>
-                                      <div className={`leading-relaxed [&>p]:inline ${settings.highContrast ? 'text-black font-medium' : ''}`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
-                                    </div>
-                                    {showFeedback && (originalOpt as any).explanation && (
-                                      <div className={`mt-3 text-[13px] ${settings.highContrast ? 'text-black bg-gray-100 border-gray-400' : 'text-slate-700 bg-slate-50 border-slate-200'} p-3 rounded-md border`}>
-                                        <div dangerouslySetInnerHTML={{ __html: sanitizeHTML((opt as any).explanation || '') }} />
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </fieldset>
-                        
-                        {showFeedback && translatedData.explanation && (
-                          <div className={`mt-8 pt-4 border-t ${settings.highContrast ? 'border-gray-400' : borderCol}`}>
-                            <div className={`font-bold mb-2 uppercase text-[13px] ${settings.highContrast ? 'text-black' : ''}`}>{t('Explanation')}:</div>
-                            <div 
-                              className={`leading-relaxed [&_*]:text-[length:inherit] ${settings.highContrast ? 'text-black font-medium' : ''}`}
-                              dangerouslySetInnerHTML={{ __html: sanitizeHTML(translatedData.explanation) }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    </>
-                    ) : null}
-                    
-                    <div className="mt-8 pb-10 flex items-center">
-                      <button onClick={handleNext} className="bg-slate-900 text-white px-6 py-2.5 text-[14px] font-bold rounded-lg shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
-                        {t('Next Item')}
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
               
 {/* Media Side */}
@@ -1184,7 +1080,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                       <div className="flex-1 flex items-center justify-center p-2 pb-0 relative">
                         {currentQ.question.media.map(m => (
                           <div key={m.id} className="relative w-full h-full flex items-center justify-center bg-white rounded-t-xl overflow-hidden border border-gray-300">
-                             <MediaRenderer media={{ ...m, caption: translatedData?.media?.find(tm => tm.id === m.id)?.caption || m.caption }} setZoomImage={setZoomImage} />
+                             <MediaRenderer media={m} setZoomImage={setZoomImage} />
                           </div>
                         ))}
                       </div>
@@ -1296,8 +1192,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               You have not answered all questions in this block. Are you sure you want to proceed?
             </div>
             <div className={`bg-gray-50 p-4 flex justify-end gap-3 border-t border-[var(--color-border-subtle)]`}>
-              <button onClick={() => setOmissionWarning(null)} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">{t('Cancel')}</button>
-              <button onClick={() => { omissionWarning(); setOmissionWarning(null); }} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">{t('Proceed')}</button>
+              <button onClick={() => setOmissionWarning(null)} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">Cancel</button>
+              <button onClick={() => { omissionWarning(); setOmissionWarning(null); }} className="border border-gray-500 bg-white px-4 py-1 hover:bg-gray-100 font-bold">Proceed</button>
             </div>
           </div>
         </div>

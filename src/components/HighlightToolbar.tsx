@@ -3,11 +3,10 @@ import React, { useState, useEffect } from 'react';
 interface HighlightToolbarProps {
   containerRef: React.RefObject<HTMLElement>;
   onHighlight: (color: string) => void;
-  onTranslate?: () => void;
   onAddNote?: () => void;
 }
 
-export function HighlightToolbar({ containerRef, onHighlight, onTranslate, onAddNote }: HighlightToolbarProps) {
+export function HighlightToolbar({ containerRef, onHighlight, onAddNote }: HighlightToolbarProps) {
   const [rect, setRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
@@ -67,16 +66,6 @@ export function HighlightToolbar({ containerRef, onHighlight, onTranslate, onAdd
           title="Add Note"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-        </button>
-      )}
-
-      {onTranslate && (
-        <button 
-          onClick={onTranslate}
-          className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
-          title="Translate Selection"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
         </button>
       )}
     </div>
