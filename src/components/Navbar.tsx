@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import { Play } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -22,6 +23,14 @@ export default function Navbar() {
           </span>
         </Link>
         <nav className="flex items-center gap-6">
+          <Link 
+            href="/demo" 
+            className={`text-sm font-semibold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full ${pathname.startsWith('/demo') ? 'bg-teal-600 text-white shadow-sm' : 'text-teal-700 bg-teal-50 border border-teal-200/80 hover:bg-teal-100/70'}`}
+          >
+            <Play className={`w-3.5 h-3.5 ${pathname.startsWith('/demo') ? 'fill-white' : 'fill-teal-700'}`} />
+            Test Player
+          </Link>
+
           {(!session || !['ADMIN', 'SUPERADMIN'].includes(session.user?.role)) && (
             <Link 
               href="/store" 

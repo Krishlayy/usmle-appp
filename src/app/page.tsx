@@ -12,7 +12,8 @@ import {
   ShieldCheck, 
   Laptop,
   CheckCircle2,
-  Stethoscope
+  Stethoscope,
+  Play
 } from 'lucide-react';
 
 export default function Home() {
@@ -51,15 +52,15 @@ export default function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-2 w-full sm:w-auto">
-              <Link href="/store" className="w-full sm:w-auto">
-                <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-lg shadow-teal-700/10 gap-2 bg-slate-900 hover:bg-slate-800 border-none text-white transition-all text-sm font-semibold">
-                  Explore Q-Banks <ArrowRight className="w-4 h-4" />
+              <Link href="/demo" className="w-full sm:w-auto">
+                <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-lg shadow-teal-700/20 gap-2 bg-teal-600 hover:bg-teal-500 border-none text-white transition-all text-sm font-semibold">
+                  <Play className="w-4 h-4 fill-white" /> Launch Test Player
                 </Button>
               </Link>
-              
-              <Link href="/signup" className="w-full sm:w-auto">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto bg-white border-slate-200 hover:bg-slate-50 text-slate-800 shadow-2xs text-sm font-semibold">
-                  Create Free Account
+
+              <Link href="/store" className="w-full sm:w-auto">
+                <Button variant="secondary" size="lg" className="w-full sm:w-auto bg-white border-slate-200 hover:bg-slate-50 text-slate-800 shadow-2xs text-sm font-semibold gap-2">
+                  Explore Q-Banks <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
             </div>
