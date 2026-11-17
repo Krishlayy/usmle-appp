@@ -28,7 +28,8 @@ export default async function QBankDetailPage(props: { params: Promise<{ slug: s
   }
 
   const sampleQuestion = qbank.questions[0];
-  const isOwned = session?.user?.id && qbank.purchases && qbank.purchases.length > 0;
+  const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPERADMIN';
+  const isOwned = Boolean(isAdmin || (session?.user?.id && qbank.purchases && qbank.purchases.length > 0));
 
   return (
     <div className="container mx-auto py-12 px-4 md:px-6 max-w-6xl">

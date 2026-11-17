@@ -15,12 +15,16 @@ export default async function EditQBankPage(props: { params: Promise<{ id: strin
       questions: {
         select: {
           id: true,
+          qid: true,
           youtubeId: true,
+          videoUrl: true,
+          subtopic: true,
+          difficulty: true,
           questionText: true,
           status: true,
           createdAt: true
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { qid: 'asc' }
       }
     }
   });
@@ -103,12 +107,23 @@ export default async function EditQBankPage(props: { params: Promise<{ id: strin
                 {qbank.questions.map((q) => (
                   <div key={q.id} className="border border-slate-200 rounded-lg p-4 flex justify-between items-start hover:border-blue-300 transition-colors mb-4">
                     <div className="flex-1 pr-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded font-mono">ID: {q.id.slice(-6)}</span>
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="bg-slate-900 text-white text-xs px-2.5 py-0.5 rounded font-mono font-bold tracking-wide">
+                          {q.qid || `ID: ${q.id.slice(-6)}`}
+                        </span>
+                        {q.subtopic && (
+                          <span className="bg-teal-50 text-teal-800 text-xs px-2 py-0.5 rounded font-medium border border-teal-200">
+                            {q.subtopic}
+                          </span>
+                        )}
                         {q.status === 'DRAFT' && <span className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded font-medium">DRAFT</span>}
                         {q.status === 'PUBLISHED' && <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-medium">PUBLISHED</span>}
                         {q.status === 'ARCHIVED' && <span className="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded font-medium">ARCHIVED</span>}
-                        {q.youtubeId && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded flex items-center gap-1">📺 Video</span>}
+                        {(q.videoUrl || q.youtubeId) && (
+                          <span className="bg-cyan-50 text-cyan-800 border border-cyan-200 text-xs px-2 py-0.5 rounded flex items-center gap-1 font-semibold">
+                            🎬 Video Mnemonic
+                          </span>
+                        )}
                       </div>
                       <div 
                         className="text-slate-800 text-sm line-clamp-2 prose prose-sm max-w-none" 
