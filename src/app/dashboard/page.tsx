@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import { CheckoutButton } from '@/components/CheckoutButton';
 import { getCachedOrFetch } from '@/lib/redis';
-import { ArrowRight, Bell, CircleUserRound, Lock, ShieldCheck, Unlock, CheckCircle2, Target, LogOut } from 'lucide-react';
+import { ArrowRight, Bell, CircleUserRound, Lock, ShieldCheck, Unlock, CheckCircle2, Target, LogOut, Play, BarChart3, Brain, Sparkles } from 'lucide-react';
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -85,10 +85,28 @@ export default async function DashboardPage() {
       
       {/* Top Navbar */}
       <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white font-bold text-lg">M</div>
-          <span className="font-bold text-xl text-gray-900 tracking-tight">{brand}</span>
+        <div className="flex items-center gap-6">
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white font-bold text-lg">M</div>
+            <span className="font-bold text-xl text-gray-900 tracking-tight">{brand}</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-4 text-sm font-semibold">
+            <Link href="/dashboard" className="text-teal-700 bg-teal-50 px-3 py-1.5 rounded-lg">
+              Library
+            </Link>
+            <Link href="/dashboard/create-test" className="text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+              <Play className="w-3.5 h-3.5 text-teal-600 fill-teal-600" /> Create Test Block
+            </Link>
+            <Link href="/dashboard/performance" className="text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+              <BarChart3 className="w-3.5 h-3.5 text-cyan-600" /> Analytics
+            </Link>
+            <Link href="/dashboard/flashcards" className="text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+              <Brain className="w-3.5 h-3.5 text-amber-600" /> Flashcards
+            </Link>
+          </div>
         </div>
+
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <CircleUserRound className="w-5 h-5 text-gray-400" />
@@ -104,11 +122,28 @@ export default async function DashboardPage() {
       <main className="flex-1 px-4 py-8 md:px-8 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-10">
           
-          {/* Greeting & Stat Bar */}
+          {/* Greeting & Quick Action Bar */}
           <section className="flex flex-col gap-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1">Welcome back, {displayName}</h1>
-              <p className="text-gray-500">Ready to master your medical knowledge today?</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1">Welcome back, {displayName}</h1>
+                <p className="text-gray-500">Ready to master your medical knowledge with high-yield video mnemonics?</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href="/dashboard/create-test">
+                  <span className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-teal-500 transition-all cursor-pointer">
+                    <Play className="w-4 h-4 fill-white" />
+                    Create Test Block
+                  </span>
+                </Link>
+                <Link href="/dashboard/performance">
+                  <span className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-800 shadow-2xs hover:bg-gray-50 transition-all cursor-pointer">
+                    <BarChart3 className="w-4 h-4 text-cyan-600" />
+                    Analytics
+                  </span>
+                </Link>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

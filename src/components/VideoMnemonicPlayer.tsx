@@ -1,38 +1,53 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, Sparkles } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, Sparkles, ShieldAlert } from 'lucide-react';
 
 interface VideoMnemonicPlayerProps {
   videoUrl: string;
   title?: string;
+  userEmail?: string;
   className?: string;
 }
 
 export function VideoMnemonicPlayer({
   videoUrl,
   title = 'High-Yield Video Mnemonic',
+  userEmail = 'Verified Candidate',
   className = '',
 }: VideoMnemonicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const [watermarkPos, setWatermarkPos] = useState({ top: 20, left: 15 });
+
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Periodically drift watermark slightly across screen to prevent crop-out
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWatermarkPos({
+        top: Math.floor(Math.random() * 55) + 15, // between 15% and 70%
+        left: Math.floor(Math.random() * 55) + 15, // between 15% and 70%
+      });
+    }, 12000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (!videoUrl || !videoUrl.trim()) return null;
 
   // Helper to detect if URL is YouTube or Vimeo
   const getEmbedUrl = (url: string): string | null => {
     try {
-      // YouTube
       const ytMatch = url.match(
         /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i
       );
       if (ytMatch && ytMatch[1]) {
         return `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=0&rel=0&modestbranding=1`;
       }
-
-      // Vimeo
       const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/i);
       if (vimeoMatch && vimeoMatch[1]) {
         return `https://player.vimeo.com/video/${vimeoMatch[1]}?title=0&byline=0&portrait=0`;
@@ -71,6 +86,11 @@ export function VideoMnemonicPlayer({
     setPlaybackSpeed(nextSpeed);
   };
 
+  const skipSeconds = (sec: number) => {
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = Math.max(0, Math.min(duration, videoRef.current.currentTime + sec));
+  };
+
   const toggleFullscreen = () => {
     if (!videoRef.current) return;
     if (videoRef.current.requestFullscreen) {
@@ -85,10 +105,34 @@ export function VideoMnemonicPlayer({
     setIsPlaying(true);
   };
 
+  const handleTimeUpdate = () => {
+    if (!isScrubbing && videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+      if (!duration && videoRef.current.duration) {
+        setDuration(videoRef.current.duration);
+      }
+    }
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    setCurrentTime(val);
+    if (videoRef.current) {
+      videoRef.current.currentTime = val;
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds) || seconds < 0) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
   return (
     <div className={`rounded-xl border border-teal-200/80 bg-gradient-to-br from-teal-50/50 via-white to-slate-50 overflow-hidden shadow-sm ${className}`}>
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-teal-800 to-cyan-900 text-white">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-teal-800 to-cyan-900 text-white select-none">
         <div className="flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-300 opacity-75"></span>
@@ -99,13 +143,13 @@ export function VideoMnemonicPlayer({
             Video Mnemonic
           </span>
         </div>
-        <span className="text-xs text-teal-200 font-medium truncate max-w-[240px]">
+        <span className="text-xs text-teal-200 font-medium truncate max-w-[280px]">
           {title}
         </span>
       </div>
 
-      {/* Video Content */}
-      <div className="relative aspect-video w-full bg-slate-900 flex items-center justify-center overflow-hidden">
+      {/* Video Content Container */}
+      <div className="relative aspect-video w-full bg-slate-950 flex items-center justify-center overflow-hidden select-none">
         {embedUrl ? (
           <iframe
             src={embedUrl}
@@ -121,6 +165,8 @@ export function VideoMnemonicPlayer({
               src={videoUrl}
               playsInline
               preload="metadata"
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={() => videoRef.current && setDuration(videoRef.current.duration)}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               onEnded={() => setIsPlaying(false)}
@@ -128,12 +174,23 @@ export function VideoMnemonicPlayer({
               onClick={togglePlay}
             />
 
+            {/* Anti-Piracy Watermark: Drifting low-opacity text overlay to deter screen scraping */}
+            <div 
+              className="absolute pointer-events-none transition-all duration-1000 ease-out z-20"
+              style={{ top: `${watermarkPos.top}%`, left: `${watermarkPos.left}%` }}
+            >
+              <div className="px-2.5 py-1 rounded bg-black/40 backdrop-blur-[1px] border border-white/10 text-[10px] font-mono tracking-wider text-white/35 flex items-center gap-1.5 shadow-sm">
+                <ShieldAlert className="w-3 h-3 text-teal-400/50" />
+                <span>USMLE-PRO • {userEmail}</span>
+              </div>
+            </div>
+
             {/* Play Overlay Button if paused */}
             {!isPlaying && (
               <button
                 type="button"
                 onClick={togglePlay}
-                className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-teal-600/90 text-white flex items-center justify-center shadow-xl hover:bg-teal-500 hover:scale-105 transition-all backdrop-blur-sm"
+                className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-teal-600/90 text-white flex items-center justify-center shadow-xl hover:bg-teal-500 hover:scale-105 transition-all backdrop-blur-sm z-30"
                 aria-label="Play Video"
               >
                 <Play className="w-7 h-7 ml-1 fill-white" />
@@ -141,59 +198,99 @@ export function VideoMnemonicPlayer({
             )}
 
             {/* Custom Control Bar */}
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 flex items-center justify-between text-white opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  className="hover:text-teal-400 transition-colors p-1"
-                  aria-label={isPlaying ? 'Pause' : 'Play'}
-                >
-                  {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={restartVideo}
-                  className="hover:text-teal-400 transition-colors p-1"
-                  title="Replay from start"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={toggleMute}
-                  className="hover:text-teal-400 transition-colors p-1"
-                  aria-label={isMuted ? 'Unmute' : 'Mute'}
-                >
-                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                </button>
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 flex flex-col gap-2 text-white opacity-0 group-hover:opacity-100 transition-opacity z-30">
+              
+              {/* Scrubber progress bar */}
+              <div className="w-full flex items-center gap-2">
+                <span className="text-[11px] font-mono text-slate-300 w-10 text-right">
+                  {formatTime(currentTime)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  step={0.1}
+                  value={currentTime}
+                  onChange={handleSeek}
+                  onMouseDown={() => setIsScrubbing(true)}
+                  onMouseUp={() => setIsScrubbing(false)}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-teal-400 hover:h-2 transition-all"
+                  aria-label="Seek Video"
+                />
+                <span className="text-[11px] font-mono text-slate-400 w-10">
+                  {formatTime(duration)}
+                </span>
               </div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={changeSpeed}
-                  className="text-xs font-bold px-2 py-0.5 rounded bg-white/20 hover:bg-white/30 transition-colors"
-                  title="Playback Speed"
-                >
-                  {playbackSpeed}x
-                </button>
-                <button
-                  type="button"
-                  onClick={toggleFullscreen}
-                  className="hover:text-teal-400 transition-colors p-1"
-                  aria-label="Fullscreen"
-                >
-                  <Maximize className="w-4 h-4" />
-                </button>
+              {/* Controls row */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={togglePlay}
+                    className="hover:text-teal-400 transition-colors p-1"
+                    aria-label={isPlaying ? 'Pause' : 'Play'}
+                  >
+                    {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => skipSeconds(-5)}
+                    className="hover:text-teal-400 transition-colors p-1 flex items-center"
+                    title="Rewind 5 seconds"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span className="text-[9px] ml-0.5">5s</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => skipSeconds(5)}
+                    className="hover:text-teal-400 transition-colors p-1 flex items-center"
+                    title="Forward 5 seconds"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                    <span className="text-[9px] ml-0.5">5s</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleMute}
+                    className="hover:text-teal-400 transition-colors p-1"
+                    aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  >
+                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={changeSpeed}
+                    className="text-xs font-bold px-2 py-0.5 rounded bg-white/20 hover:bg-white/30 transition-colors"
+                    title="Playback Speed"
+                  >
+                    {playbackSpeed}x
+                  </button>
+                  <button
+                    type="button"
+                    onClick={toggleFullscreen}
+                    className="hover:text-teal-400 transition-colors p-1"
+                    aria-label="Fullscreen"
+                  >
+                    <Maximize className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
+
             </div>
           </div>
         )}
       </div>
 
       <div className="px-4 py-2 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500">
-        <span>💡 Watch this mnemonic to retain the key diagnostic associations for this vignette.</span>
+        <span>💡 Visual mnemonic active: Replays key mechanisms & high-yield differentiators for this vignette.</span>
       </div>
     </div>
   );

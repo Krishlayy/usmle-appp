@@ -997,6 +997,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                               <VideoMnemonicPlayer 
                                 videoUrl={currentQ.question.videoUrl} 
                                 title={`High-Yield Video Mnemonic (Item ${currentIndex + 1})`}
+                                userEmail={userEmail}
                               />
                             </div>
                           )}
@@ -1612,6 +1613,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     <VideoMnemonicPlayer 
                       videoUrl={currentQ.question.videoUrl} 
                       title={`Video Mnemonic • Concept Retention (Question ${currentIndex + 1})`}
+                      userEmail={userEmail}
                     />
                   </div>
                 )}
