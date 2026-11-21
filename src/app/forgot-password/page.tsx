@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
       }
     >
       {status === "success" ? (
-        <p role="status" className="rounded-md border border-teal-300/30 bg-teal-300/10 px-4 py-3 text-sm leading-relaxed text-teal-200">
+        <p role="status" className="rounded-md border border-teal-600 bg-teal-50 px-4 py-3 text-sm leading-relaxed text-teal-800">
           Check your email for a link to reset your password. If it doesn&apos;t appear within a few minutes, check your spam folder.
         </p>
       ) : (

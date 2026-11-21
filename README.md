@@ -121,3 +121,31 @@ The codebase has `@google/genai` installed.
 
 ---
 *Built for medical excellence.* 🩺
+
+
+## 🎬 Demo accounts
+
+```bash
+npm run db:seed-demo      # idempotent; needs DATABASE_URL
+```
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Superadmin | `superadmin@mqb.demo` | `Super#Demo2026` |
+| Admin | `admin@mqb.demo` | `Admin#Demo2026` |
+| Student | `student@mqb.demo` | `Student#Demo2026` |
+
+The student has every active Q-Bank unlocked. Set `NEXT_PUBLIC_DEMO_MODE=true` to show one-click
+role buttons on `/login`. **Never enable it, or keep these accounts, on a production database with real users.**
+
+## 🎥 Video hosting
+
+Videos are **never** served by the Next.js app (`public/videos/` is git- and Vercel-ignored on purpose).
+
+1. **Encode** (needs ffmpeg: `winget install Gyan.FFmpeg`): `npm run videos:stage`. It copies/compresses the
+   source footage into `public/videos/mnemonics/**` as H.264 720p mp4 with `+faststart`, and re-encodes any
+   file browsers cannot play (e.g. the MPEG-4 Part 2 `hero-simulator.mp4`).
+2. **Upload** `public/videos/**` to object storage behind a CDN (Cloudflare R2 + custom domain recommended).
+   Keep the same key paths (`videos/mnemonics/...`). Set `Cache-Control: public, max-age=31536000, immutable`.
+3. **Point the app at it**: `NEXT_PUBLIC_VIDEO_BASE_URL=https://videos.yourdomain.com`. All players resolve
+   through `src/lib/videoUrl.ts`, and the CSP `media-src` is derived from the same variable.

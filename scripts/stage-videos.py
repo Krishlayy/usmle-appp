@@ -1,9 +1,31 @@
+"""Stage mnemonic videos into public/videos/mnemonics as browser-safe H.264 mp4.
+
+usage: python scripts/stage-videos.py [SOURCE_DIR]
+
+* .mp4 sources under 25 MB are copied as-is; larger ones are compressed the same way.
+* .mov sources (often 50+ MB, sometimes HEVC/ProRes that browsers cannot play) are transcoded to
+  720p H.264/AAC with +faststart so playback starts instantly and seeks work. Needs ffmpeg on PATH
+  (Windows: `winget install Gyan.FFmpeg`).
+* For production, upload public/videos to your CDN bucket (see README "Video hosting").
+"""
 import os
 import shutil
+import subprocess
+import sys
 
-src_base = r'C:\Projects\MQB\drive-download-20261116T213704Z-1-001'
-dst_base = r'c:\Users\hello\USMLE2\public\videos\mnemonics'
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+src_base = sys.argv[1] if len(sys.argv) > 1 else r'C:\Projects\MQB\drive-download-20261116T213704Z-1-001'
+dst_base = os.path.join(REPO, 'public', 'videos', 'mnemonics')
 os.makedirs(dst_base, exist_ok=True)
+FFMPEG = shutil.which('ffmpeg')
+
+
+def transcode(src, dst):
+    subprocess.run(
+        [FFMPEG, '-y', '-loglevel', 'error', '-i', src,
+         '-vf', "scale='min(1280,iw)':-2", '-c:v', 'libx264', '-preset', 'medium', '-crf', '26',
+         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', dst],
+        check=True)
 
 mappings = {
     # AUTOIMMUNE (13 mnemonics)
@@ -63,15 +85,48 @@ for key, (folder, fname) in mappings.items():
     ext = os.path.splitext(fname)[1].lower()
     dst_dir = os.path.join(dst_base, sub_dir)
     os.makedirs(dst_dir, exist_ok=True)
-    dst_file = os.path.join(dst_dir, f"{file_tag}{ext}")
-    
-    if os.path.exists(src):
-        if not os.path.exists(dst_file):
-            print(f"Copying {key} -> {dst_file} ...")
-            shutil.copy2(src, dst_file)
-        else:
-            print(f"Exists {key} -> {dst_file}")
-    else:
+    dst_file = os.path.join(dst_dir, f"{file_tag}.mp4")  # always .mp4: that is what the app references
+
+    if not os.path.exists(src):
         print(f"NOT FOUND: {src}")
+    elif os.path.exists(dst_file):
+        print(f"Exists {key} -> {dst_file}")
+    elif ext == '.mp4' and (os.path.getsize(src) < 25 * 1024 * 1024 or not FFMPEG):
+        if ext == '.mp4' and os.path.getsize(src) >= 25 * 1024 * 1024:
+            print(f"WARNING {key}: {os.path.getsize(src) // 2**20} MB, copied uncompressed (install ffmpeg to shrink)")
+        print(f"Copying {key} -> {dst_file} ...")
+        shutil.copy2(src, dst_file)
+    elif FFMPEG:
+        print(f"Transcoding {key} -> {dst_file} ...")
+        transcode(src, dst_file)
+    else:
+        print(f"SKIPPED (needs ffmpeg to convert {ext}): {key}")
+
+def is_browser_safe(path):
+    """True if the file declares an H.264 (avc1) video track. Checks the head and tail, where moov lives."""
+    size = os.path.getsize(path)
+    with open(path, 'rb') as f:
+        head = f.read(4 * 1024 * 1024)
+        f.seek(max(0, size - 4 * 1024 * 1024))
+        tail = f.read()
+    return b'avc1' in head or b'avc1' in tail
+
+
+# Browsers cannot play MPEG-4 Part 2 / HEVC / ProRes. Re-encode any such file under public/videos in place.
+videos_root = os.path.join(REPO, 'public', 'videos')
+for root, _, files in os.walk(videos_root):
+    for name in files:
+        if not name.lower().endswith('.mp4'):
+            continue
+        path = os.path.join(root, name)
+        if is_browser_safe(path):
+            continue
+        if not FFMPEG:
+            print(f"UNPLAYABLE (not H.264, needs ffmpeg): {os.path.relpath(path, REPO)}")
+            continue
+        print(f"Re-encoding to H.264: {os.path.relpath(path, REPO)}")
+        tmp = path + '.tmp.mp4'
+        transcode(path, tmp)
+        os.replace(tmp, path)
 
 print("All video staging complete!")

@@ -11,6 +11,8 @@
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
     "db:reset": "npx tsx scripts/reset-db.ts",
+    "db:seed-demo": "tsx prisma/seed-demo-users.ts",
+    "videos:stage": "python scripts/stage-videos.py",
     "postinstall": "prisma generate"
   },
   "dependencies": {

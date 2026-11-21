@@ -41,41 +41,41 @@ export default async function NotesPage(props: { params: Promise<{ qbankSlug: st
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-12 md:px-10 md:py-16">
-      <div className="mb-10 flex items-end justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="mb-10 flex items-end justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Study tools</p>
-          <h1 className="font-serif text-4xl font-medium tracking-tight text-white">My Notes</h1>
-          <p className="mt-2 text-sm text-slate-400">Review notes you&apos;ve taken during {qbank.title} blocks</p>
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">Study tools</p>
+          <h1 className="font-serif text-4xl font-medium tracking-tight text-slate-900">My Notes</h1>
+          <p className="mt-2 text-sm text-slate-600">Review notes you&apos;ve taken during {qbank.title} blocks</p>
         </div>
         <Link
           href={`/dashboard/${params.qbankSlug}`}
-          className="shrink-0 text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+          className="shrink-0 text-sm text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
         >
           Back to Dashboard
         </Link>
       </div>
 
       {validNotes.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/15 p-12 text-center">
-          <p className="font-serif text-xl text-white">You haven&apos;t taken any notes yet.</p>
-          <p className="mt-2 text-sm text-slate-400">Notes you take during a block will appear here.</p>
+        <div className="rounded-lg border border-dashed border-slate-200 p-12 text-center">
+          <p className="font-serif text-xl text-slate-900">You haven&apos;t taken any notes yet.</p>
+          <p className="mt-2 text-sm text-slate-600">Notes you take during a block will appear here.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {validNotes.map((note) => (
-            <article key={note.id} className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03] backdrop-blur-xl">
-              <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
-                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">QID: {note.question.qid}</span>
+            <article key={note.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">QID: {note.question.qid}</span>
                 <span className="font-mono text-xs tabular-nums text-slate-500">
                   {new Date(note.attemptedAt).toLocaleDateString()}
                 </span>
               </div>
               <div className="p-6">
                 <div
-                  className="prose prose-invert mb-6 max-w-none border-l border-white/15 pl-4 text-sm italic text-slate-400"
+                  className="prose prose-invert mb-6 max-w-none border-l border-slate-200 pl-4 text-sm italic text-slate-600"
                   dangerouslySetInnerHTML={{ __html: note.question.questionText }}
                 />
-                <div className="whitespace-pre-wrap rounded-md border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-100">
+                <div className="whitespace-pre-wrap rounded-md border border-slate-200 bg-slate-100 p-4 text-sm text-slate-900">
                   {note.notes}
                 </div>
               </div>

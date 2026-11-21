@@ -11,11 +11,11 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
     const baseStyles = 'inline-flex items-center justify-center rounded-sm border font-mono whitespace-nowrap';
 
     const variants = {
-      neutral: 'border-white/15 text-slate-300',
-      accent: 'border-teal-300/40 text-teal-300',
-      success: 'border-teal-300/40 text-teal-300',
-      warning: 'border-amber-300/40 text-amber-300',
-      error: 'border-red-400/40 text-red-300',
+      neutral: 'border-slate-300 bg-slate-50 text-slate-700',
+      accent: 'border-teal-600/30 bg-teal-50 text-teal-700',
+      success: 'border-emerald-600/30 bg-emerald-50 text-emerald-700',
+      warning: 'border-amber-600/30 bg-amber-50 text-amber-700',
+      error: 'border-red-600/30 bg-red-50 text-red-700',
     };
 
     const sizes = {

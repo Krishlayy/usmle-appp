@@ -41,25 +41,25 @@ export default function PerformanceDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#070a0f] px-5 py-12 text-slate-100 md:px-10 md:py-16">
+    <div className="min-h-screen bg-white px-5 py-12 text-slate-900 md:px-10 md:py-16">
       <div className="mx-auto max-w-6xl space-y-12">
 
         {/* Header */}
         <Reveal>
-          <div className="flex flex-col justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
+          <div className="flex flex-col justify-between gap-6 border-b border-slate-200 pb-8 md:flex-row md:items-end">
             <div>
-              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">USMLE peer norming</p>
-              <h1 className="font-serif text-4xl font-medium leading-[1.1] tracking-tight text-white md:text-5xl">
-                Comparative Peer Analytics &amp; Score <span className="text-teal-300">Predictor</span>
+              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">USMLE peer norming</p>
+              <h1 className="font-serif text-4xl font-medium leading-[1.1] tracking-tight text-slate-900 md:text-5xl">
+                Comparative Peer Analytics &amp; Score <span className="text-teal-700">Predictor</span>
               </h1>
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600">
                 Trace your cumulative board preparation against 12,000+ national peer medical student cohorts.
               </p>
             </div>
 
             <Link
               href="/dashboard/create-test"
-              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
+              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >
               <Play className="h-4 w-4" aria-hidden />
               <span>Generate New Block</span>
@@ -69,14 +69,14 @@ export default function PerformanceDashboardPage() {
 
         {/* KPI Stats Grid */}
         <Reveal delay={0.05}>
-          <dl className="grid grid-cols-1 border-y border-white/10 sm:grid-cols-2 sm:divide-x sm:divide-white/10 lg:grid-cols-4">
+          <dl className="grid grid-cols-1 border-y border-slate-200 sm:grid-cols-2 sm:divide-x sm:divide-slate-200 lg:grid-cols-4">
             {kpis.map(({ label, value, sub, Icon }) => (
               <div key={label} className="px-4 py-6 first:pl-0 md:px-8">
-                <dt className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                <dt className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600">
                   <span>{label}</span>
                   <Icon className="h-4 w-4 text-slate-500" aria-hidden />
                 </dt>
-                <dd className="mt-3 font-mono text-3xl font-medium tabular-nums text-white md:text-4xl">{value}</dd>
+                <dd className="mt-3 font-mono text-3xl font-medium tabular-nums text-slate-900 md:text-4xl">{value}</dd>
                 <p className="mt-2 text-xs text-slate-500">{sub}</p>
               </div>
             ))}
@@ -85,10 +85,10 @@ export default function PerformanceDashboardPage() {
 
         {/* Organ System Accuracy Breakdown */}
         <Reveal>
-          <section className="space-y-8 rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-8">
-            <div className="flex flex-col justify-between gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-center">
+          <section className="space-y-8 rounded-lg border border-slate-200 bg-white shadow-sm p-6 sm:p-8">
+            <div className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center">
               <div>
-                <h2 className="font-serif text-xl font-medium tracking-tight text-white">
+                <h2 className="font-serif text-xl font-medium tracking-tight text-slate-900">
                   Organ-System Mastery vs Peer Benchmark
                 </h2>
                 <p className="mt-1 text-xs text-slate-500">
@@ -97,8 +97,8 @@ export default function PerformanceDashboardPage() {
               </div>
               <div className="flex items-center gap-5 text-xs">
                 <div className="flex items-center gap-2">
-                  <span aria-hidden className="inline-block h-px w-5 bg-teal-300" />
-                  <span className="text-slate-200">Your Accuracy</span>
+                  <span aria-hidden className="inline-block h-px w-5 bg-teal-600" />
+                  <span className="text-slate-800">Your Accuracy</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span aria-hidden className="inline-block h-px w-5 bg-slate-500" />
@@ -115,10 +115,10 @@ export default function PerformanceDashboardPage() {
                 return (
                   <div key={idx} className="space-y-3">
                     <div className="flex flex-col justify-between gap-1 text-xs sm:flex-row sm:items-center">
-                      <span className="text-sm text-slate-200">{sys.name}</span>
+                      <span className="text-sm text-slate-800">{sys.name}</span>
                       <div className="flex items-center gap-4">
-                        <span className="font-mono tabular-nums text-slate-400">{sys.correct}/{sys.answered} ({sys.accuracy}%)</span>
-                        <span className={`font-mono text-[11px] tabular-nums ${isAhead ? 'text-teal-300' : 'text-rose-300'}`}>
+                        <span className="font-mono tabular-nums text-slate-600">{sys.correct}/{sys.answered} ({sys.accuracy}%)</span>
+                        <span className={`font-mono text-[11px] tabular-nums ${isAhead ? 'text-teal-700' : 'text-rose-700'}`}>
                           {isAhead ? `+${diff}% vs Peers` : `${diff}% vs Peers`}
                         </span>
                       </div>
@@ -127,17 +127,17 @@ export default function PerformanceDashboardPage() {
                     {/* Dual hairline progress */}
                     <div className="space-y-2">
                       <div
-                        className="h-0.5 w-full bg-white/10"
+                        className="h-0.5 w-full bg-slate-100"
                         role="progressbar"
                         aria-valuenow={sys.accuracy}
                         aria-valuemin={0}
                         aria-valuemax={100}
                         aria-label={`${sys.name} accuracy`}
                       >
-                        <div className="h-0.5 bg-teal-300 transition-[width] duration-500" style={{ width: `${sys.accuracy}%` }} />
+                        <div className="h-0.5 bg-teal-600 transition-[width] duration-500" style={{ width: `${sys.accuracy}%` }} />
                       </div>
                       <div
-                        className="h-px w-full bg-white/10"
+                        className="h-px w-full bg-slate-100"
                         role="progressbar"
                         aria-valuenow={sys.peerAverage}
                         aria-valuemin={0}
@@ -152,11 +152,11 @@ export default function PerformanceDashboardPage() {
               })}
             </div>
 
-            <div className="flex items-center justify-between border-t border-white/10 pt-5">
+            <div className="flex items-center justify-between border-t border-slate-200 pt-5">
               <span className="text-xs text-slate-500">Ready to boost lower-scoring systems?</span>
               <Link
                 href="/simulator?mode=tutor"
-                className="flex items-center gap-1 text-sm text-teal-300 transition-colors hover:text-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                className="flex items-center gap-1 text-sm text-teal-700 transition-colors hover:text-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
               >
                 <span>Launch Targeted Tutor Drill</span>
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden />

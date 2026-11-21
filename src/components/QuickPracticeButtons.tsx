@@ -61,7 +61,7 @@ export function QuickPracticeButtons({ qbank }: QuickPracticeButtonsProps) {
           type="button"
           onClick={() => startDirectBlock('tutor')}
           disabled={loadingMode !== null}
-          className="inline-flex items-center gap-2 rounded-md border border-white/15 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:border-slate-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 disabled:opacity-60"
         >
           {loadingMode === 'tutor' ? (
             <Loader2 className="h-4 w-4 motion-safe:animate-spin" aria-hidden />
@@ -75,7 +75,7 @@ export function QuickPracticeButtons({ qbank }: QuickPracticeButtonsProps) {
           type="button"
           onClick={() => startDirectBlock('timed')}
           disabled={loadingMode !== null}
-          className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 disabled:opacity-60"
         >
           {loadingMode === 'timed' ? (
             <Loader2 className="h-4 w-4 motion-safe:animate-spin" aria-hidden />

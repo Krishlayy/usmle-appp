@@ -35,24 +35,24 @@ export default async function FlashcardsPage(props: { params: Promise<{ qbankSlu
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-12 md:px-10 md:py-16">
-      <div className="mb-10 flex items-end justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="mb-10 flex items-end justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Study tools</p>
-          <h1 className="font-serif text-4xl font-medium tracking-tight text-white">Flashcards</h1>
-          <p className="mt-2 text-sm text-slate-400">Review your flashcards for {qbank.title}</p>
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">Study tools</p>
+          <h1 className="font-serif text-4xl font-medium tracking-tight text-slate-900">Flashcards</h1>
+          <p className="mt-2 text-sm text-slate-600">Review your flashcards for {qbank.title}</p>
         </div>
         <Link
           href={`/dashboard/${params.qbankSlug}`}
-          className="shrink-0 text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+          className="shrink-0 text-sm text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
         >
           Back to Dashboard
         </Link>
       </div>
 
       {flashcards.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/15 p-12 text-center">
-          <p className="font-serif text-xl text-white">You don&apos;t have any flashcards yet.</p>
-          <p className="mt-2 text-sm text-slate-400">Create flashcards from the test player explanation view.</p>
+        <div className="rounded-lg border border-dashed border-slate-200 p-12 text-center">
+          <p className="font-serif text-xl text-slate-900">You don&apos;t have any flashcards yet.</p>
+          <p className="mt-2 text-sm text-slate-600">Create flashcards from the test player explanation view.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -61,7 +61,7 @@ export default async function FlashcardsPage(props: { params: Promise<{ qbankSlu
               key={card.id}
               tabIndex={0}
               aria-label={`Flashcard, question ${card.question.qid}. Hover or focus to reveal the answer.`}
-              className="group relative flex h-64 w-full flex-col justify-center rounded-lg border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-xl transition-colors hover:border-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+              className="group relative flex h-64 w-full flex-col justify-center rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center transition-colors hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
             >
               <span className="absolute left-4 top-4 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
                 Front
@@ -69,12 +69,12 @@ export default async function FlashcardsPage(props: { params: Promise<{ qbankSlu
               <span className="absolute right-4 top-4 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
                 QID: {card.question.qid}
               </span>
-              <p className="text-slate-200">{card.front}</p>
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-white/25 bg-[#0d1219] p-6 opacity-0 transition-opacity duration-300 group-focus-visible:opacity-100 group-hover:opacity-100">
-                <span className="absolute left-4 top-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+              <p className="text-slate-800">{card.front}</p>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-slate-300 bg-white p-6 opacity-0 transition-opacity duration-300 group-focus-visible:opacity-100 group-hover:opacity-100">
+                <span className="absolute left-4 top-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">
                   Back
                 </span>
-                <p className="text-white">{card.back}</p>
+                <p className="text-slate-900">{card.back}</p>
               </div>
             </div>
           ))}

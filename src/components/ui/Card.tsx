@@ -7,14 +7,14 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className = '', elevation = 'subtle', children, ...props }, ref) => {
 
-    // No shadows in the MQB language: elevation only changes the hairline strength.
+    // Light surfaces: hairline border, soft shadow on elevated.
     const elevations = {
-      flat: 'border border-transparent bg-white/[0.02]',
-      subtle: 'border border-white/10 bg-white/[0.03]',
-      elevated: 'border border-white/15 bg-white/[0.04]',
+      flat: 'border border-transparent bg-slate-50',
+      subtle: 'border border-slate-200 bg-white shadow-sm',
+      elevated: 'border border-slate-200 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
     };
 
-    const combinedClasses = `rounded-lg text-slate-100 backdrop-blur-xl ${elevations[elevation]} ${className}`;
+    const combinedClasses = `rounded-xl text-slate-900 ${elevations[elevation]} ${className}`;
 
     return (
       <div ref={ref} className={combinedClasses} {...props}>

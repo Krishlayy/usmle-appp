@@ -9,7 +9,7 @@ interface QBankSidebarProps {
   qbankSlug: string;
 }
 
-const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-teal-300';
+const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-teal-600';
 
 export function QBankSidebar({ qbankSlug }: QBankSidebarProps) {
   const pathname = usePathname();
@@ -25,7 +25,7 @@ export function QBankSidebar({ qbankSlug }: QBankSidebarProps) {
     <Link
       href={href}
       aria-current={isActive ? 'page' : undefined}
-      className={`flex items-center gap-3 border-l px-5 py-3 text-sm transition-colors ${focusRing} ${isActive ? 'border-teal-300 bg-white/[0.04] text-white' : 'border-transparent text-slate-400 hover:bg-white/[0.03] hover:text-white'}`}
+      className={`flex items-center gap-3 border-l px-5 py-3 text-sm transition-colors ${focusRing} ${isActive ? 'border-teal-600 bg-white text-slate-900' : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
     >
       <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
       <span>{label}</span>
@@ -33,15 +33,15 @@ export function QBankSidebar({ qbankSlug }: QBankSidebarProps) {
   );
 
   const subLink = (path: string) =>
-    `block py-2 pl-12 pr-4 text-[13px] transition-colors hover:text-white ${focusRing} ${isActive(path) ? 'text-white' : 'text-slate-500'}`;
+    `block py-2 pl-12 pr-4 text-[13px] transition-colors hover:text-slate-900 ${focusRing} ${isActive(path) ? 'text-slate-900' : 'text-slate-500'}`;
 
   return (
     <aside
       aria-label="Question bank navigation"
-      className="sticky top-14 flex h-[calc(100vh-56px)] w-[240px] shrink-0 flex-col overflow-y-auto border-r border-white/10 bg-[#070a0f]/80 text-slate-200 backdrop-blur-xl"
+      className="sticky top-14 flex h-[calc(100vh-56px)] w-[240px] shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-slate-100 text-slate-800 backdrop-blur-xl"
     >
-      <div className="border-b border-white/10 px-5 py-4">
-        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+      <div className="border-b border-slate-200 px-5 py-4">
+        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">
           Q-Bank Navigation
         </span>
       </div>
@@ -52,7 +52,7 @@ export function QBankSidebar({ qbankSlug }: QBankSidebarProps) {
             type="button"
             onClick={() => setIsPerformanceOpen(!isPerformanceOpen)}
             aria-expanded={isPerformanceOpen}
-            className={`flex w-full items-center gap-3 border-l px-5 py-3 text-left text-sm transition-colors hover:bg-white/[0.03] hover:text-white ${focusRing} ${pathname.includes('/performance') ? 'border-teal-300 text-white' : 'border-transparent text-slate-400'}`}
+            className={`flex w-full items-center gap-3 border-l px-5 py-3 text-left text-sm transition-colors hover:bg-slate-50 hover:text-slate-900 ${focusRing} ${pathname.includes('/performance') ? 'border-teal-600 text-slate-900' : 'border-transparent text-slate-600'}`}
           >
             <PieChart className="h-4 w-4" strokeWidth={1.75} aria-hidden />
             <span className="flex-1">Performance</span>

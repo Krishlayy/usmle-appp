@@ -143,14 +143,14 @@ export default async function QBankDashboardPage(
       <Reveal>
         <div className="mb-14 flex flex-col justify-between gap-8 md:flex-row md:items-end">
           <div>
-            <Link href="/dashboard" className="mb-6 inline-flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300">
+            <Link href="/dashboard" className="mb-6 inline-flex items-center gap-1 text-sm text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
               <ChevronLeft className="h-4 w-4" aria-hidden /> Back to Library
             </Link>
             <div className="flex flex-wrap items-center gap-4">
-              <h1 className="font-serif text-4xl font-medium tracking-tight text-white md:text-5xl">{qbank.title}</h1>
+              <h1 className="font-serif text-4xl font-medium tracking-tight text-slate-900 md:text-5xl">{qbank.title}</h1>
               <Tag variant="success" size="sm">Active Subscription</Tag>
             </div>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600">
               Track your performance, review your notes, or start a new practice session to master this material.
             </p>
           </div>
@@ -175,9 +175,9 @@ export default async function QBankDashboardPage(
       <Reveal delay={0.05}>
         <div className="mb-14 grid grid-cols-1 gap-4 md:grid-cols-3">
           <Card elevation="subtle" className="flex h-full flex-col p-6">
-            <h3 className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Overall Progress</h3>
+            <h3 className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600">Overall Progress</h3>
             <div className="flex items-baseline gap-2">
-              <span className="font-mono text-3xl font-medium tabular-nums tracking-tight text-white">{uniqueQuestionsAttempted}</span>
+              <span className="font-mono text-3xl font-medium tabular-nums tracking-tight text-slate-900">{uniqueQuestionsAttempted}</span>
               <span className="text-sm text-slate-500">/ {qbank.totalQuestions} Questions</span>
             </div>
             <div className="mt-auto pt-5">
@@ -204,8 +204,8 @@ export default async function QBankDashboardPage(
         <div className="mb-14">
           <Card elevation="subtle" className="flex h-full w-full flex-col p-6">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-serif text-xl font-medium tracking-tight text-white">Recent Performance</h2>
-              <Button variant="ghost" size="sm" className="text-slate-300">View History</Button>
+              <h2 className="font-serif text-xl font-medium tracking-tight text-slate-900">Recent Performance</h2>
+              <Button variant="ghost" size="sm" className="text-slate-700">View History</Button>
             </div>
             <div className="min-h-[300px] w-full">
               <PerformanceChart data={performanceData} />
@@ -216,19 +216,19 @@ export default async function QBankDashboardPage(
 
       {/* Study Tools */}
       <Reveal>
-        <h2 className="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Study Tools</h2>
+        <h2 className="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-slate-600">Study Tools</h2>
       </Reveal>
       <div className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {tools.map((tool, i) => (
           <Reveal key={tool.href} delay={i * 0.05}>
-            <Link href={tool.href} className="group block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">
-              <Card elevation="subtle" className="h-full p-6 transition-colors group-hover:border-white/25">
+            <Link href={tool.href} className="group block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
+              <Card elevation="subtle" className="h-full p-6 transition-colors group-hover:border-slate-300">
                 <div className="mb-6 flex items-start justify-between">
-                  <tool.icon className="h-5 w-5 text-teal-300" strokeWidth={1.75} aria-hidden />
-                  <ChevronRight className="h-4 w-4 text-slate-500 transition-colors group-hover:text-white" aria-hidden />
+                  <tool.icon className="h-5 w-5 text-teal-700" strokeWidth={1.75} aria-hidden />
+                  <ChevronRight className="h-4 w-4 text-slate-500 transition-colors group-hover:text-slate-900" aria-hidden />
                 </div>
-                <h3 className="mb-2 font-serif text-lg font-medium text-white">{tool.title}</h3>
-                <p className="text-sm leading-relaxed text-slate-400">{tool.body}</p>
+                <h3 className="mb-2 font-serif text-lg font-medium text-slate-900">{tool.title}</h3>
+                <p className="text-sm leading-relaxed text-slate-600">{tool.body}</p>
               </Card>
             </Link>
           </Reveal>

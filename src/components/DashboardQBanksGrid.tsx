@@ -60,22 +60,22 @@ export function DashboardQBanksGrid({ purchases, analyticsMap }: DashboardQBanks
 
           return (
             <Reveal key={qbank.id} delay={Math.min(i, 5) * 0.05}>
-              <article className="group flex h-full flex-col justify-between gap-8 rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl transition-colors hover:border-white/25">
+              <article className="group flex h-full flex-col justify-between gap-8 rounded-lg border border-slate-200 bg-white shadow-sm p-6 transition-colors hover:border-slate-300">
                 <div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-teal-300/80">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-teal-700">
                       {qbank.specialtyTag}
                     </span>
                     <Link
                       href={`/dashboard/${qbank.slug}`}
-                      className="inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-white"
+                      className="inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-slate-900"
                     >
                       Overview <ArrowUpRight className="h-3 w-3" />
                     </Link>
                   </div>
-                  <h3 className="mt-3 font-serif text-xl leading-snug text-white">{qbank.title}</h3>
+                  <h3 className="mt-3 font-serif text-xl leading-snug text-slate-900">{qbank.title}</h3>
                   {qbank.description && (
-                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-400">{qbank.description}</p>
+                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-600">{qbank.description}</p>
                   )}
                 </div>
 
@@ -83,14 +83,14 @@ export function DashboardQBanksGrid({ purchases, analyticsMap }: DashboardQBanks
                   <div>
                     <div className="mb-2 flex items-baseline justify-between text-xs text-slate-500">
                       <span>
-                        <span className="font-mono text-sm text-white tabular-nums">{attemptedCount}</span> / {totalCount} done
+                        <span className="font-mono text-sm text-slate-900 tabular-nums">{attemptedCount}</span> / {totalCount} done
                       </span>
                       <span>
-                        Accuracy <span className="font-mono text-sm text-white tabular-nums">{accuracy}%</span>
+                        Accuracy <span className="font-mono text-sm text-slate-900 tabular-nums">{accuracy}%</span>
                       </span>
                     </div>
                     <div
-                      className="h-px w-full bg-white/10"
+                      className="h-px w-full bg-slate-100"
                       role="progressbar"
                       aria-valuenow={displayPercentage}
                       aria-valuemin={0}
@@ -98,7 +98,7 @@ export function DashboardQBanksGrid({ purchases, analyticsMap }: DashboardQBanks
                       aria-label={`${qbank.title} completion`}
                     >
                       <div
-                        className="h-px bg-teal-300 transition-[width] duration-700 ease-out"
+                        className="h-px bg-teal-600 transition-[width] duration-700 ease-out"
                         style={{ width: `${displayPercentage}%` }}
                       />
                     </div>
@@ -108,14 +108,14 @@ export function DashboardQBanksGrid({ purchases, analyticsMap }: DashboardQBanks
                     <button
                       type="button"
                       onClick={() => handleOpenModal(qbank, 'tutor')}
-                      className="rounded-md border border-white/15 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                      className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:border-slate-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
                     >
                       Tutor
                     </button>
                     <button
                       type="button"
                       onClick={() => handleOpenModal(qbank, 'timed')}
-                      className="rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                      className="rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
                     >
                       Timed
                     </button>

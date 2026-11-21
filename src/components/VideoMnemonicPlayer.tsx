@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { videoSrc } from '@/lib/videoUrl';
 import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, Sparkles, ShieldAlert } from 'lucide-react';
 
 interface VideoMnemonicPlayerProps {
@@ -22,6 +23,7 @@ export function VideoMnemonicPlayer({
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   if (!videoUrl || !videoUrl.trim()) return null;
@@ -53,7 +55,7 @@ export function VideoMnemonicPlayer({
       videoRef.current.pause();
       setIsPlaying(false);
     } else {
-      videoRef.current.play();
+      void videoRef.current.play().catch(() => setIsPlaying(false));
       setIsPlaying(true);
     }
   };
@@ -88,7 +90,7 @@ export function VideoMnemonicPlayer({
   const restartVideo = () => {
     if (!videoRef.current) return;
     videoRef.current.currentTime = 0;
-    videoRef.current.play();
+    void videoRef.current.play().catch(() => setIsPlaying(false));
     setIsPlaying(true);
   };
 
@@ -149,8 +151,9 @@ export function VideoMnemonicPlayer({
           <div className="relative w-full h-full group">
             <video
               ref={videoRef}
-              src={videoUrl}
+              src={videoSrc(videoUrl)}
               playsInline
+              onError={() => setLoadFailed(true)}
               preload="metadata"
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={() => videoRef.current && setDuration(videoRef.current.duration)}
@@ -169,8 +172,14 @@ export function VideoMnemonicPlayer({
               </div>
             </div>
 
+            {loadFailed && (
+              <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-900 px-6 text-center text-sm text-slate-300">
+                This video could not be loaded. Please try again shortly.
+              </div>
+            )}
+
             {/* Play Overlay Button if paused */}
-            {!isPlaying && (
+            {!isPlaying && !loadFailed && (
               <button
                 type="button"
                 onClick={togglePlay}

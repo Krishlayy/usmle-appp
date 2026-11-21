@@ -1538,12 +1538,12 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     const answeredCount = questions.length - unansweredCount;
     const progressPct = questions.length ? (answeredCount / questions.length) * 100 : 0;
 
-    const line = hc ? 'border-white' : 'border-white/10';
-    const canvas = hc ? 'bg-black text-white' : 'bg-[#070a0f] text-slate-200';
-    const subtle = hc ? 'text-white' : 'text-slate-400';
-    const iconBtn = `grid h-9 w-9 place-items-center rounded-md ${subtle} transition-colors hover:bg-white/5 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 cursor-pointer`;
-    const primaryBtn = 'inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer';
-    const ghostBtn = `inline-flex items-center gap-2 rounded-md border ${hc ? 'border-white' : 'border-white/15'} px-5 py-2.5 text-sm font-medium ${hc ? 'text-white' : 'text-slate-200'} transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:cursor-not-allowed disabled:opacity-30 cursor-pointer`;
+    const line = hc ? 'border-slate-300' : 'border-slate-200';
+    const canvas = hc ? 'bg-black text-white' : 'bg-white text-slate-800';
+    const subtle = hc ? 'text-slate-900' : 'text-slate-600';
+    const iconBtn = `grid h-9 w-9 place-items-center rounded-md ${subtle} transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 cursor-pointer`;
+    const primaryBtn = 'inline-flex items-center gap-2 rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer';
+    const ghostBtn = `inline-flex items-center gap-2 rounded-md border ${hc ? 'border-slate-300' : 'border-slate-200'} px-5 py-2.5 text-sm font-medium ${hc ? 'text-slate-900' : 'text-slate-800'} transition-colors hover:border-slate-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-30 cursor-pointer`;
     const isLast = currentIndex === session.questions.length - 1;
     const modeLabel = session.mode === 'tutor' ? 'Tutor' : session.mode === 'review' ? 'Review' : 'Timed';
     const hasExhibits = !!(currentQ.question.media && currentQ.question.media.length > 0);
@@ -1555,34 +1555,34 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
           const isStruckThrough = currentQ.strikethroughs?.includes(opt.id);
 
           let tone = hc
-            ? 'border-white'
-            : 'border-white/10 hover:border-white/30 hover:bg-white/[0.03]';
-          let letter = hc ? 'border-white text-white' : 'border-white/20 text-slate-400';
+            ? 'border-slate-300'
+            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50';
+          let letter = hc ? 'border-slate-300 text-slate-900' : 'border-slate-200 text-slate-600';
           let tag: string | null = null;
           let tagTone = '';
 
           if (isSelected) {
-            tone = 'border-teal-300/70 bg-teal-300/[0.06]';
-            letter = 'border-teal-300 bg-teal-300 text-slate-950';
+            tone = 'border-teal-300 bg-teal-300/[0.06]';
+            letter = 'border-teal-300 bg-teal-600 text-slate-950';
           }
           if (showFeedback) {
             if (opt.isCorrect) {
-              tone = 'border-emerald-400/60 bg-emerald-400/[0.07]';
-              letter = 'border-emerald-400 bg-emerald-400 text-slate-950';
+              tone = 'border-emerald-300 bg-emerald-400/[0.07]';
+              letter = 'border-emerald-300 bg-emerald-600 text-slate-950';
               tag = 'Correct answer';
-              tagTone = 'text-emerald-300';
+              tagTone = 'text-emerald-700';
             } else if (opt.isYellowDistractor) {
-              tone = 'border-amber-400/50 bg-amber-400/[0.05]';
-              letter = 'border-amber-400 text-amber-300';
+              tone = 'border-amber-300 bg-amber-400/[0.05]';
+              letter = 'border-amber-300 text-amber-700';
               tag = 'High-yield distractor';
-              tagTone = 'text-amber-300';
+              tagTone = 'text-amber-700';
             } else if (isSelected) {
-              tone = 'border-rose-400/60 bg-rose-400/[0.07]';
-              letter = 'border-rose-400 bg-rose-400 text-slate-950';
+              tone = 'border-rose-300 bg-rose-400/[0.07]';
+              letter = 'border-rose-300 bg-rose-600 text-slate-950';
               tag = 'Your answer';
-              tagTone = 'text-rose-300';
+              tagTone = 'text-rose-700';
             } else {
-              tone = 'border-white/5 opacity-50';
+              tone = 'border-slate-200 opacity-50';
             }
           }
 
@@ -1618,7 +1618,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   aria-label={isStruckThrough ? `Restore option ${String.fromCharCode(65 + i)}` : `Strike out option ${String.fromCharCode(65 + i)}`}
                   aria-pressed={!!isStruckThrough}
                   title="Strike out"
-                  className="grid w-9 shrink-0 place-items-center rounded-md text-slate-500 opacity-0 transition-opacity hover:text-white focus-visible:opacity-100 group-hover:opacity-100 cursor-pointer"
+                  className="grid w-9 shrink-0 place-items-center rounded-md text-slate-500 opacity-0 transition-opacity hover:text-slate-900 focus-visible:opacity-100 group-hover:opacity-100 cursor-pointer"
                 >
                   <Strikethrough size={15} />
                 </button>
@@ -1630,14 +1630,14 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
     );
 
     return (
-      <div className={`relative flex h-screen flex-col overflow-hidden font-sans selection:bg-teal-300/25 ${canvas}`}>
+      <div className={`relative flex h-screen flex-col overflow-hidden font-sans selection:bg-teal-50 ${canvas}`}>
         {/* Pause overlay */}
         {isPaused && (
-          <div role="dialog" aria-modal="true" aria-label="Block paused" className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#070a0f]/95 backdrop-blur-md">
+          <div role="dialog" aria-modal="true" aria-label="Block paused" className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-100 backdrop-blur-md">
             <div className="mqb-rise w-full max-w-sm px-6 text-center">
-              <Clock className="mx-auto mb-5 h-6 w-6 text-teal-300" />
-              <h2 className="font-serif text-2xl text-white">Paused</h2>
-              <p className="mt-2 text-sm text-slate-400">The timer is stopped and questions are hidden.</p>
+              <Clock className="mx-auto mb-5 h-6 w-6 text-teal-700" />
+              <h2 className="font-serif text-2xl text-slate-900">Paused</h2>
+              <p className="mt-2 text-sm text-slate-600">The timer is stopped and questions are hidden.</p>
               <button type="button" onClick={() => setIsPaused(false)} className={`${primaryBtn} mt-8 w-full justify-center`} autoFocus>
                 Resume
               </button>
@@ -1673,14 +1673,14 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         {/* End block confirmation */}
         {showEndBlockWarning && (
           <div role="dialog" aria-modal="true" aria-labelledby="end-block-title" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-            <div className="mqb-rise w-full max-w-md rounded-lg border border-white/10 bg-[#0d1219] p-7">
-              <h2 id="end-block-title" className="font-serif text-xl text-white">
+            <div className="mqb-rise w-full max-w-md rounded-lg border border-slate-200 bg-white p-7">
+              <h2 id="end-block-title" className="font-serif text-xl text-slate-900">
                 {unansweredCount > 0 ? 'End block with unanswered questions?' : 'End this block?'}
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">
                 {unansweredCount > 0 && (
                   <>
-                    <span className="font-mono text-rose-300">{unansweredCount}</span> unanswered.{' '}
+                    <span className="font-mono text-rose-700">{unansweredCount}</span> unanswered.{' '}
                   </>
                 )}
                 Your score is computed now and answers cannot be changed afterwards.
@@ -1695,7 +1695,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     setShowEndBlockWarning(false);
                     finishSession(questions);
                   }}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-300"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-600"
                 >
                   End block
                 </button>
@@ -1707,14 +1707,14 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         {/* Header */}
         <header className={`flex h-14 shrink-0 items-center justify-between gap-4 border-b px-4 md:px-6 ${line}`}>
           <div className="flex min-w-0 items-center gap-4">
-            <span className="font-mono text-sm text-white tabular-nums">
+            <span className="font-mono text-sm text-slate-900 tabular-nums">
               {currentIndex + 1}
               <span className="text-slate-500"> / {session.questions.length}</span>
             </span>
-            <span className="hidden font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/90 sm:inline">{modeLabel}</span>
+            <span className="hidden font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700 sm:inline">{modeLabel}</span>
           </div>
 
-          <div className="flex items-center gap-1 font-mono text-sm tabular-nums text-white">
+          <div className="flex items-center gap-1 font-mono text-sm tabular-nums text-slate-900">
             <Clock className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
             {settings.showTimer !== false ? (
               <TimerDisplay
@@ -1744,7 +1744,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               title="Mark (Alt+M)"
               className={iconBtn}
             >
-              <Flag size={16} className={currentQ.isFlagged ? 'fill-rose-400 text-rose-400' : ''} />
+              <Flag size={16} className={currentQ.isFlagged ? 'fill-rose-700 text-rose-700' : ''} />
             </button>
             <button type="button" onClick={() => setShowLabValues(true)} aria-label="Lab values" title="Lab values (Alt+L)" className={iconBtn}>
               <FlaskConical size={16} />
@@ -1754,7 +1754,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
             </button>
             <button type="button" onClick={() => setShowNotes(true)} aria-label="Notes" title="Notes" className={`${iconBtn} relative`}>
               <PenLine size={16} />
-              {currentQ.notes && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-teal-300" />}
+              {currentQ.notes && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-teal-600" />}
             </button>
             <button type="button" onClick={() => setSettingsMenuOpen(true)} aria-label="Settings" title="Settings" className={iconBtn}>
               <SettingsIcon size={16} />
@@ -1763,7 +1763,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
               <button
                 type="button"
                 onClick={handleEndBlock}
-                className="ml-2 cursor-pointer rounded-md px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-rose-500/10 hover:text-rose-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-300"
+                className="ml-2 cursor-pointer rounded-md px-3 py-1.5 text-sm text-slate-700 transition-colors hover:bg-rose-50 hover:text-rose-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-600"
               >
                 End block
               </button>
@@ -1772,8 +1772,8 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         </header>
 
         {/* Progress hairline */}
-        <div className="h-px w-full shrink-0 bg-white/5" role="progressbar" aria-label="Answered" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answeredCount}>
-          <div className="h-px bg-teal-300 transition-[width] duration-500 ease-out" style={{ width: `${progressPct}%` }} />
+        <div className="h-px w-full shrink-0 bg-slate-50" role="progressbar" aria-label="Answered" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answeredCount}>
+          <div className="h-px bg-teal-600 transition-[width] duration-500 ease-out" style={{ width: `${progressPct}%` }} />
         </div>
 
         <div className="relative flex flex-1 overflow-hidden">
@@ -1790,13 +1790,13 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   aria-current={isActive ? 'true' : undefined}
                   aria-label={`Question ${idx + 1}${isAnswered ? ', answered' : ''}${q.isFlagged ? ', marked' : ''}`}
                   className={`relative flex h-9 cursor-pointer items-center justify-center font-mono text-xs tabular-nums transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-teal-300 ${
-                    isActive ? 'bg-white/[0.06] text-white' : isAnswered ? 'text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:bg-white/5 hover:text-slate-300'
+                    isActive ? 'bg-slate-100 text-slate-900' : isAnswered ? 'text-slate-700 hover:bg-slate-50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-700'
                   }`}
                 >
-                  {isActive && <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-teal-300" />}
+                  {isActive && <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-teal-600" />}
                   {idx + 1}
-                  {q.isFlagged && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-400" />}
-                  {isAnswered && !q.isFlagged && <span className="absolute right-1.5 top-1.5 h-1 w-1 rounded-full bg-teal-300/70" />}
+                  {q.isFlagged && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-600" />}
+                  {isAnswered && !q.isFlagged && <span className="absolute right-1.5 top-1.5 h-1 w-1 rounded-full bg-teal-600" />}
                 </button>
               );
             })}
@@ -1814,7 +1814,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 <div
                   ref={questionContentRef}
                   style={{ fontSize: `${settings.fontSize}px`, lineHeight: 1.7 }}
-                  className="vignette-text select-text text-slate-100"
+                  className="vignette-text select-text text-slate-900"
                   dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedQuestionText || currentQ.question.questionText) }}
                 />
 
@@ -1826,10 +1826,10 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         type="button"
                         onClick={() => setZoomImage(m.url)}
                         aria-label={`Expand exhibit${m.caption ? `: ${m.caption}` : ''}`}
-                        className="group/ex cursor-zoom-in overflow-hidden rounded-md border border-white/10 bg-black/40 text-left transition-colors hover:border-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                        className="group/ex cursor-zoom-in overflow-hidden rounded-md border border-slate-200 bg-black/40 text-left transition-colors hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
                       >
                         <img src={m.url} alt={m.caption || 'Clinical exhibit'} className="h-44 w-full object-contain p-2" />
-                        {m.caption && <span className="block border-t border-white/10 px-3 py-2 text-xs text-slate-400">{m.caption}</span>}
+                        {m.caption && <span className="block border-t border-slate-200 px-3 py-2 text-xs text-slate-600">{m.caption}</span>}
                       </button>
                     ))}
                   </div>
@@ -1853,14 +1853,14 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     >
                       {revealing ? 'Loading…' : 'Submit answer'}
                     </button>
-                    {revealError && <p role="alert" className="w-full text-right text-xs text-rose-300">{revealError}</p>}
+                    {revealError && <p role="alert" className="w-full text-right text-xs text-rose-700">{revealError}</p>}
                   </div>
                 )}
 
                 {showFeedback && (
                   <div className="mt-10 space-y-8">
                     {currentQ.question.videoUrl && (
-                      <div className="overflow-hidden rounded-lg border border-white/10 bg-black">
+                      <div className="overflow-hidden rounded-lg border border-slate-200 bg-black">
                         <VideoMnemonicPlayer
                           videoUrl={currentQ.question.videoUrl}
                           title={`Video mnemonic · Question ${currentIndex + 1}`}
@@ -1870,17 +1870,17 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                     )}
 
                     <div>
-                      <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
-                        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Explanation</h2>
+                      <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
+                        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600">Explanation</h2>
                         {currentQ.isCorrect !== null && (
-                          <span className={`font-mono text-[11px] uppercase tracking-wider ${currentQ.isCorrect ? 'text-emerald-300' : 'text-rose-300'}`}>
+                          <span className={`font-mono text-[11px] uppercase tracking-wider ${currentQ.isCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
                             {currentQ.isCorrect ? 'Correct' : 'Incorrect'}
                           </span>
                         )}
                       </div>
                       <div
                         ref={explanationContentRef}
-                        className="qbank-explanation-body select-text text-[15px] leading-relaxed text-slate-300"
+                        className="qbank-explanation-body select-text text-[15px] leading-relaxed text-slate-700"
                         onClick={(e) => {
                           const target = e.target as HTMLElement;
                           if (target && target.tagName === 'IMG') {

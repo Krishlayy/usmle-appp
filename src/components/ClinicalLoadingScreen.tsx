@@ -37,15 +37,15 @@ export function ClinicalLoadingScreen({ text }: { text?: string }) {
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-0 z-[99999] flex select-none flex-col items-center justify-center bg-[#070a0f] px-5 text-slate-100"
+      className="fixed inset-0 z-[99999] flex select-none flex-col items-center justify-center bg-white px-5 text-slate-900"
     >
       <div className="flex w-full max-w-xs flex-col gap-4">
         <div className="flex items-baseline justify-between">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Loading</span>
-          <span className="font-mono text-3xl font-medium tabular-nums text-white">{progress}%</span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">Loading</span>
+          <span className="font-mono text-3xl font-medium tabular-nums text-slate-900">{progress}%</span>
         </div>
         <div
-          className="h-px w-full bg-white/10"
+          className="h-px w-full bg-slate-100"
           role="progressbar"
           aria-valuenow={progress}
           aria-valuemin={0}
@@ -53,11 +53,11 @@ export function ClinicalLoadingScreen({ text }: { text?: string }) {
           aria-label="Loading progress"
         >
           <div
-            className="h-px bg-teal-300 transition-[width] duration-300 ease-out"
+            className="h-px bg-teal-600 transition-[width] duration-300 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="h-5 text-sm text-slate-400">{text || statuses[statusIndex]}</p>
+        <p className="h-5 text-sm text-slate-600">{text || statuses[statusIndex]}</p>
       </div>
     </div>
   );

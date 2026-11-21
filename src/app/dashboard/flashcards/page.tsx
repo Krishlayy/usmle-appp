@@ -1,5 +1,6 @@
 'use client';
 
+import { videoSrc } from '@/lib/videoUrl';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { RotateCw, Brain, Video, ChevronRight, ChevronLeft, X, Play } from 'lucide-react';
@@ -83,22 +84,22 @@ export default function FlashcardsReviewPage() {
     }
   };
 
-  const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300';
+  const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600';
 
   return (
-    <div className="min-h-screen bg-[#070a0f] px-5 py-12 text-slate-100 md:px-10 md:py-16">
+    <div className="min-h-screen bg-white px-5 py-12 text-slate-900 md:px-10 md:py-16">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
 
         {/* Header Bar */}
-        <div className="flex w-full items-center justify-between border-b border-white/10 pb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
+        <div className="flex w-full items-center justify-between border-b border-slate-200 pb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-2">
-              <Brain className="h-4 w-4 text-teal-300" aria-hidden />
-              <span>Due Today: <strong className="font-medium tabular-nums text-white">18</strong></span>
+              <Brain className="h-4 w-4 text-teal-700" aria-hidden />
+              <span>Due Today: <strong className="font-medium tabular-nums text-slate-900">18</strong></span>
             </span>
-            <span>Reviewed: <strong className="font-medium tabular-nums text-white">{completedCount}</strong></span>
+            <span>Reviewed: <strong className="font-medium tabular-nums text-slate-900">{completedCount}</strong></span>
           </div>
-          <span className="tabular-nums text-slate-300">
+          <span className="tabular-nums text-slate-700">
             Card {currentIndex + 1} of {deck.length}
           </span>
         </div>
@@ -116,11 +117,11 @@ export default function FlashcardsReviewPage() {
             {/* Front of Card */}
             <div
               inert={isFlipped}
-              className="absolute inset-0 flex flex-col justify-between rounded-lg border border-white/10 bg-[#0d1219] p-8 [backface-visibility:hidden]"
+              className="absolute inset-0 flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-8 [backface-visibility:hidden]"
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-teal-300/80">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-teal-700">
                     {currentCard.category}
                   </span>
                   <span className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -129,12 +130,12 @@ export default function FlashcardsReviewPage() {
                   </span>
                 </div>
 
-                <h2 className="pt-2 font-serif text-lg font-medium leading-relaxed text-white md:text-xl">
+                <h2 className="pt-2 font-serif text-lg font-medium leading-relaxed text-slate-900 md:text-xl">
                   {currentCard.front}
                 </h2>
               </div>
 
-              <div className="border-t border-white/10 pt-3 text-center text-xs text-slate-500">
+              <div className="border-t border-slate-200 pt-3 text-center text-xs text-slate-500">
                 Tap or click card to reveal answer &amp; mnemonic pearl &rarr;
               </div>
             </div>
@@ -142,18 +143,18 @@ export default function FlashcardsReviewPage() {
             {/* Back of Card */}
             <div
               inert={!isFlipped}
-              className="absolute inset-0 flex flex-col justify-between rounded-lg border border-white/15 bg-[#0d1219] p-8 [backface-visibility:hidden] [transform:rotateY(180deg)]"
+              className="absolute inset-0 flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-8 [backface-visibility:hidden] [transform:rotateY(180deg)]"
             >
               <div className="space-y-3">
-                <span className="inline-block font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+                <span className="inline-block font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">
                   High-Yield Recall Pearl &amp; Synthesis
                 </span>
 
-                <h3 className="font-serif text-lg font-medium leading-snug text-white">
+                <h3 className="font-serif text-lg font-medium leading-snug text-slate-900">
                   {currentCard.backHeading}
                 </h3>
 
-                <div className="max-h-40 overflow-y-auto pr-1 text-sm leading-relaxed text-slate-300">
+                <div className="max-h-40 overflow-y-auto pr-1 text-sm leading-relaxed text-slate-700">
                   {currentCard.backText}
                 </div>
               </div>
@@ -165,16 +166,16 @@ export default function FlashcardsReviewPage() {
                   e.stopPropagation();
                   setShowVideoModal(true);
                 }}
-                className={`flex w-full items-center justify-between rounded-md border border-white/15 p-3 text-left transition-colors hover:border-white/40 ${focusRing}`}
+                className={`flex w-full items-center justify-between rounded-md border border-slate-200 p-3 text-left transition-colors hover:border-slate-300 ${focusRing}`}
               >
                 <span className="flex items-center gap-3">
-                  <Play className="h-4 w-4 text-teal-300" aria-hidden />
+                  <Play className="h-4 w-4 text-teal-700" aria-hidden />
                   <span>
-                    <span className="block text-xs text-white">Mnemonic: {currentCard.mnemonicTitle}</span>
+                    <span className="block text-xs text-slate-900">Mnemonic: {currentCard.mnemonicTitle}</span>
                     <span className="block text-[11px] text-slate-500">Duration {currentCard.mnemonicDuration} &bull; Clinical memory anchor</span>
                   </span>
                 </span>
-                <span className="text-xs text-teal-300">Play &rarr;</span>
+                <span className="text-xs text-teal-700">Play &rarr;</span>
               </button>
             </div>
 
@@ -186,7 +187,7 @@ export default function FlashcardsReviewPage() {
             type="button"
             onClick={handleFlip}
             aria-pressed={isFlipped}
-            className={`rounded-md border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white ${focusRing}`}
+            className={`rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-slate-800 transition-colors hover:border-slate-300 hover:text-slate-900 ${focusRing}`}
           >
             {isFlipped ? 'Show question' : 'Show answer'}
           </button>
@@ -204,7 +205,7 @@ export default function FlashcardsReviewPage() {
               key={r.id}
               type="button"
               onClick={() => handleRate(r.id)}
-              className={`flex flex-col items-center rounded-md border border-white/15 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white ${focusRing}`}
+              className={`flex flex-col items-center rounded-md border border-slate-200 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:border-slate-300 hover:text-slate-900 ${focusRing}`}
             >
               <span>{r.label}</span>
               <span className="font-mono text-[11px] font-normal text-slate-500">{r.interval}</span>
@@ -213,14 +214,14 @@ export default function FlashcardsReviewPage() {
         </div>
 
         {/* Card Navigation Footer */}
-        <div className="flex w-full items-center justify-between border-t border-white/10 pt-4 text-sm text-slate-400">
+        <div className="flex w-full items-center justify-between border-t border-slate-200 pt-4 text-sm text-slate-600">
           <button
             type="button"
             onClick={() => {
               setIsFlipped(false);
               setCurrentIndex(prev => (prev > 0 ? prev - 1 : deck.length - 1));
             }}
-            className={`flex items-center gap-1 transition-colors hover:text-white ${focusRing}`}
+            className={`flex items-center gap-1 transition-colors hover:text-slate-900 ${focusRing}`}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
             <span>Previous Card</span>
@@ -228,7 +229,7 @@ export default function FlashcardsReviewPage() {
 
           <Link
             href="/dashboard"
-            className={`text-teal-300 transition-colors hover:text-teal-200 ${focusRing}`}
+            className={`text-teal-700 transition-colors hover:text-teal-800 ${focusRing}`}
           >
             Return to Dashboard &rarr;
           </Link>
@@ -239,7 +240,7 @@ export default function FlashcardsReviewPage() {
               setIsFlipped(false);
               setCurrentIndex(prev => (prev + 1 < deck.length ? prev + 1 : 0));
             }}
-            className={`flex items-center gap-1 transition-colors hover:text-white ${focusRing}`}
+            className={`flex items-center gap-1 transition-colors hover:text-slate-900 ${focusRing}`}
           >
             <span>Next Card</span>
             <ChevronRight className="h-4 w-4" aria-hidden />
@@ -249,33 +250,33 @@ export default function FlashcardsReviewPage() {
 
       {/* Video Modal */}
       {showVideoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#070a0f]/85 p-4 backdrop-blur-sm">
-          <div role="dialog" aria-modal="true" aria-label={currentCard.mnemonicTitle} className="w-full max-w-2xl space-y-4 rounded-lg border border-white/15 bg-[#0d1219] p-6">
-            <div className="flex items-center justify-between text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 p-4 backdrop-blur-sm">
+          <div role="dialog" aria-modal="true" aria-label={currentCard.mnemonicTitle} className="w-full max-w-2xl space-y-4 rounded-lg border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between text-slate-900">
               <div className="flex items-center gap-2">
-                <Video className="h-4 w-4 text-teal-300" aria-hidden />
+                <Video className="h-4 w-4 text-teal-700" aria-hidden />
                 <h3 className="font-serif text-base font-medium">{currentCard.mnemonicTitle}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowVideoModal(false)}
                 aria-label="Close video"
-                className={`rounded-md p-1.5 text-slate-400 transition-colors hover:text-white ${focusRing}`}
+                className={`rounded-md p-1.5 text-slate-600 transition-colors hover:text-slate-900 ${focusRing}`}
               >
                 <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
 
-            <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-md border border-white/10 bg-black">
+            <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-black">
               <video
-                src="/videos/mnemonics/autoimmune/boardroom.mp4"
+                src={videoSrc("/videos/mnemonics/autoimmune/boardroom.mp4")}
                 controls
                 autoPlay
                 className="h-full w-full object-contain"
               />
             </div>
 
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600">
               High-yield visual memory anchor for long-term retention. Correlates clinical findings with pathognomonic board clues.
             </p>
           </div>

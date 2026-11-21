@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { QuickPracticeModal, QBankData } from './QuickPracticeModal';
 import { Reveal } from '@/components/ui/Reveal';
+import { AutoPlayVideo } from '@/components/ui/AutoPlayVideo';
 
 export interface LandingQBankItem {
   id: string;
@@ -119,14 +120,14 @@ export function LandingQBanksSection({ customQBanks }: LandingQBanksSectionProps
   return (
     <section id="qbanks" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-24 md:px-10">
       <Reveal>
-        <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+        <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">
           Curated system question banks
         </p>
-        <h2 className="max-w-2xl font-serif text-3xl font-medium tracking-tight text-white md:text-4xl">
+        <h2 className="max-w-2xl font-serif text-3xl font-medium tracking-tight text-slate-900 md:text-4xl">
           All 4 High-Yield Question Banks
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
-          Select any system to drill all 50 board-curated questions. Choose between self-paced <strong className="font-medium text-slate-200">Tutor Mode</strong> for instant rationales and visual mnemonics, or <strong className="font-medium text-slate-200">Timed Mode</strong> for authentic exam pacing.
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600">
+          Select any system to drill all 50 board-curated questions. Choose between self-paced <strong className="font-medium text-slate-800">Tutor Mode</strong> for instant rationales and visual mnemonics, or <strong className="font-medium text-slate-800">Timed Mode</strong> for authentic exam pacing.
         </p>
       </Reveal>
 
@@ -136,26 +137,23 @@ export function LandingQBanksSection({ customQBanks }: LandingQBanksSectionProps
 
           return (
             <Reveal key={qbank.id} delay={Math.min(i, 5) * 0.05}>
-              <article className="group flex h-full flex-col justify-between rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl transition-colors hover:border-white/25">
+              <article className="group flex h-full flex-col justify-between rounded-lg border border-slate-200 bg-white shadow-sm p-6 transition-colors hover:border-slate-300">
                 <div>
                   {qbank.previewVideoUrl && (
-                    <div className="relative mb-6 h-48 w-full overflow-hidden rounded-md border border-white/10 bg-black sm:h-52">
-                      <video
+                    <div className="relative mb-6 h-48 w-full overflow-hidden rounded-md border border-slate-200 bg-slate-100 sm:h-52">
+                      <AutoPlayVideo
                         src={qbank.previewVideoUrl}
-                        autoPlay
-                        loop
                         muted={isMuted}
-                        playsInline
-                        aria-label={`${qbank.title} mnemonic preview`}
-                        className="h-full w-full object-cover opacity-80 transition-opacity duration-300 group-hover:opacity-100"
+                        label={`${qbank.title} mnemonic preview`}
+                        className="h-full w-full object-cover"
                       />
-                      <span className="pointer-events-none absolute left-3 top-3 rounded-sm border border-white/15 bg-[#070a0f]/80 px-2 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300">
+                      <span className="pointer-events-none absolute left-3 top-3 rounded-sm border border-slate-200 bg-slate-100 px-2 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">
                         Mnemonic preview
                       </span>
                       <button
                         type="button"
                         onClick={(e) => toggleMute(qbank.slug, e)}
-                        className="absolute bottom-3 right-3 z-10 rounded-md border border-white/15 bg-[#070a0f]/80 p-2 text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                        className="absolute bottom-3 right-3 z-10 rounded-md border border-slate-200 bg-slate-100 p-2 text-slate-800 transition-colors hover:border-slate-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
                         title={isMuted ? "Unmute preview" : "Mute preview"}
                         aria-label={isMuted ? "Unmute preview" : "Mute preview"}
                       >
@@ -165,7 +163,7 @@ export function LandingQBanksSection({ customQBanks }: LandingQBanksSectionProps
                   )}
 
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-teal-300/80">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-teal-700">
                       {qbank.specialtyTag}
                     </span>
                     <span className="font-mono text-[11px] uppercase tracking-wider tabular-nums text-slate-500">
@@ -173,10 +171,10 @@ export function LandingQBanksSection({ customQBanks }: LandingQBanksSectionProps
                     </span>
                   </div>
 
-                  <h3 className="mt-3 font-serif text-2xl font-medium leading-snug tracking-tight text-white">
+                  <h3 className="mt-3 font-serif text-2xl font-medium leading-snug tracking-tight text-slate-900">
                     {qbank.title}
                   </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-400">
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600">
                     {qbank.description}
                   </p>
 
@@ -188,7 +186,7 @@ export function LandingQBanksSection({ customQBanks }: LandingQBanksSectionProps
                       {qbank.topics.map((t, idx) => (
                         <li
                           key={idx}
-                          className="rounded-md border border-white/10 px-2.5 py-1 text-xs text-slate-300"
+                          className="rounded-md border border-slate-200 px-2.5 py-1 text-xs text-slate-700"
                         >
                           {t}
                         </li>
@@ -197,26 +195,26 @@ export function LandingQBanksSection({ customQBanks }: LandingQBanksSectionProps
                   </div>
                 </div>
 
-                <div className="mt-8 border-t border-white/10 pt-6">
+                <div className="mt-8 border-t border-slate-200 pt-6">
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => handleStart(qbank, 'tutor')}
-                      className="rounded-md border border-white/15 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                      className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:border-slate-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
                     >
                       Tutor Mode (50 Qs)
                     </button>
                     <button
                       type="button"
                       onClick={() => handleStart(qbank, 'timed')}
-                      className="rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                      className="rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
                     >
                       Timed Mode (50 Qs)
                     </button>
                   </div>
 
                   <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
-                    <span><span className="font-mono tabular-nums text-slate-300">{qbank.exhibitCount}</span> Interactive Exhibits</span>
+                    <span><span className="font-mono tabular-nums text-slate-700">{qbank.exhibitCount}</span> Interactive Exhibits</span>
                     <span>Selectable Tables &amp; Full Distractors</span>
                   </div>
                 </div>

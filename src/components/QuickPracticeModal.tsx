@@ -101,7 +101,7 @@ export function QuickPracticeModal({ isOpen, onClose, qbank, defaultMode = 'tuto
   ];
 
   return (
-    <div className="fixed inset-0 z-[999999] flex items-center justify-center overflow-y-auto bg-[#070a0f]/80 p-4 backdrop-blur-sm sm:p-6">
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center overflow-y-auto bg-slate-100 p-4 backdrop-blur-sm sm:p-6">
       {/* Backdrop click handler */}
       <div className="fixed inset-0" onClick={() => !isLoading && onClose()} />
 
@@ -110,15 +110,15 @@ export function QuickPracticeModal({ isOpen, onClose, qbank, defaultMode = 'tuto
         role="dialog"
         aria-modal="true"
         aria-labelledby="quick-practice-title"
-        className="relative z-10 flex w-full max-w-lg flex-col rounded-lg border border-white/15 bg-[#0d1219] text-slate-100"
+        className="relative z-10 flex w-full max-w-lg flex-col rounded-lg border border-slate-200 bg-white text-slate-900"
       >
-        <div className="flex items-start justify-between border-b border-white/10 p-6">
+        <div className="flex items-start justify-between border-b border-slate-200 p-6">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">
               {qbank.specialtyTag || 'Clinical Q-Bank'}
               <span className="text-slate-500"> &middot; <span className="tabular-nums">{totalQuestions}</span> Board-Style Items</span>
             </p>
-            <h2 id="quick-practice-title" className="mt-3 font-serif text-2xl font-medium tracking-tight text-white">
+            <h2 id="quick-practice-title" className="mt-3 font-serif text-2xl font-medium tracking-tight text-slate-900">
               {qbank.title}
             </h2>
           </div>
@@ -127,7 +127,7 @@ export function QuickPracticeModal({ isOpen, onClose, qbank, defaultMode = 'tuto
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="rounded-md p-1.5 text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+            className="rounded-md p-1.5 text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
             title="Close (Esc)"
             aria-label="Close"
           >
@@ -137,16 +137,16 @@ export function QuickPracticeModal({ isOpen, onClose, qbank, defaultMode = 'tuto
 
         <div className="space-y-6 p-6">
           {error && (
-            <div role="alert" className="flex items-center justify-between rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            <div role="alert" className="flex items-center justify-between rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
               <span>{error}</span>
-              <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-2 text-red-300 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300">
+              <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-2 text-red-700 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
                 <X className="h-4 w-4" aria-hidden />
               </button>
             </div>
           )}
 
           <div role="radiogroup" aria-labelledby="quick-practice-mode-label">
-            <p id="quick-practice-mode-label" className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
+            <p id="quick-practice-mode-label" className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600">
               Select Examination Mode
             </p>
 
@@ -162,39 +162,39 @@ export function QuickPracticeModal({ isOpen, onClose, qbank, defaultMode = 'tuto
                     onClick={() => setMode(id)}
                     className={`flex flex-col justify-between rounded-lg border p-5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 ${
                       selected
-                        ? 'border-teal-300 bg-white/[0.05]'
-                        : 'border-white/10 bg-white/[0.02] hover:border-white/25'
+                        ? 'border-teal-600 bg-slate-100'
+                        : 'border-slate-200 bg-slate-100 hover:border-slate-300'
                     }`}
                   >
                     <div className="mb-4 flex items-start justify-between">
-                      <Icon className={`h-5 w-5 ${selected ? 'text-teal-300' : 'text-slate-400'}`} strokeWidth={1.75} aria-hidden />
+                      <Icon className={`h-5 w-5 ${selected ? 'text-teal-700' : 'text-slate-400'}`} strokeWidth={1.75} aria-hidden />
                       {selected && (
-                        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300">Selected</span>
+                        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">Selected</span>
                       )}
                     </div>
                     <div>
-                      <h4 className="mb-1 font-serif text-lg font-medium text-white">{title}</h4>
-                      <p className="text-xs leading-relaxed text-slate-400">{body}</p>
+                      <h4 className="mb-1 font-serif text-lg font-medium text-slate-900">{title}</h4>
+                      <p className="text-xs leading-relaxed text-slate-600">{body}</p>
                     </div>
-                    <p className="mt-4 border-t border-white/10 pt-3 text-[11px] text-slate-300">{foot}</p>
+                    <p className="mt-4 border-t border-slate-200 pt-3 text-[11px] text-slate-700">{foot}</p>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="flex items-center justify-between border-y border-white/10 py-3 text-xs text-slate-400">
+          <div className="flex items-center justify-between border-y border-slate-200 py-3 text-xs text-slate-600">
             <span>Total Block Curriculum</span>
-            <span className="font-mono tabular-nums text-white">Full {totalQuestions} Questions</span>
+            <span className="font-mono tabular-nums text-slate-900">Full {totalQuestions} Questions</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-white/10 p-6">
+        <div className="flex items-center justify-end gap-3 border-t border-slate-200 p-6">
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="rounded-md border border-white/15 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:opacity-60"
+            className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:border-slate-300 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 disabled:opacity-60"
           >
             Cancel
           </button>
@@ -203,7 +203,7 @@ export function QuickPracticeModal({ isOpen, onClose, qbank, defaultMode = 'tuto
             type="button"
             onClick={handleStartBlock}
             disabled={isLoading}
-            className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:pointer-events-none disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 disabled:pointer-events-none disabled:opacity-60"
           >
             {isLoading ? (
               <>

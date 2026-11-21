@@ -15,8 +15,8 @@ export default function SetupTestPage(props: { params: Promise<{ qbankSlug: stri
   }, [params.qbankSlug, mode, router]);
 
   return (
-    <div role="status" className="flex h-screen w-full items-center justify-center bg-[#070a0f]">
-      <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Preparing your block...</p>
+    <div role="status" className="flex h-screen w-full items-center justify-center bg-white">
+      <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600">Preparing your block...</p>
     </div>
   );
 }

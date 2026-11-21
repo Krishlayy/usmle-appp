@@ -98,7 +98,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col text-slate-100">
+    <div className="relative flex min-h-screen flex-col text-slate-900">
       <VideoBackdrop />
 
       {/* The global Navbar comes from LayoutUIWrapper; root layout owns <main>. */}
@@ -108,17 +108,17 @@ export default async function DashboardPage() {
           {/* Greeting */}
           <section className="flex flex-col gap-12">
             <Reveal>
-              <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-teal-300/80">Dashboard</p>
-              <h1 className="max-w-3xl font-serif text-4xl font-medium leading-[1.1] tracking-tight text-white md:text-6xl">
+              <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-teal-700">Dashboard</p>
+              <h1 className="max-w-3xl font-serif text-4xl font-medium leading-[1.1] tracking-tight text-slate-900 md:text-6xl">
                 Welcome back, {displayName}.
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-400 md:text-lg">
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 md:text-lg">
                 Short questions. Video mnemonics. Pick up where you left off.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   href="/simulator"
-                  className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200"
+                  className="inline-flex items-center gap-2 rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800"
                 >
                   Board simulator
                   <ArrowUpRight className="h-4 w-4" />
@@ -127,11 +127,11 @@ export default async function DashboardPage() {
             </Reveal>
 
             <Reveal delay={0.1}>
-              <dl className="grid grid-cols-3 divide-x divide-white/10 border-y border-white/10">
+              <dl className="grid grid-cols-3 divide-x divide-slate-200 border-y border-slate-200">
                 {stats.map((s) => (
                   <div key={s.label} className="px-4 py-6 first:pl-0 md:px-8">
                     <dt className="text-xs uppercase tracking-widest text-slate-500">{s.label}</dt>
-                    <dd className="mt-2 font-mono text-3xl font-medium tabular-nums text-white md:text-4xl">{s.value}</dd>
+                    <dd className="mt-2 font-mono text-3xl font-medium tabular-nums text-slate-900 md:text-4xl">{s.value}</dd>
                   </div>
                 ))}
               </dl>
@@ -141,14 +141,14 @@ export default async function DashboardPage() {
           {/* Your QBanks */}
           <section className="flex flex-col gap-6">
             <Reveal>
-              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Your question banks</h2>
+              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-slate-600">Your question banks</h2>
             </Reveal>
 
             {displayPurchases.length === 0 ? (
               <Reveal>
-                <div className="rounded-lg border border-dashed border-white/15 p-12 text-center">
-                  <h3 className="font-serif text-xl text-white">No active question banks</h3>
-                  <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
+                <div className="rounded-lg border border-dashed border-slate-200 p-12 text-center">
+                  <h3 className="font-serif text-xl text-slate-900">No active question banks</h3>
+                  <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
                     Unlock a bank below to start practicing.
                   </p>
                 </div>
@@ -161,12 +161,12 @@ export default async function DashboardPage() {
           {/* Available to unlock */}
           <section className="flex flex-col gap-6">
             <Reveal>
-              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Available to unlock</h2>
+              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-slate-600">Available to unlock</h2>
             </Reveal>
 
             {availableQbanks.length === 0 ? (
               <Reveal>
-                <p className="rounded-lg border border-white/10 bg-white/[0.03] p-8 text-sm text-slate-400">
+                <p className="rounded-lg border border-slate-200 bg-slate-100 p-8 text-sm text-slate-600">
                   You own every available bank. Nothing left to unlock right now.
                 </p>
               </Reveal>
@@ -174,19 +174,19 @@ export default async function DashboardPage() {
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {availableQbanks.map((qbank, i) => (
                   <Reveal key={qbank.id} delay={Math.min(i, 5) * 0.05}>
-                    <article className="flex h-full flex-col justify-between gap-6 rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl transition-colors hover:border-white/25">
+                    <article className="flex h-full flex-col justify-between gap-6 rounded-lg border border-slate-200 bg-white shadow-sm p-6 transition-colors hover:border-slate-300">
                       <div>
                         <div className="flex items-start justify-between gap-4">
-                          <h3 className="font-serif text-lg leading-snug text-white">{qbank.title}</h3>
-                          <span className="whitespace-nowrap font-mono text-[11px] uppercase tracking-wider text-teal-300/80">
+                          <h3 className="font-serif text-lg leading-snug text-slate-900">{qbank.title}</h3>
+                          <span className="whitespace-nowrap font-mono text-[11px] uppercase tracking-wider text-teal-700">
                             {qbank.specialtyTag}
                           </span>
                         </div>
-                        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-400">{qbank.description}</p>
+                        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{qbank.description}</p>
                       </div>
                       <div className="flex flex-col gap-4">
-                        <div className="flex items-baseline justify-between border-t border-white/10 pt-4">
-                          <span className="font-mono text-2xl text-white">${(qbank.price / 100).toFixed(2)}</span>
+                        <div className="flex items-baseline justify-between border-t border-slate-200 pt-4">
+                          <span className="font-mono text-2xl text-slate-900">${(qbank.price / 100).toFixed(2)}</span>
                           <span className="text-xs text-slate-500">{qbank.totalQuestions} questions</span>
                         </div>
                         <CheckoutButton qbankId={qbank.id} />
@@ -200,14 +200,14 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <footer className="border-t border-white/10">
+      <footer className="border-t border-slate-200">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between md:px-10">
           <p>
-            <span className="text-slate-300">Micro Q-Bank</span> © {new Date().getFullYear()}
+            <span className="text-slate-700">Micro Q-Bank</span> © {new Date().getFullYear()}
           </p>
           <nav aria-label="Footer links" className="flex items-center gap-6">
             {footerLinks.map((item) => (
-              <Link key={item.label} href={item.href} className="transition-colors hover:text-white">
+              <Link key={item.label} href={item.href} className="transition-colors hover:text-slate-900">
                 {item.label}
               </Link>
             ))}

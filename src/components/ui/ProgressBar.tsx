@@ -30,12 +30,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className={`flex w-full flex-col gap-2 ${className}`}>
       {(label || showPercentage) && (
         <div className="flex items-end justify-between text-xs">
-          {label && <span className="text-slate-300">{label}</span>}
-          {showPercentage && <span className="font-mono tabular-nums text-slate-400">{Math.round(progress)}%</span>}
+          {label && <span className="text-slate-700">{label}</span>}
+          {showPercentage && <span className="font-mono tabular-nums text-slate-500">{Math.round(progress)}%</span>}
         </div>
       )}
       <div
-        className="h-px w-full bg-white/10"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200"
         role="progressbar"
         aria-valuenow={Math.round(Math.max(0, Math.min(100, progress)))}
         aria-valuemin={0}
@@ -43,7 +43,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         aria-label={label || 'Progress'}
       >
         <div
-          className={`h-px bg-teal-300 transition-[width] duration-700 ease-out ${barClassName}`}
+          className={`h-full rounded-full bg-teal-600 transition-[width] duration-700 ease-out ${barClassName}`}
           style={{ width: `${fill}%` }}
         />
       </div>

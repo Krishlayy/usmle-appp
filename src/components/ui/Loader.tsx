@@ -9,7 +9,7 @@ export const Loader: React.FC<LoaderProps> = ({ size = 'sm', className = '' }) =
   const sizeClasses = size === 'sm' ? 'h-5 w-5' : 'h-16 w-16';
   
   return (
-    <div className={`inline-flex items-center justify-center text-teal-300 ${sizeClasses} ${className}`}>
+    <div className={`inline-flex items-center justify-center text-teal-600 ${sizeClasses} ${className}`}>
       <svg viewBox="0 0 120 120" className="h-full w-full" role="status" aria-label="Loading">
         <path
           d="M15,85 C30,55 40,95 55,60 C65,38 75,80 90,45 C98,28 100,50 105,35"

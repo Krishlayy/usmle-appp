@@ -50,7 +50,7 @@ function VerifyEmailContent() {
   return (
     <AuthShell eyebrow="Verification" title="Email Verification">
       {status === 'loading' && (
-        <div role="status" className="flex items-center gap-3 text-sm text-slate-400">
+        <div role="status" className="flex items-center gap-3 text-sm text-slate-600">
           <Loader className="h-5 w-5" />
           <p>{message}</p>
         </div>
@@ -58,7 +58,7 @@ function VerifyEmailContent() {
 
       {status === 'success' && (
         <div className="space-y-6">
-          <p role="status" className="text-sm leading-relaxed text-teal-200">{message}</p>
+          <p role="status" className="text-sm leading-relaxed text-teal-800">{message}</p>
           <Link href="/login" className="block">
             <Button className="h-11 w-full text-sm">Proceed to Login</Button>
           </Link>
@@ -67,9 +67,9 @@ function VerifyEmailContent() {
 
       {status === 'error' && (
         <div className="space-y-6">
-          <p role="alert" className="rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{message}</p>
+          <p role="alert" className="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{message}</p>
           <Link href="/signup" className="block">
-            <Button variant="secondary" className="h-11 w-full text-sm text-slate-100">
+            <Button variant="secondary" className="h-11 w-full text-sm text-slate-900">
               Back to Sign Up
             </Button>
           </Link>

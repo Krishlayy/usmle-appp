@@ -1,5 +1,6 @@
 'use client';
 
+import { videoSrc } from '@/lib/videoUrl';
 import React from 'react';
 import Image from 'next/image';
 
@@ -78,7 +79,7 @@ export function MediaRenderer({ media, setZoomImage }: { media: { id: string; ty
             controls
             className="w-full h-full object-contain"
           >
-            <source src={media.url} />
+            <source src={videoSrc(media.url)} />
             Your browser does not support the video tag.
           </video>
         )}

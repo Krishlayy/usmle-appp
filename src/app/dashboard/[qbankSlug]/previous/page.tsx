@@ -39,31 +39,31 @@ export default async function PreviousTestsPage(props: { params: Promise<{ qbank
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-16">
-      <div className="mb-10 flex items-end justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="mb-10 flex items-end justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
           <Link
             href={`/dashboard/${params.qbankSlug}`}
-            className="mb-5 inline-flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+            className="mb-5 inline-flex items-center gap-1 text-sm text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
           >
             <ChevronLeft className="h-4 w-4" aria-hidden /> Back to {qbank.title}
           </Link>
-          <h1 className="font-serif text-4xl font-medium tracking-tight text-white">Test History</h1>
+          <h1 className="font-serif text-4xl font-medium tracking-tight text-slate-900">Test History</h1>
         </div>
-        <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] tabular-nums text-slate-400">
+        <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] tabular-nums text-slate-600">
           {testSessions.length} Sessions
         </span>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03] backdrop-blur-xl">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         {testSessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">
-            <h2 className="mb-2 font-serif text-xl text-white">No tests taken yet</h2>
-            <p className="mb-6 max-w-sm text-sm text-slate-400">
+            <h2 className="mb-2 font-serif text-xl text-slate-900">No tests taken yet</h2>
+            <p className="mb-6 max-w-sm text-sm text-slate-600">
               You haven&apos;t started any practice blocks for this question bank.
             </p>
             <Link
               href={`/dashboard/${params.qbankSlug}`}
-              className="rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
+              className="rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >
               Start Practice
             </Link>
@@ -72,7 +72,7 @@ export default async function PreviousTestsPage(props: { params: Promise<{ qbank
           <div className="overflow-x-auto">
             <table className="w-full whitespace-nowrap text-left">
               <thead>
-                <tr className="border-b border-white/10 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                <tr className="border-b border-slate-200 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600">
                   <th scope="col" className="px-6 py-4 font-medium">Status</th>
                   <th scope="col" className="px-6 py-4 font-medium">Date Started</th>
                   <th scope="col" className="px-6 py-4 font-medium">Mode</th>
@@ -80,7 +80,7 @@ export default async function PreviousTestsPage(props: { params: Promise<{ qbank
                   <th scope="col" className="px-6 py-4 text-right font-medium">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody className="divide-y divide-slate-200">
                 {testSessions.map((ts) => {
                   const totalQuestions = ts.progress.length;
                   const attemptedQuestions = ts.progress.filter(p => p.selectedAnswer !== null).length;
@@ -90,42 +90,42 @@ export default async function PreviousTestsPage(props: { params: Promise<{ qbank
                   const isCompleted = ts.status === 'completed';
 
                   return (
-                    <tr key={ts.id} className="transition-colors hover:bg-white/[0.03]">
+                    <tr key={ts.id} className="transition-colors hover:bg-slate-50">
                       <td className="px-6 py-4">
                         {isCompleted ? (
-                          <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-teal-300">
+                          <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-teal-700">
                             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Completed
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-amber-300">
+                          <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-amber-700">
                             <Clock className="h-3.5 w-3.5" aria-hidden /> In Progress
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-200">{ts.startedAt.toLocaleDateString()}</div>
+                        <div className="text-sm text-slate-800">{ts.startedAt.toLocaleDateString()}</div>
                         <div className="text-xs text-slate-500">{ts.startedAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm capitalize text-slate-200">{ts.mode} Mode</span>
+                        <span className="text-sm capitalize text-slate-800">{ts.mode} Mode</span>
                       </td>
                       <td className="px-6 py-4">
                         {isCompleted ? (
                           <div className="flex items-center gap-3">
-                            <span className="w-12 font-mono text-sm tabular-nums text-white">{accuracy}%</span>
+                            <span className="w-12 font-mono text-sm tabular-nums text-slate-900">{accuracy}%</span>
                             <div
-                              className="h-px w-24 bg-white/10"
+                              className="h-px w-24 bg-slate-100"
                               role="progressbar"
                               aria-valuenow={accuracy}
                               aria-valuemin={0}
                               aria-valuemax={100}
                               aria-label="Accuracy"
                             >
-                              <div className="h-px bg-teal-300" style={{ width: `${accuracy}%` }}></div>
+                              <div className="h-px bg-teal-600" style={{ width: `${accuracy}%` }}></div>
                             </div>
                           </div>
                         ) : (
-                          <span className="font-mono text-sm tabular-nums text-slate-400">
+                          <span className="font-mono text-sm tabular-nums text-slate-600">
                             {attemptedQuestions} / {totalQuestions} Answered
                           </span>
                         )}
@@ -134,14 +134,14 @@ export default async function PreviousTestsPage(props: { params: Promise<{ qbank
                         {isCompleted ? (
                           <Link
                             href={`/dashboard/${params.qbankSlug}/session/${ts.id}/results`}
-                            className="text-sm text-teal-300 transition-colors hover:text-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                            className="text-sm text-teal-700 transition-colors hover:text-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
                           >
                             View Results
                           </Link>
                         ) : (
                           <Link
                             href={`/dashboard/${params.qbankSlug}/test/${ts.id}`}
-                            className="inline-flex items-center gap-1.5 rounded-md bg-white px-4 py-1.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
+                            className="inline-flex items-center gap-1.5 rounded-md bg-teal-700 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
                           >
                             <Play className="h-3.5 w-3.5" aria-hidden /> Resume
                           </Link>
