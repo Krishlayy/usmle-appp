@@ -65,8 +65,8 @@ export default async function PreviousTestsPage(props: { params: Promise<{ qbank
               <p className="text-sm text-secondary font-medium max-w-sm mb-6">
                 You haven't started any practice blocks for this question bank.
               </p>
-              <Link href={`/dashboard/${params.qbankSlug}/setup`}>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md text-sm transition-colors shadow-sm">
+              <Link href={`/dashboard/${params.qbankSlug}`}>
+                <button className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-6 rounded-xl text-sm transition-colors shadow-sm">
                   Start Practice
                 </button>
               </Link>

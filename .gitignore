@@ -43,5 +43,13 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 *.zip
-public/videos/mnemonics/
+public/videos/
 scripts/qbanks_seed_data.json
+scripts/qbanks_parsed_all.json
+*.png
+*.pdf
+screenshots/
+gsap.min.js
+*.html
+!src/**/*.html
+

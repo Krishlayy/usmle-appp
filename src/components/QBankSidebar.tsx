@@ -30,19 +30,13 @@ export function QBankSidebar({ qbankSlug }: QBankSidebarProps) {
   );
 
   return (
-    <div className="w-[260px] bg-[#172331] text-white flex flex-col h-[calc(100vh-64px)] overflow-y-auto shrink-0 font-sans sticky top-[64px] border-r border-[#101924]">
+    <div className="w-[240px] bg-[#0f172a] text-slate-200 flex flex-col h-[calc(100vh-64px)] overflow-y-auto shrink-0 font-sans sticky top-[64px] border-r border-slate-800">
       
-      {/* Top Profile / Selector Area */}
-      <div className="p-4 border-b border-[#24354a]">
-        <div className="flex items-center gap-3 cursor-pointer hover:bg-[#202f41] p-2 rounded transition-colors">
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white shrink-0">
-            <span className="text-sm font-bold">MQ</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[14px] font-bold truncate">Micro Q Bank</div>
-          </div>
-          <ChevronDown className="w-4 h-4 text-[#a1b0cb] shrink-0" />
-        </div>
+      {/* Top QBank Section Label */}
+      <div className="px-5 py-4 border-b border-slate-800/80">
+        <span className="text-[11px] font-bold tracking-wider uppercase text-teal-400 font-mono">
+          Q-Bank Navigation
+        </span>
       </div>
 
       <nav className="flex-1 pt-6 pb-4 flex flex-col gap-1">

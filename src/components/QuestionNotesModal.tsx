@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DraggableModal } from './DraggableModal';
-import { FileText, Save } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 interface QuestionNotesModalProps {
   isOpen: boolean;
@@ -25,8 +25,14 @@ export function QuestionNotesModal({ isOpen, onClose, initialNotes, onSave, appe
     }
   }, [appendContent]);
 
-  const handleSave = () => {
+  const handleSaveAndClose = () => {
     onSave(localNotes);
+    onClose();
+  };
+
+  const handleDeleteNote = () => {
+    setLocalNotes('');
+    onSave('');
     onClose();
   };
 
@@ -34,36 +40,36 @@ export function QuestionNotesModal({ isOpen, onClose, initialNotes, onSave, appe
     <DraggableModal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title="Question Notes" 
-      icon={<FileText size={16} />}
-      width="500px"
-      height="400px"
-      minWidth="300px"
-      minHeight="300px"
+      title="Notes" 
+      icon={<FileText size={15} />}
+      width="440px"
+      height="340px"
+      minWidth="320px"
+      minHeight="240px"
     >
-      <div className="flex flex-col h-full bg-[#f4f7f9] p-4">
-        <p className="text-xs text-slate-500 mb-3 font-semibold">
-          Notes written here will be saved specifically for this question and can be reviewed in your Dashboard later.
-        </p>
+      <div className="flex flex-col h-full bg-[#f4f7f9] p-3 font-sans">
         <textarea 
           value={localNotes}
           onChange={(e) => setLocalNotes(e.target.value)}
-          className="flex-1 p-4 outline-none resize-none text-[14px] bg-white border border-slate-200 rounded-md shadow-sm mb-4 font-sans text-slate-800"
-          placeholder="Type your notes for this question here..."
+          className="flex-1 p-3 outline-none resize-none text-[13px] bg-white border border-slate-300 rounded-sm shadow-inner mb-3 font-sans text-slate-900 focus:border-blue-500"
+          placeholder="Type notes for this item here..."
+          autoFocus
         />
-        <div className="flex justify-end gap-3">
+        <div className="flex items-center justify-between border-t border-slate-200 pt-2.5">
           <button 
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
+            type="button"
+            onClick={handleSaveAndClose}
+            className="px-4 py-1.5 bg-[#e1e4e8] hover:bg-[#d0d4da] border border-slate-400 text-slate-800 text-xs font-bold rounded shadow-xs transition-colors cursor-pointer"
           >
-            Cancel
+            Save and Close
           </button>
+          
           <button 
-            onClick={handleSave}
-            className="flex items-center gap-2 px-5 py-2 bg-[#003b5c] text-white text-sm font-bold rounded shadow-sm hover:bg-[#004f7a] transition-colors"
+            type="button"
+            onClick={handleDeleteNote}
+            className="px-4 py-1.5 bg-[#e1e4e8] hover:bg-rose-100 border border-slate-400 hover:border-rose-400 text-slate-700 hover:text-rose-700 text-xs font-bold rounded shadow-xs transition-colors cursor-pointer"
           >
-            <Save size={16} />
-            Save Notes
+            Delete Note
           </button>
         </div>
       </div>

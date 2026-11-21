@@ -7,6 +7,10 @@ import { testSubmitRateLimiter } from '@/lib/redis';
 export async function POST(req: Request, props: { params: Promise<{ sessionId: string }> }) {
   const params = await props.params;
   try {
+    if (params.sessionId.startsWith('usmle-exam-')) {
+      return NextResponse.json({ success: true, mock: true });
+    }
+
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user || !session.user.id) {

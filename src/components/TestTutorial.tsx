@@ -25,9 +25,17 @@ export function TestTutorial({ onComplete }: TestTutorialProps) {
       <div className="bg-[#f0f0f0] border-2 border-[#003366] w-[600px] shadow-2xl flex flex-col font-sans">
         
         {/* Header */}
-        <div className="bg-[#003366] text-white p-2 font-bold flex justify-between items-center text-[14px]">
+        <div className="bg-[#003366] text-white p-2.5 font-bold flex justify-between items-center text-[14px]">
           <span>USMLE Examination Tutorial</span>
-          <span>Step {step} of {totalSteps}</span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-slate-300">Step {step} of {totalSteps}</span>
+            <button 
+              onClick={onComplete}
+              className="text-xs text-cyan-300 hover:text-white underline cursor-pointer"
+            >
+              Skip Tutorial
+            </button>
+          </div>
         </div>
 
         {/* Content */}

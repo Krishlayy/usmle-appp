@@ -3,9 +3,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type AppearanceMode = 'NBME Official';
-type ColorTheme = 'light' | 'dark' | 'sepia'; // Dark is "Reverse Color"
+type ColorTheme = 'light' | 'dark'; // 'light' is Standard, 'dark' is Reverse Color (USMLE Invert)
 
-export type AppTheme = 'UWORLD' | 'MODERN';
+export type AppTheme = 'UWORLD' | 'MQB';
 
 export interface TestSettings {
   appTheme: AppTheme;
@@ -61,9 +61,9 @@ export function TestSettingsProvider({ children }: { children: ReactNode }) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Normalize legacy themes if any
-        if (parsed.appTheme === 'NBME') parsed.appTheme = 'MODERN';
-        if (parsed.appTheme === 'MQB') parsed.appTheme = 'UWORLD';
+        // Normalize themes
+        if (parsed.appTheme === 'MODERN') parsed.appTheme = 'MQB';
+        if (!['UWORLD', 'MQB'].includes(parsed.appTheme)) parsed.appTheme = 'UWORLD';
         setSettings({ ...defaultSettings, ...parsed });
       } catch (e) {
         console.error('Failed to parse test settings', e);

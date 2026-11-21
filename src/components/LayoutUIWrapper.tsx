@@ -7,10 +7,7 @@ import { SuccessToast } from './SuccessToast';
 export function LayoutUIWrapper() {
   const pathname = usePathname();
 
-  // Hide the global consumer Navbar on home page (which renders its picture-perfect custom header matching design), Admin Panel and Test screens
-  if (pathname === '/') {
-    return <SuccessToast />;
-  }
+  // Hide the global consumer Navbar on Admin Panel and active Test screens
   if (pathname && (pathname.startsWith('/admin') || pathname.includes('/test/') || pathname.includes('/session/'))) {
     return null;
   }

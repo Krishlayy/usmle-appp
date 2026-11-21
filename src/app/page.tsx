@@ -1,163 +1,186 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { HeroSimulatorMotion } from '@/components/HeroSimulatorMotion';
+import { useSession } from 'next-auth/react';
+import { LandingQBanksSection } from '@/components/LandingQBanksSection';
 import { 
   ArrowRight, 
-  Video, 
-  Layers, 
+  Play, 
+  BookOpen, 
+  ShieldCheck, 
+  GraduationCap, 
   Clock, 
   Sparkles, 
-  ShieldCheck, 
-  Laptop,
-  CheckCircle2,
-  Stethoscope,
-  Play
+  CheckCircle2, 
+  Layers, 
+  FileText 
 } from 'lucide-react';
 
 export default function Home() {
+  const { data: session } = useSession();
+
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-[#f8fafc] text-[#0f172a] font-sans overflow-hidden relative">
-      {/* Background Gradients */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[10%] w-[500px] h-[500px] rounded-full bg-cyan-500/5 blur-[120px] animate-pulse duration-[8000ms]" />
-        <div className="absolute bottom-[-10%] left-[10%] w-[450px] h-[450px] rounded-full bg-blue-500/5 blur-[120px] animate-pulse duration-[6000ms]" />
-      </div>
-
-      <main className="flex-1 flex flex-col items-center justify-center px-6 z-10">
+    <div className="flex flex-col min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased overflow-x-hidden">
+      
+      {/* ======================================================== */}
+      {/* 1. CINEMATIC VIDEO HERO SECTION                          */}
+      {/* ======================================================== */}
+      <section className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center justify-center overflow-hidden bg-slate-950 text-white">
         
-        {/* HERO SECTION */}
-        <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 py-16 md:py-24 items-center">
+        {/* Full-Bleed Video Background */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="w-full h-full object-cover opacity-35 filter brightness-90 contrast-105 scale-105 transform-gpu"
+            src="/videos/hero-simulator.mp4"
+          />
+          {/* Clinical Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/85" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(15,118,110,0.12)_0%,transparent_70%)]" />
+        </div>
+
+        {/* Hero Foreground Content */}
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center">
           
-          {/* Left Column: Value Proposition & Copy */}
-          <div className="lg:col-span-6 space-y-6 text-left flex flex-col items-start">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 text-xs font-semibold shadow-2xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-600" />
-              </span>
-              Clinical-Grade USMLE Preparation
+          {/* Top Pill */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-teal-500/30 bg-teal-950/60 backdrop-blur-md text-teal-300 text-xs font-semibold mb-6 shadow-lg shadow-teal-950/40">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-400" />
+            </span>
+            <span>Clinical-Grade USMLE® Question Banks</span>
+          </div>
+
+          {/* Authority Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight font-serif text-white max-w-4xl leading-[1.1] mb-6">
+            Master Medical Concepts with{' '}
+            <span className="bg-gradient-to-r from-teal-300 via-cyan-200 to-white bg-clip-text text-transparent">
+              Clinical Authority
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-base sm:text-lg md:text-xl text-slate-300 max-w-2xl leading-relaxed font-sans mb-10 font-normal">
+            Eliminate exam surprise. Practice full 50-question blocks in authentic board conditions with instant distractor rationales, selectable comparison tables, and cinematic video mnemonics.
+          </p>
+
+          {/* Action CTA: Single Focused Path */}
+          <div className="flex items-center justify-center w-full sm:w-auto mb-14">
+            <a
+              href="#qbanks"
+              className="inline-flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-base shadow-xl shadow-teal-500/30 transition-all hover:scale-105 cursor-pointer"
+            >
+              <BookOpen className="w-5 h-5" />
+              <span>Explore Question Banks</span>
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+
+          {/* High-Impact Stat Strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full max-w-4xl pt-8 border-t border-white/10">
+            <div className="flex flex-col items-center p-3 rounded-xl bg-white/5 backdrop-blur-xs border border-white/10">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-teal-300">200</span>
+              <span className="text-xs text-slate-300 font-medium mt-1">Curated Questions</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.12] font-serif tracking-tight text-slate-900">
-              Master USMLE Concepts <br />
-              <span className="bg-gradient-to-r from-slate-950 via-teal-800 to-cyan-700 bg-clip-text text-transparent italic">
-                One Topic at a Time
-              </span>
-            </h1>
-            
-            <p className="max-w-xl text-base md:text-lg text-slate-600 leading-relaxed font-sans">
-              Train in the exact cognitive conditions of board exams with real-time distractor rationales, authentic examination modes, and high-yield video mnemonics built for long-term clinical recall.
+            <div className="flex flex-col items-center p-3 rounded-xl bg-white/5 backdrop-blur-xs border border-white/10">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-cyan-300">165</span>
+              <span className="text-xs text-slate-300 font-medium mt-1">Video Mnemonics</span>
+            </div>
+
+            <div className="flex flex-col items-center p-3 rounded-xl bg-white/5 backdrop-blur-xs border border-white/10">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-teal-300">94</span>
+              <span className="text-xs text-slate-300 font-medium mt-1">Medical Exhibits</span>
+            </div>
+
+            <div className="flex flex-col items-center p-3 rounded-xl bg-white/5 backdrop-blur-xs border border-white/10">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-cyan-300">2</span>
+              <span className="text-xs text-slate-300 font-medium mt-1">Tutor &amp; Timed Modes</span>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* ======================================================== */}
+      {/* 2. THE 4 QUESTION BANKS (ALL IN ONE PLACE)               */}
+      {/* ======================================================== */}
+      <main className="flex-1 bg-[#F8FAF9]">
+        <LandingQBanksSection />
+
+        {/* ======================================================== */}
+        {/* 3. CLINICAL RIGOR & METHODOLOGY                          */}
+        {/* ======================================================== */}
+        <section className="w-full max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 border-t border-slate-200">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <h2 className="text-3xl font-extrabold font-serif text-slate-900 tracking-tight mb-3">
+              Designed for Medical Student Cognition
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-sans">
+              Every question stem, distractor breakdown, and comparison table is optimized to maximize retention per minute of active recall.
             </p>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-2 w-full sm:w-auto">
-              <Link href="/demo" className="w-full sm:w-auto">
-                <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-lg shadow-teal-700/20 gap-2 bg-teal-600 hover:bg-teal-500 border-none text-white transition-all text-sm font-semibold">
-                  <Play className="w-4 h-4 fill-white" /> Launch Test Player
-                </Button>
-              </Link>
-
-              <Link href="/store" className="w-full sm:w-auto">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto bg-white border-slate-200 hover:bg-slate-50 text-slate-800 shadow-2xs text-sm font-semibold gap-2">
-                  Explore Q-Banks <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-
-            {/* Qualitative Value Highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-slate-200/80 w-full mt-4">
-              <div className="flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 mt-0.5 border border-teal-200/60">
-                  <Laptop className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900">Dual Themes</div>
-                  <div className="text-[11px] text-slate-500 leading-tight">UWorld Simulator & Modern Minimalist</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-cyan-50 text-cyan-700 flex items-center justify-center shrink-0 mt-0.5 border border-cyan-200/60">
-                  <Video className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900">Video Mnemonics</div>
-                  <div className="text-[11px] text-slate-500 leading-tight">Visual memory aids for complex mechanisms</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5 border border-blue-200/60">
-                  <Layers className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900">Modular Access</div>
-                  <div className="text-[11px] text-slate-500 leading-tight">System-by-system Q-Banks on demand</div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Right Column: Interactive Motion Graphic Simulator */}
-          <div className="lg:col-span-6 flex justify-center w-full">
-            <HeroSimulatorMotion />
-          </div>
-
-        </div>
-
-        {/* CORE PLATFORM CAPABILITIES */}
-        <div className="max-w-6xl w-full mx-auto py-20 border-t border-slate-200/80">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <h2 className="text-xs font-bold tracking-widest text-teal-700 uppercase mb-2">Designed for Board Mastery</h2>
-            <p className="text-2xl md:text-3xl font-bold font-serif text-slate-900">A Focused Clinical Testing Environment</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-            {/* Capability 1: Timed & Active Tutor Mode */}
-            <div className="bg-white p-7 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center mb-5 border border-teal-100">
-                <Clock className="w-5 h-5" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Pillar 1 */}
+            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-800 flex items-center justify-center font-bold text-sm border border-teal-200">
+                01
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">Timed & Active Tutor Modes</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Train under authentic exam time constraints to sharpen your pacing, or switch to Tutor mode for immediate distractor breakdowns and clinical insights after every answer.
+              <h3 className="text-lg font-bold text-slate-900">Authentic Board Simulation</h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                Matches the exact visual layout, strikethrough, lab value lookups, and reverse-color contrast of official NBME FRED v2 and UWorld exam software.
               </p>
             </div>
 
-            {/* Capability 2: Embedded Video Mnemonics */}
-            <div className="bg-white p-7 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all">
-              <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center mb-5 border border-cyan-100">
-                <Video className="w-5 h-5" />
+            {/* Pillar 2 */}
+            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-800 flex items-center justify-center font-bold text-sm border border-cyan-200">
+                02
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">Clinical Video Mnemonics</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Every high-yield concept is paired with a visual mnemonic video to anchor pharmacology, microbiology pathways, and disease differentials in your long-term memory.
+              <h3 className="text-lg font-bold text-slate-900">Selectable Comparison Tables</h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                No flattened images or uncopyable text. High-yield differential diagnosis tables are rendered in clean, highlightable HTML with clear column borders.
               </p>
             </div>
 
-            {/* Capability 3: Modular Organ-System Banks */}
-            <div className="bg-white p-7 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center mb-5 border border-slate-200">
-                <Stethoscope className="w-5 h-5" />
+            {/* Pillar 3 */}
+            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-800 flex items-center justify-center font-bold text-sm border border-teal-200">
+                03
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">Modular System Modules</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Target exactly the clinical disciplines you need for your current rotation or clerkship — cardiology, neurology, renal, and more — without paying for bloated bundles.
+              <h3 className="text-lg font-bold text-slate-900">HD Visual Memory Anchors</h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                Complex molecular mechanisms and histopathology slides are reinforced by dedicated video mnemonics mapped directly to every question item.
               </p>
             </div>
           </div>
-        </div>
-
+        </section>
       </main>
 
-      {/* FOOTER */}
-      <footer className="border-t border-slate-200 py-10 text-center text-slate-500 z-10 bg-white">
-        <p className="mb-2 text-xs font-semibold text-slate-700">© {new Date().getFullYear()} Micro Q-Bank. All rights reserved.</p>
-        <p className="text-[11px] text-slate-400 max-w-xl mx-auto px-4">
-          Micro Q-Bank is an independent educational platform. USMLE® is a joint program of the Federation of State Medical Boards (FSMB) and National Board of Medical Examiners (NBME).
-        </p>
+      {/* ======================================================== */}
+      {/* 4. FOOTER                                                */}
+      {/* ======================================================== */}
+      <footer className="border-t border-slate-200 bg-white py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-900">MicroQBank USMLE®</span>
+            <span>• © {new Date().getFullYear()} All rights reserved.</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/privacy" className="hover:text-slate-800 transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-800 transition-colors">Terms of Service</Link>
+            <Link href="/simulator" className="hover:text-slate-800 transition-colors">Board Simulator</Link>
+          </div>
+        </div>
       </footer>
+
     </div>
   );
 }

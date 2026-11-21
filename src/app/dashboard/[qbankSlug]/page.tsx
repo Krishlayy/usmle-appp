@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
 import { StatBlock } from '@/components/ui/StatBlock';
 import { ProgressBar } from '@/components/ui/ProgressBar';
+import { QuickPracticeButtons } from '@/components/QuickPracticeButtons';
 import { Clock, GraduationCap, ChevronRight, FileText, LayoutTemplate, Brain, ChevronLeft } from 'lucide-react';
 
 export default async function QBankDashboardPage(
@@ -146,18 +147,19 @@ export default async function QBankDashboardPage(
           </p>
         </div>
         
-        <div className="flex gap-3 shrink-0">
-          <Link href={`/dashboard/${qbank.slug}/setup?mode=tutor`}>
-            <Button variant="secondary" className="gap-2">
-              <GraduationCap className="w-4 h-4" /> Tutor Mode
-            </Button>
-          </Link>
-          <Link href={`/dashboard/${qbank.slug}/setup?mode=timed`}>
-            <Button variant="primary" className="gap-2 shadow-sm">
-              <Clock className="w-4 h-4" /> Timed Mode
-            </Button>
-          </Link>
-        </div>
+        <QuickPracticeButtons
+          qbank={{
+            id: qbank.id,
+            title: qbank.title,
+            slug: qbank.slug,
+            description: qbank.description || undefined,
+            totalQuestions: qbank.totalQuestions,
+            specialtyTag: qbank.specialtyTag,
+            completionPercentage,
+            accuracy,
+            attemptedCount: uniqueQuestionsAttempted,
+          }}
+        />
       </div>
 
       {/* Top Stats */}

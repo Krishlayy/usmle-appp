@@ -1,19 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Play, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { Play, ArrowRight, Maximize2 } from 'lucide-react';
+import { FullScreenVideoModal } from './FullScreenVideoModal';
 
 export function HeroSimulatorMotion() {
-  // Interactive Simulation State
-  const [cursorPos, setCursorPos] = useState({ x: 80, y: 82 });
+  const [selectedOption, setSelectedOption] = useState<string>('B');
   const [isClicking, setIsClicking] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [showMnemonic, setShowMnemonic] = useState(false);
+  const [cursorPos, setCursorPos] = useState({ x: 75, y: 55 });
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Auto-run animated sequence on load / refresh
+  // Smooth automatic cursor animation simulating user interacting with option B
   useEffect(() => {
     let isCancelled = false;
-    let timeouts: NodeJS.Timeout[] = [];
+    const timeouts: NodeJS.Timeout[] = [];
 
     const schedule = (fn: () => void, ms: number) => {
       const id = setTimeout(() => {
@@ -23,33 +24,24 @@ export function HeroSimulatorMotion() {
     };
 
     const runSequence = () => {
-      // Step 0: Initial Reset
-      setSelectedOption(null);
-      setShowMnemonic(false);
-      setCursorPos({ x: 80, y: 82 });
+      setCursorPos({ x: 80, y: 75 });
       setIsClicking(false);
 
-      // Step 1: Smoothly glide cursor towards Option A
       schedule(() => {
-        setCursorPos({ x: 34, y: 46 });
+        setCursorPos({ x: 50, y: 56 });
 
-        // Step 2: Tactile click event
         schedule(() => {
           setIsClicking(true);
-          setSelectedOption('A');
+          setSelectedOption('B');
 
-          // Step 3: Complete click & reveal Video Mnemonic
           schedule(() => {
             setIsClicking(false);
-            setShowMnemonic(true);
-
-            // Step 4: Hold state to let viewer absorb, then repeat loop
             schedule(() => {
               runSequence();
             }, 4500);
           }, 250);
         }, 1100);
-      }, 700);
+      }, 800);
     };
 
     runSequence();
@@ -61,128 +53,120 @@ export function HeroSimulatorMotion() {
   }, []);
 
   return (
-    <div className="relative group w-full max-w-2xl mx-auto">
-      {/* Ambient Gradient Glow */}
-      <div className="absolute -inset-2 bg-gradient-to-r from-teal-500/15 via-cyan-500/15 to-blue-500/15 rounded-3xl blur-2xl opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none" />
-
-      {/* Main Glass Frame */}
-      <div className="relative bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.10)] overflow-hidden">
-        
-        {/* Minimal Plain Window Header (No tabs, no simulator preview text) */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80 border-b border-slate-200/80 select-none">
+    <>
+      <div className="w-full max-w-xl bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden relative group transition-all">
+        {/* Top Minimal Window Header */}
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-50/90 border-b border-slate-200 select-none">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block" />
             <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block" />
             <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block" />
           </div>
 
-          <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Interactive Simulator</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Interactive Clinical Vignette</span>
+            </div>
+
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-teal-50 hover:bg-teal-100 text-teal-800 text-[11px] font-semibold border border-teal-200 transition-colors"
+              title="Play Video in Fullscreen"
+            >
+              <Maximize2 className="w-3 h-3 text-teal-700" />
+              <span>Watch Video</span>
+            </button>
           </div>
         </div>
 
-        {/* Live Vector Motion Graphic Simulator */}
-        <div className="relative min-h-[380px] bg-slate-50/40 p-5 sm:p-6 flex flex-col justify-between select-none overflow-hidden gap-3">
-          
-          {/* Top Clinical Bar in Simulator */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
+        {/* Interactive Question Card Body */}
+        <div className="p-5 flex flex-col justify-between select-none relative bg-white">
+          {/* Top Bar in Simulator */}
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200/70">
+              <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200/70 font-mono">
                 CASE EVALUATION • CARDIOVASCULAR
               </span>
               <span className="text-[11px] text-slate-400 font-medium">Item 1 of 40</span>
             </div>
-            <div className="text-[11px] font-mono text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+            <div className="text-[11px] font-mono text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
               ⏱️ 01:12
             </div>
           </div>
 
-          {/* Abstract Clinical Vignette Redacted Skeleton (No Real Question Exposed!) */}
-          <div className="space-y-2 py-1.5">
-            <div className="h-2.5 bg-slate-200/90 rounded-full w-full" />
-            <div className="h-2.5 bg-slate-200/80 rounded-full w-[88%]" />
-            <div className="h-2.5 bg-slate-200/70 rounded-full w-[65%]" />
+          {/* Vignette Text */}
+          <div className="py-3 text-left">
+            <p className="text-xs text-slate-700 leading-relaxed font-sans">
+              A 54-year-old male presents with exertional dyspnea and orthopnea. Auscultation reveals a grade 3/6 holosystolic murmur at the apex radiating to the left axilla. Which hemodynamic mechanism explains this finding?
+            </p>
           </div>
 
-          {/* Option Cards */}
-          <div className="space-y-2">
-            {/* Option A (Selected by Animated Cursor) */}
+          {/* Options */}
+          <div className="space-y-2 text-left text-xs font-sans relative">
+            {/* Option A */}
             <div 
-              className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-300 cursor-pointer ${
-                selectedOption === 'A'
-                  ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400/20 shadow-xs'
-                  : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+              className={`p-2.5 rounded-lg border flex items-center gap-2.5 cursor-pointer transition-all ${
+                selectedOption === 'A' ? 'border-teal-500 bg-teal-50/70' : 'border-slate-200 bg-white hover:bg-slate-50'
               }`}
-              onClick={() => {
-                setSelectedOption('A');
-                setShowMnemonic(true);
-              }}
+              onClick={() => setSelectedOption('A')}
             >
-              <div className="flex items-center gap-3">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                  selectedOption === 'A' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
-                }`}>
-                  A
-                </span>
-                <span className={`text-xs font-medium transition-colors ${
-                  selectedOption === 'A' ? 'text-emerald-950 font-semibold' : 'text-slate-700'
-                }`}>
-                  Primary Diagnostic Differential & Pathologic Mechanism
-                </span>
-              </div>
-              {selectedOption === 'A' && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 pr-2 animate-in fade-in zoom-in-95 duration-200">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Correct
-                </span>
-              )}
+              <span className="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center font-semibold text-[10px] text-slate-600 bg-slate-50">
+                A
+              </span>
+              <span className="text-slate-700">Subepithelial spike and dome immune deposits</span>
             </div>
 
-            {/* Option B (Distractor with Strikethrough) */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/60 bg-slate-100/60 opacity-60">
-              <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center text-xs font-bold">
-                B
-              </span>
-              <span className="text-xs text-slate-400 line-through">
-                Secondary Alternative Physiological Finding
+            {/* Option B (Target of Animated Cursor) */}
+            <div 
+              className={`p-2.5 rounded-lg border-2 flex items-center justify-between gap-2.5 cursor-pointer transition-all ${
+                selectedOption === 'B' 
+                  ? 'border-teal-500 bg-teal-50/80 ring-2 ring-teal-500/20' 
+                  : 'border-slate-200 bg-white hover:bg-slate-50'
+              }`}
+              onClick={() => setSelectedOption('B')}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-[10px]">
+                  B
+                </span>
+                <span className="font-semibold text-slate-900">
+                  Mitral regurgitation with retrograde left atrial volume overload
+                </span>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 bg-white px-2 py-0.5 rounded border border-teal-300 shrink-0 font-mono">
+                Correct 88%
               </span>
             </div>
 
             {/* Option C */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white">
-              <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">
+            <div 
+              className={`p-2.5 rounded-lg border flex items-center gap-2.5 cursor-pointer transition-all ${
+                selectedOption === 'C' ? 'border-teal-500 bg-teal-50/70' : 'border-slate-200 bg-white hover:bg-slate-50'
+              }`}
+              onClick={() => setSelectedOption('C')}
+            >
+              <span className="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center font-semibold text-[10px] text-slate-600 bg-slate-50">
                 C
               </span>
-              <span className="text-xs text-slate-700">
-                Non-contributory Pathological Presentation
+              <span className="text-slate-700">Aortic stenosis with systolic crescendo-decrescendo murmur</span>
+            </div>
+
+            {/* Option D */}
+            <div 
+              className={`p-2.5 rounded-lg border flex items-center gap-2.5 cursor-pointer transition-all ${
+                selectedOption === 'D' ? 'border-teal-500 bg-teal-50/70' : 'border-slate-200 bg-white hover:bg-slate-50'
+              }`}
+              onClick={() => setSelectedOption('D')}
+            >
+              <span className="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center font-semibold text-[10px] text-slate-600 bg-slate-50">
+                D
               </span>
+              <span className="text-slate-700">Tricuspid regurgitation with inspiratory murmur augmentation</span>
             </div>
           </div>
 
-          {/* Video Mnemonic Unlocked Panel */}
-          <div 
-            className={`p-3 rounded-xl border border-teal-200/80 bg-gradient-to-r from-teal-50 via-cyan-50/60 to-white flex items-center justify-between transition-all duration-500 ${
-              showMnemonic ? 'opacity-100 translate-y-0 shadow-xs' : 'opacity-0 translate-y-2 pointer-events-none'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center shadow-xs shrink-0">
-                <Play className="w-4 h-4 fill-white translate-x-0.5" />
-              </div>
-              <div>
-                <div className="text-[11px] font-bold text-teal-900 flex items-center gap-1.5">
-                  <span>Video Mnemonic Unlocked</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-teal-200/60 text-teal-800 font-mono">1:45</span>
-                </div>
-                <div className="text-[10px] text-teal-700">High-yield visual memory aid reinforces the core pathophysiology</div>
-              </div>
-            </div>
-            <span className="text-[10px] font-semibold text-teal-700 bg-white px-2 py-1 rounded-md border border-teal-200 shadow-2xs shrink-0 hidden sm:inline-block">
-              Tutor Mode
-            </span>
-          </div>
-
-          {/* Animated Pointer Cursor (Appears on enter / refresh) */}
+          {/* Animated Hand/Cursor Vector */}
           <div 
             className="absolute pointer-events-none transition-all duration-700 ease-out z-30"
             style={{
@@ -191,27 +175,41 @@ export function HeroSimulatorMotion() {
               transform: `translate(-2px, -2px) scale(${isClicking ? 0.9 : 1})`,
             }}
           >
-            <svg 
-              className="w-6 h-6 drop-shadow-md" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path 
-                d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.45 0 .67-.54.35-.85L5.85 2.36a.5.5 0 0 0-.35-.15z" 
-                fill="#0f172a" 
-                stroke="#ffffff" 
-                strokeWidth="1.5"
-              />
+            <svg className="w-5 h-5 text-slate-900 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M4 0l16 12.279-6.951 1.17 4.325 8.817-3.596 1.734-4.35-8.879-5.428 5.439z"/>
             </svg>
             {isClicking && (
-              <span className="absolute -top-1 -left-1 w-8 h-8 rounded-full border-2 border-teal-500 animate-ping opacity-75" />
+              <span className="absolute -top-1 -left-1 w-7 h-7 rounded-full border-2 border-teal-500 animate-ping opacity-75" />
             )}
           </div>
 
+          {/* Bottom Video Mnemonic Attached Teaser */}
+          <div className="mt-3.5 p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-md bg-teal-600 text-white flex items-center justify-center shadow-2xs">
+                <Play className="w-3 h-3 fill-white translate-x-0.5" />
+              </div>
+              <div>
+                <div className="text-[11px] font-bold text-slate-900">Video Mnemonic Attached</div>
+                <div className="text-[10px] text-slate-500 font-sans">Mitral Valve Auscultation & Hemodynamics (2:15)</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-2.5 py-1 rounded bg-white border border-slate-300 text-[11px] font-semibold text-teal-700 hover:bg-teal-50 transition-colors inline-flex items-center gap-1 shadow-2xs"
+            >
+              <span>Play Fullscreen Video</span>
+              <Maximize2 className="w-3 h-3" />
+            </button>
+          </div>
         </div>
-
       </div>
-    </div>
+
+      {/* 100% Fullscreen Cinematic Video Modal */}
+      <FullScreenVideoModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
   );
 }

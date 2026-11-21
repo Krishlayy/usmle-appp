@@ -1,272 +1,289 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
   Sparkles, 
-  ChevronLeft, 
   RotateCw, 
   CheckCircle2, 
-  Layers, 
-  Brain,
-  Video,
-  ArrowRight
+  Brain, 
+  Video, 
+  ChevronRight, 
+  ChevronLeft,
+  X,
+  Play
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { VideoMnemonicPlayer } from '@/components/VideoMnemonicPlayer';
 
-interface FlashcardItem {
+interface Flashcard {
   id: string;
+  category: string;
   front: string;
-  back: string;
-  interval: number;
-  easeFactor: number;
-  nextReview: string;
-  question?: {
-    qid: string;
-    subtopic: string | null;
-    videoUrl: string | null;
-  };
+  backHeading: string;
+  backText: string;
+  mnemonicTitle: string;
+  mnemonicDuration: string;
+  videoUrl?: string;
 }
 
+const CARDS_DECK: Flashcard[] = [
+  {
+    id: 'fc-1',
+    category: 'Pathology & Immunology',
+    front: 'What histological glomerular lesion is pathognomonic for severe Lupus Nephritis (Class IV), and what autoantibody titer correlates with its clinical activity?',
+    backHeading: 'Diffuse Proliferative Lupus Nephritis (Class IV)',
+    backText: "Characterized by diffuse subendothelial immune complex deposits producing distinctive 'wire-loop' capillary thickening on light microscopy. Anti-dsDNA titers closely mirror active renal flare severity and complement consumption (low C3/C4).",
+    mnemonicTitle: 'Wire-Looping SLE in the Nephron Court',
+    mnemonicDuration: '2:45',
+    videoUrl: '/videos/mnemonics/autoimmune/boardroom.mp4'
+  },
+  {
+    id: 'fc-2',
+    category: 'Genetics & Pediatric Immunology',
+    front: 'A 6-month-old boy presents with recurrent bacterial otitis media and pneumonia. Flow cytometry shows absent CD19+ B-cells with normal CD3+ T-cells. What is the molecular defect and inheritance pattern?',
+    backHeading: 'X-Linked (Bruton) Agammaglobulinemia',
+    backText: 'Defect in Bruton Tyrosine Kinase (BTK) gene on the X-chromosome leading to arrest of B-cell maturation at the pre-B stage. Lymph nodes lack germinal centers; serum immunoglobulins of all classes (IgG, IgA, IgM) are markedly reduced.',
+    mnemonicTitle: 'Bruton the Broken Key on X-Street',
+    mnemonicDuration: '2:15',
+    videoUrl: '/videos/mnemonics/autoimmune/boardroom.mp4'
+  },
+  {
+    id: 'fc-3',
+    category: 'Pharmacology & Oncology',
+    front: 'Which targeted monoclonal antibody binds CD20 on pre-B and mature B-cells to induce antibody-dependent cellular cytotoxicity, and what life-threatening viral reactivation must be screened for prior to therapy?',
+    backHeading: 'Rituximab (Chimeric Anti-CD20)',
+    backText: 'Rituximab binds the transmembrane protein CD20. Prior to initiation, all patients must be screened for Hepatitis B virus (HBV) surface antigen and core antibody due to fatal fulminant hepatitis reactivation risk, and monitored for PML (JC virus).',
+    mnemonicTitle: 'Rituxan the 20-Gun Salute',
+    mnemonicDuration: '3:10',
+    videoUrl: '/videos/mnemonics/autoimmune/boardroom.mp4'
+  },
+  {
+    id: 'fc-4',
+    category: 'Rheumatology & Vasculitis',
+    front: 'An 8-year-old boy presents with fever for 6 days, strawberry tongue, bilateral conjunctival injection without exudate, and desquamation of hands. What critical cardiovascular complication warrants IVIG and high-dose aspirin?',
+    backHeading: 'Kawasaki Disease (Mucocutaneous Lymph Node Syndrome)',
+    backText: 'Medium-vessel vasculitis targeting coronary arteries. Untreated patients carry a 20-25% risk of coronary artery aneurysms and thrombosis. High-dose aspirin is prescribed despite Reye syndrome risk due to immediate cardiac benefit.',
+    mnemonicTitle: 'Kawasaki CRASH and Burn on Coronary Lane',
+    mnemonicDuration: '3:05',
+    videoUrl: '/videos/mnemonics/autoimmune/boardroom.mp4'
+  }
+];
+
 export default function FlashcardsReviewPage() {
-  const [cards, setCards] = useState<FlashcardItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [deck, setDeck] = useState<Flashcard[]>(CARDS_DECK);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [reviewing, setReviewing] = useState(false);
-  const [completed, setCompleted] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [completedCount, setCompletedCount] = useState(0);
 
-  useEffect(() => {
-    fetch('/api/flashcards')
-      .then(res => res.json())
-      .then(data => {
-        if (data.flashcards) {
-          setCards(data.flashcards);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+  const currentCard = deck[currentIndex];
 
-  const handleRate = async (rating: number) => {
-    if (cards.length === 0 || reviewing) return;
-    const currentCard = cards[currentIndex];
-    setReviewing(true);
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
+  };
 
-    try {
-      await fetch('/api/flashcards', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flashcardId: currentCard.id, rating })
-      });
+  const handleRate = (interval: string) => {
+    setIsFlipped(false);
+    setCompletedCount(prev => prev + 1);
 
-      if (currentIndex + 1 < cards.length) {
-        setCurrentIndex(currentIndex + 1);
-        setIsFlipped(false);
-        setShowVideo(false);
-      } else {
-        setCompleted(true);
-      }
-    } catch (e) {
-      console.error('Failed to rate flashcard:', e);
-    } finally {
-      setReviewing(false);
+    if (currentIndex + 1 < deck.length) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      // Loop or restart deck
+      setCurrentIndex(0);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto py-16 px-4 max-w-4xl flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-10 h-10 border-3 border-teal-600 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-slate-600 font-medium">Loading Spaced Repetition Deck...</p>
-      </div>
-    );
-  }
-
-  const currentCard = cards[currentIndex];
-
   return (
-    <div className="container mx-auto py-10 px-4 md:px-8 max-w-4xl animate-page-enter font-sans">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto flex flex-col items-center justify-center space-y-6 animate-page-enter">
       
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-5">
-        <div>
-          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors mb-2">
-            <ChevronLeft className="w-3.5 h-3.5" /> Back to Dashboard
-          </Link>
-          <h1 className="text-2xl font-extrabold text-slate-900 font-serif tracking-tight flex items-center gap-2.5">
-            <Brain className="w-6 h-6 text-teal-600" />
-            Spaced Repetition Flashcards
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono font-bold px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 rounded-full">
-            {cards.length > 0 ? `${currentIndex + 1} / ${cards.length} Cards` : '0 Cards'}
+      {/* Header Bar */}
+      <div className="w-full flex items-center justify-between text-xs font-mono text-slate-500 border-b border-slate-200 pb-4">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <Brain className="w-4 h-4 text-teal-600" />
+            <span>Due Today: <strong className="text-teal-700">18</strong></span>
           </span>
+          <span>Reviewed: <strong className="text-cyan-700">{completedCount}</strong></span>
         </div>
+        <span className="font-semibold text-slate-700">
+          Card {currentIndex + 1} of {deck.length}
+        </span>
       </div>
 
-      {cards.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto shadow-2xs">
-          <div className="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto mb-4 border border-teal-100">
-            <Sparkles className="w-7 h-7" />
-          </div>
-          <h2 className="text-lg font-bold text-slate-900 mb-2">No Flashcards Yet</h2>
-          <p className="text-sm text-slate-500 leading-relaxed mb-6">
-            While solving questions in the Test Player, click the <strong>&ldquo;Create Flashcard&rdquo;</strong> button on any question or video mnemonic to save concepts directly into your spaced repetition queue.
-          </p>
-          <Link href="/dashboard/create-test">
-            <Button variant="primary" className="bg-teal-600 hover:bg-teal-500 text-white font-bold gap-2">
-              Start Practice Session <ArrowRight className="w-4 h-4" />
-            </Button>
-          </Link>
-        </div>
-      ) : completed ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto shadow-2xs">
-          <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border border-emerald-100">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Review Complete!</h2>
-          <p className="text-sm text-slate-600 mb-6">
-            You have reviewed all cards in your current spaced repetition queue. Great work reinforcing high-yield recall today!
-          </p>
-          <div className="flex justify-center gap-3">
-            <Button 
-              variant="secondary"
-              onClick={() => { setCompleted(false); setCurrentIndex(0); setIsFlipped(false); }}
-              className="gap-2"
-            >
-              <RotateCw className="w-4 h-4" /> Review Again
-            </Button>
-            <Link href="/dashboard">
-              <Button variant="primary" className="bg-slate-900 text-white hover:bg-slate-800">
-                Back to Dashboard
-              </Button>
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-6 max-w-2xl mx-auto">
-          
-          {/* Card Meta */}
-          <div className="flex items-center justify-between text-xs text-slate-500 px-1">
-            <span className="font-mono font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-              {currentCard?.question?.qid || 'High-Yield Pearl'}
-            </span>
-            <span>{currentCard?.question?.subtopic || 'Clinical Medicine'}</span>
+      {/* 3D Flip Card Container */}
+      <div 
+        onClick={handleFlip}
+        className="w-full h-96 [perspective:1000px] cursor-pointer group"
+      >
+        <div 
+          className={`relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d] shadow-xl rounded-2xl ${
+            isFlipped ? '[transform:rotateY(180deg)]' : ''
+          }`}
+        >
+          {/* Front of Card */}
+          <div className="absolute inset-0 bg-white rounded-2xl border border-slate-200/90 p-8 flex flex-col justify-between [backface-visibility:hidden]">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 font-mono">
+                  {currentCard.category}
+                </span>
+                <span className="text-xs text-slate-400 flex items-center gap-1">
+                  <RotateCw className="w-3.5 h-3.5 text-slate-400 group-hover:rotate-180 transition-transform duration-500" />
+                  Flip to see answer
+                </span>
+              </div>
+
+              <h2 className="text-lg md:text-xl font-bold font-serif text-slate-900 leading-relaxed pt-2">
+                {currentCard.front}
+              </h2>
+            </div>
+
+            <div className="text-center text-xs text-slate-400 font-sans border-t border-slate-100 pt-3">
+              Tap or click card to reveal answer & mnemonic pearl &rarr;
+            </div>
           </div>
 
-          {/* Flashcard Body */}
-          <div 
-            onClick={() => setIsFlipped(!isFlipped)}
-            className="bg-white rounded-2xl border-2 border-slate-200 hover:border-teal-400/80 p-8 min-h-[300px] flex flex-col justify-between cursor-pointer transition-all shadow-sm select-none"
-          >
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-4">
-                {isFlipped ? 'Answer & Clinical Rationale' : 'Question / High-Yield Prompt'}
-              </div>
-              <div className="text-slate-900 text-lg md:text-xl font-medium leading-relaxed">
-                {isFlipped ? currentCard.back : currentCard.front}
+          {/* Back of Card */}
+          <div className="absolute inset-0 bg-slate-900 text-white rounded-2xl border border-slate-800 p-8 flex flex-col justify-between [backface-visibility:hidden] [transform:rotateY(180deg)]">
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-teal-900/60 text-teal-300 border border-teal-700 font-mono inline-block">
+                High-Yield Recall Pearl & Synthesis
+              </span>
+              
+              <h3 className="font-serif font-bold text-lg text-teal-300 leading-snug">
+                {currentCard.backHeading}
+              </h3>
+
+              <div className="text-xs md:text-sm text-slate-200 leading-relaxed font-sans max-h-40 overflow-y-auto pr-1">
+                {currentCard.backText}
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-              <span>Click card or press space to flip</span>
-              <span className="font-semibold text-teal-700">
-                {isFlipped ? 'Back' : 'Front'}
+            {/* Video Mnemonic Trigger inside Card */}
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowVideoModal(true);
+              }}
+              className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 flex items-center justify-between transition-colors cursor-pointer group/vid"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-teal-500 text-slate-900 flex items-center justify-center">
+                  <Play className="w-3.5 h-3.5 fill-slate-900 ml-0.5" />
+                </div>
+                <div>
+                  <div className="text-xs text-teal-300 font-semibold font-mono flex items-center gap-1.5">
+                    <span>Mnemonic: {currentCard.mnemonicTitle}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400">Duration {currentCard.mnemonicDuration} &bull; Clinical memory anchor</div>
+                </div>
+              </div>
+              <span className="text-xs text-teal-400 font-bold group-hover/vid:translate-x-0.5 transition-transform">
+                Play &rarr;
               </span>
             </div>
           </div>
 
-          {/* Linked Video Mnemonic if available */}
-          {isFlipped && currentCard?.question?.videoUrl && (
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => setShowVideo(!showVideo)}
-                className="w-full py-2.5 px-4 rounded-xl border border-teal-200 bg-teal-50/70 text-teal-900 font-bold text-xs flex items-center justify-center gap-2 hover:bg-teal-100 transition-colors"
-              >
-                <Video className="w-4 h-4 text-teal-700" />
-                {showVideo ? 'Hide Linked Video Mnemonic' : '🎬 Watch Linked Video Mnemonic'}
-              </button>
+        </div>
+      </div>
 
-              {showVideo && (
-                <div className="rounded-xl overflow-hidden shadow-md">
-                  <VideoMnemonicPlayer 
-                    videoUrl={currentCard.question.videoUrl}
-                    title={currentCard.question.subtopic || 'Concept Retention Video'}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+      {/* SM-2 Interval Rating Controls */}
+      <div className="w-full grid grid-cols-4 gap-3 pt-2">
+        <button 
+          onClick={() => handleRate('again')}
+          className="py-2.5 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-700 font-bold text-xs shadow-sm transition-all flex flex-col items-center hover:scale-[1.02]"
+        >
+          <span>Again</span>
+          <span className="text-[10px] font-mono text-rose-500 font-normal">&lt; 1 min</span>
+        </button>
 
-          {/* Spaced Repetition Rating Buttons (Only shown when flipped) */}
-          {isFlipped ? (
-            <div className="pt-2">
-              <div className="text-center text-xs font-semibold text-slate-500 mb-3">
-                Rate your recall difficulty (SM-2 Interval Calculation):
+        <button 
+          onClick={() => handleRate('hard')}
+          className="py-2.5 rounded-xl border border-amber-200 bg-white hover:bg-amber-50 text-amber-700 font-bold text-xs shadow-sm transition-all flex flex-col items-center hover:scale-[1.02]"
+        >
+          <span>Hard</span>
+          <span className="text-[10px] font-mono text-amber-500 font-normal">1 day</span>
+        </button>
+
+        <button 
+          onClick={() => handleRate('good')}
+          className="py-2.5 rounded-xl border border-teal-200 bg-white hover:bg-teal-50 text-teal-800 font-bold text-xs shadow-sm transition-all flex flex-col items-center hover:scale-[1.02]"
+        >
+          <span>Good</span>
+          <span className="text-[10px] font-mono text-teal-600 font-normal">3 days</span>
+        </button>
+
+        <button 
+          onClick={() => handleRate('easy')}
+          className="py-2.5 rounded-xl border border-emerald-200 bg-white hover:bg-emerald-50 text-emerald-800 font-bold text-xs shadow-sm transition-all flex flex-col items-center hover:scale-[1.02]"
+        >
+          <span>Easy</span>
+          <span className="text-[10px] font-mono text-emerald-600 font-normal">7 days</span>
+        </button>
+      </div>
+
+      {/* Card Navigation Footer */}
+      <div className="w-full flex items-center justify-between text-xs text-slate-500 pt-4 border-t border-slate-200">
+        <button
+          onClick={() => {
+            setIsFlipped(false);
+            setCurrentIndex(prev => (prev > 0 ? prev - 1 : deck.length - 1));
+          }}
+          className="flex items-center gap-1 hover:text-slate-800 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span>Previous Card</span>
+        </button>
+
+        <Link 
+          href="/dashboard"
+          className="text-teal-700 font-semibold hover:underline"
+        >
+          Return to Dashboard &rarr;
+        </Link>
+
+        <button
+          onClick={() => {
+            setIsFlipped(false);
+            setCurrentIndex(prev => (prev + 1 < deck.length ? prev + 1 : 0));
+          }}
+          className="flex items-center gap-1 hover:text-slate-800 transition-colors"
+        >
+          <span>Next Card</span>
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Video Modal */}
+      {showVideoModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-4 p-6">
+            <div className="flex items-center justify-between text-white">
+              <div className="flex items-center gap-2">
+                <Video className="w-5 h-5 text-teal-400" />
+                <h3 className="font-serif font-bold text-base">{currentCard.mnemonicTitle}</h3>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                <button
-                  type="button"
-                  disabled={reviewing}
-                  onClick={() => handleRate(1)}
-                  className="py-3 px-2 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-800 font-bold text-xs transition-colors flex flex-col items-center gap-1 cursor-pointer"
-                >
-                  <span>Again</span>
-                  <span className="text-[10px] text-rose-600 font-normal">&lt; 1 day</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={reviewing}
-                  onClick={() => handleRate(2)}
-                  className="py-3 px-2 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-800 font-bold text-xs transition-colors flex flex-col items-center gap-1 cursor-pointer"
-                >
-                  <span>Hard</span>
-                  <span className="text-[10px] text-amber-600 font-normal">1 day</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={reviewing}
-                  onClick={() => handleRate(3)}
-                  className="py-3 px-2 rounded-xl bg-teal-50 border border-teal-200 hover:bg-teal-100 text-teal-800 font-bold text-xs transition-colors flex flex-col items-center gap-1 cursor-pointer"
-                >
-                  <span>Good</span>
-                  <span className="text-[10px] text-teal-600 font-normal">3 days</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={reviewing}
-                  onClick={() => handleRate(4)}
-                  className="py-3 px-2 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition-colors flex flex-col items-center gap-1 cursor-pointer"
-                >
-                  <span>Easy</span>
-                  <span className="text-[10px] text-emerald-600 font-normal">4 days</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setIsFlipped(true)}
-                className="py-3 px-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-sm transition-colors cursor-pointer"
+              <button 
+                onClick={() => setShowVideoModal(false)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center"
               >
-                Reveal Answer
+                <X className="w-4 h-4" />
               </button>
             </div>
-          )}
 
+            <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+              <video 
+                src="/videos/mnemonics/autoimmune/boardroom.mp4" 
+                controls 
+                autoPlay 
+                className="w-full h-full object-contain"
+              />
+            </div>
+
+            <div className="text-xs text-slate-400">
+              High-yield visual memory anchor for long-term retention. Correlates clinical findings with pathognomonic board clues.
+            </div>
+          </div>
         </div>
       )}
 

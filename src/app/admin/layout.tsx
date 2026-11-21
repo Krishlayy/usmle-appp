@@ -29,6 +29,10 @@ export default async function AdminLayout({
           <a href="/admin/qbanks" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900">
             Manage QBanks
           </a>
+          <a href="/admin/qbanks/upload" className="block px-4 py-2.5 rounded-lg bg-teal-50/70 text-teal-800 hover:bg-teal-100/70 transition-colors text-[13px] font-bold flex items-center justify-between border border-teal-200/50">
+            <span>Upload QBank (.docx)</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-teal-600 text-white px-1.5 py-0.5 rounded">DOCX</span>
+          </a>
           <a href="/admin/queue" className="block px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-[13px] font-bold text-slate-600 hover:text-slate-900 flex items-center justify-between">
             <span>Review Queue</span>
           </a>

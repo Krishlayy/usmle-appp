@@ -16,7 +16,13 @@ export default withAuth(
       signIn: '/login',
     },
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token, req }) => {
+        // Allow simulator and test session results to be viewed freely
+        if (req.nextUrl.pathname.includes('/results')) {
+          return true;
+        }
+        return !!token;
+      },
     },
   }
 );

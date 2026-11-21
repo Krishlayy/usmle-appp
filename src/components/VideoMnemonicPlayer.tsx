@@ -22,20 +22,7 @@ export function VideoMnemonicPlayer({
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
-  const [watermarkPos, setWatermarkPos] = useState({ top: 20, left: 15 });
-
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  // Periodically drift watermark slightly across screen to prevent crop-out
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWatermarkPos({
-        top: Math.floor(Math.random() * 55) + 15, // between 15% and 70%
-        left: Math.floor(Math.random() * 55) + 15, // between 15% and 70%
-      });
-    }, 12000);
-    return () => clearInterval(interval);
-  }, []);
 
   if (!videoUrl || !videoUrl.trim()) return null;
 
@@ -174,14 +161,11 @@ export function VideoMnemonicPlayer({
               onClick={togglePlay}
             />
 
-            {/* Anti-Piracy Watermark: Drifting low-opacity text overlay to deter screen scraping */}
-            <div 
-              className="absolute pointer-events-none transition-all duration-1000 ease-out z-20"
-              style={{ top: `${watermarkPos.top}%`, left: `${watermarkPos.left}%` }}
-            >
-              <div className="px-2.5 py-1 rounded bg-black/40 backdrop-blur-[1px] border border-white/10 text-[10px] font-mono tracking-wider text-white/35 flex items-center gap-1.5 shadow-sm">
-                <ShieldAlert className="w-3 h-3 text-teal-400/50" />
-                <span>USMLE-PRO • {userEmail}</span>
+            {/* Static Anti-Piracy Watermark: Pinned cleanly in top corner */}
+            <div className="absolute top-3 right-3 pointer-events-none z-20">
+              <div className="px-2 py-0.5 rounded bg-black/40 backdrop-blur-[1px] border border-white/10 text-[9px] font-mono tracking-wider text-white/40 flex items-center gap-1.5 shadow-sm">
+                <ShieldAlert className="w-2.5 h-2.5 text-teal-400/50" />
+                <span>USMLE • {userEmail}</span>
               </div>
             </div>
 

@@ -20,7 +20,8 @@ export async function POST(req: Request) {
       mode, 
       filter = "all", 
       subtopics = [], 
-      questionCount 
+      questionCount,
+      shuffle = false
     } = await req.json();
 
     if ((!qbankId && !qbankSlug && qbankIds.length === 0) || !mode) {
@@ -89,11 +90,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No questions match the selected filters." }, { status: 400 });
     }
 
-    // Shuffle for exam randomness
-    questions = [...questions].sort(() => Math.random() - 0.5);
+    // Preserve curated sequential order (Q1 through Q50) unless shuffle explicitly requested
+    if (shuffle === true) {
+      questions = [...questions].sort(() => Math.random() - 0.5);
+    } else {
+      questions = [...questions].sort((a, b) => a.qid.localeCompare(b.qid, undefined, { numeric: true }));
+    }
 
-    // Limit question count if specified (max 40 per USMLE block)
-    const maxBlockCount = questionCount && questionCount > 0 ? Math.min(questionCount, 40) : Math.min(questions.length, 40);
+    // Limit question count if specified (defaults to full question set up to questions.length)
+    const maxBlockCount = questionCount && questionCount > 0 ? questionCount : questions.length;
     questions = questions.slice(0, maxBlockCount);
 
     const primaryQBankId = targetQBankIds[0];

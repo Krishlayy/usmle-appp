@@ -20,10 +20,18 @@ export default async function AdminQBanksPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Manage QBanks</h1>
-        <Link href="/admin/qbanks/new" className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors shadow-sm">
-          + Create New QBank
-        </Link>
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Manage QBanks</h1>
+          <p className="text-slate-500 text-sm mt-1">Configure question banks, view sales, or upload official Word documents.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/qbanks/import" className="bg-teal-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-teal-500 transition-all shadow-xs flex items-center gap-2">
+            <span>↑ Import QBank (.docx)</span>
+          </Link>
+          <Link href="/admin/qbanks/new" className="border border-slate-300 bg-white text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors">
+            + Manual QBank
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
