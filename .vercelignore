@@ -1,0 +1,12 @@
+public/videos/
+*.mov
+*.mp4
+*.png
+*.pdf
+*.html
+scripts/
+tests/
+test-results/
+playwright-report/
+.git
+.next
