@@ -34,43 +34,47 @@ export default async function FlashcardsPage(props: { params: Promise<{ qbankSlu
   });
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+    <div className="mx-auto max-w-5xl px-5 py-12 md:px-10 md:py-16">
+      <div className="mb-10 flex items-end justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Flashcards</h1>
-          <p className="text-gray-500 mt-1">Review your flashcards for {qbank.title}</p>
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Study tools</p>
+          <h1 className="font-serif text-4xl font-medium tracking-tight text-white">Flashcards</h1>
+          <p className="mt-2 text-sm text-slate-400">Review your flashcards for {qbank.title}</p>
         </div>
-        <Link 
+        <Link
           href={`/dashboard/${params.qbankSlug}`}
-          className="text-sm font-bold text-gray-600 hover:text-black transition-colors"
+          className="shrink-0 text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
         >
           Back to Dashboard
         </Link>
       </div>
 
       {flashcards.length === 0 ? (
-        <div className="bg-gray-50 p-12 text-center rounded border border-gray-200">
-          <p className="text-gray-500 font-medium">You don't have any flashcards yet.</p>
-          <p className="text-sm text-gray-400 mt-2">Create flashcards from the test player explanation view.</p>
+        <div className="rounded-lg border border-dashed border-white/15 p-12 text-center">
+          <p className="font-serif text-xl text-white">You don&apos;t have any flashcards yet.</p>
+          <p className="mt-2 text-sm text-slate-400">Create flashcards from the test player explanation view.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {flashcards.map((card) => (
-            <div key={card.id} className="group perspective-1000">
-              <div className="relative w-full h-64 bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col justify-center text-center transition-shadow hover:shadow-md">
-                <span className="absolute top-4 left-4 font-mono text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  Front
+            <div
+              key={card.id}
+              tabIndex={0}
+              aria-label={`Flashcard, question ${card.question.qid}. Hover or focus to reveal the answer.`}
+              className="group relative flex h-64 w-full flex-col justify-center rounded-lg border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-xl transition-colors hover:border-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+            >
+              <span className="absolute left-4 top-4 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                Front
+              </span>
+              <span className="absolute right-4 top-4 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                QID: {card.question.qid}
+              </span>
+              <p className="text-slate-200">{card.front}</p>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-white/25 bg-[#0d1219] p-6 opacity-0 transition-opacity duration-300 group-focus-visible:opacity-100 group-hover:opacity-100">
+                <span className="absolute left-4 top-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+                  Back
                 </span>
-                <span className="absolute top-4 right-4 font-mono text-[10px] font-bold text-gray-400 uppercase">
-                  QID: {card.question.qid}
-                </span>
-                <p className="font-medium text-gray-800">{card.front}</p>
-                <div className="absolute inset-0 bg-black text-white p-6 rounded-xl flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <span className="absolute top-4 left-4 font-mono text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Back
-                  </span>
-                  <p className="font-medium">{card.back}</p>
-                </div>
+                <p className="text-white">{card.back}</p>
               </div>
             </div>
           ))}

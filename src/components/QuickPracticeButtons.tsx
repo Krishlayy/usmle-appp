@@ -56,17 +56,17 @@ export function QuickPracticeButtons({ qbank }: QuickPracticeButtonsProps) {
 
   return (
     <>
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={() => startDirectBlock('tutor')}
           disabled={loadingMode !== null}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs sm:text-sm font-bold shadow-2xs transition-all hover:scale-105 disabled:opacity-60 cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-md border border-white/15 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:opacity-60"
         >
           {loadingMode === 'tutor' ? (
-            <Loader2 className="w-4 h-4 animate-spin text-teal-600" />
+            <Loader2 className="h-4 w-4 motion-safe:animate-spin" aria-hidden />
           ) : (
-            <GraduationCap className="w-4 h-4 text-teal-600" />
+            <GraduationCap className="h-4 w-4" aria-hidden />
           )}
           <span>Tutor Mode</span>
         </button>
@@ -75,12 +75,12 @@ export function QuickPracticeButtons({ qbank }: QuickPracticeButtonsProps) {
           type="button"
           onClick={() => startDirectBlock('timed')}
           disabled={loadingMode !== null}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-teal-700/20 transition-all hover:scale-105 disabled:opacity-60 cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:opacity-60"
         >
           {loadingMode === 'timed' ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="h-4 w-4 motion-safe:animate-spin" aria-hidden />
           ) : (
-            <Clock className="w-4 h-4" />
+            <Clock className="h-4 w-4" aria-hidden />
           )}
           <span>Timed Mode</span>
         </button>

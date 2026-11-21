@@ -2,16 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  X, 
-  GraduationCap, 
-  Clock, 
-  ArrowRight, 
-  Loader2,
-  ShieldCheck,
-  CheckCircle2,
-  Sparkles
-} from 'lucide-react';
+import { X, GraduationCap, Clock, ArrowRight, Loader2 } from 'lucide-react';
 
 export interface QBankData {
   id: string;
@@ -92,142 +83,118 @@ export function QuickPracticeModal({ isOpen, onClose, qbank, defaultMode = 'tuto
     }
   };
 
+  const modes = [
+    {
+      id: 'tutor' as const,
+      Icon: GraduationCap,
+      title: 'Tutor Mode',
+      body: 'Untimed study. Distractor rationales, verified comparison tables, and visual mnemonics revealed immediately after submitting each question.',
+      foot: 'Instant Answers & Mnemonics',
+    },
+    {
+      id: 'timed' as const,
+      Icon: Clock,
+      title: 'Timed Mode',
+      body: 'Authentic exam conditions. 90 seconds per item countdown. Explanations and performance metrics unlock upon block submission.',
+      foot: 'Board Pacing & Clock',
+    },
+  ];
+
   return (
-    <div className="fixed inset-0 z-[999999] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-page-enter">
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center overflow-y-auto bg-[#070a0f]/80 p-4 backdrop-blur-sm sm:p-6">
       {/* Backdrop click handler */}
       <div className="fixed inset-0" onClick={() => !isLoading && onClose()} />
 
-      {/* Modal Card */}
-      <div className="relative w-full max-w-lg bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden z-10 flex flex-col transition-all">
-        
-        {/* Top Header */}
-        <div className="flex items-start justify-between p-6 bg-slate-50/90 border-b border-slate-200">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 text-[11px] font-bold border border-teal-200/80 font-mono">
-                <ShieldCheck className="w-3 h-3 text-teal-600" />
-                {qbank.specialtyTag || 'Clinical Q-Bank'}
-              </span>
-              <span className="text-xs text-slate-500 font-semibold font-mono">
-                {totalQuestions} Board-Style Items
-              </span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold font-serif text-slate-900 tracking-tight">
+      {/* Modal panel */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-practice-title"
+        className="relative z-10 flex w-full max-w-lg flex-col rounded-lg border border-white/15 bg-[#0d1219] text-slate-100"
+      >
+        <div className="flex items-start justify-between border-b border-white/10 p-6">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+              {qbank.specialtyTag || 'Clinical Q-Bank'}
+              <span className="text-slate-500"> &middot; <span className="tabular-nums">{totalQuestions}</span> Board-Style Items</span>
+            </p>
+            <h2 id="quick-practice-title" className="mt-3 font-serif text-2xl font-medium tracking-tight text-white">
               {qbank.title}
             </h2>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer"
+            className="rounded-md p-1.5 text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
             title="Close (Esc)"
+            aria-label="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 space-y-6">
-          
-          {/* Error Banner */}
+        <div className="space-y-6 p-6">
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+            <div role="alert" className="flex items-center justify-between rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
               <span>{error}</span>
-              <button onClick={() => setError(null)} className="text-rose-600 hover:text-rose-900 font-bold ml-2">✕</button>
+              <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="ml-2 text-red-300 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300">
+                <X className="h-4 w-4" aria-hidden />
+              </button>
             </div>
           )}
 
-          {/* Practice Mode Selector: Tutor vs Timed */}
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-3">
+          <div role="radiogroup" aria-labelledby="quick-practice-mode-label">
+            <p id="quick-practice-mode-label" className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
               Select Examination Mode
-            </label>
+            </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Tutor Mode Card */}
-              <div
-                onClick={() => setMode('tutor')}
-                className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                  mode === 'tutor'
-                    ? 'border-teal-600 bg-teal-50/60 shadow-sm ring-2 ring-teal-500/20'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shadow-2xs">
-                    <GraduationCap className="w-5 h-5 text-teal-700" />
-                  </div>
-                  {mode === 'tutor' && (
-                    <span className="text-[10px] font-bold text-teal-800 bg-teal-100 border border-teal-300 px-2 py-0.5 rounded-full font-mono">
-                      SELECTED
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <h4 className="text-base font-bold text-slate-900 mb-1">Tutor Mode</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed font-sans">
-                    Untimed study. Distractor rationales, verified comparison tables, and visual mnemonics revealed immediately after submitting each question.
-                  </p>
-                </div>
-
-                <div className="mt-4 pt-2.5 border-t border-teal-100/70 flex items-center gap-1.5 text-[11px] text-teal-800 font-semibold">
-                  <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Instant Answers &amp; Mnemonics</span>
-                </div>
-              </div>
-
-              {/* Timed Mode Card */}
-              <div
-                onClick={() => setMode('timed')}
-                className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                  mode === 'timed'
-                    ? 'border-cyan-600 bg-cyan-50/60 shadow-sm ring-2 ring-cyan-500/20'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center shadow-2xs">
-                    <Clock className="w-5 h-5 text-cyan-700" />
-                  </div>
-                  {mode === 'timed' && (
-                    <span className="text-[10px] font-bold text-cyan-800 bg-cyan-100 border border-cyan-300 px-2 py-0.5 rounded-full font-mono">
-                      SELECTED
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <h4 className="text-base font-bold text-slate-900 mb-1">Timed Mode</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed font-sans">
-                    Authentic exam conditions. 90 seconds per item countdown. Explanations and performance metrics unlock upon block submission.
-                  </p>
-                </div>
-
-                <div className="mt-4 pt-2.5 border-t border-cyan-100/70 flex items-center gap-1.5 text-[11px] text-cyan-800 font-semibold">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600" />
-                  <span>Board Pacing &amp; Clock</span>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {modes.map(({ id, Icon, title, body, foot }) => {
+                const selected = mode === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setMode(id)}
+                    className={`flex flex-col justify-between rounded-lg border p-5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 ${
+                      selected
+                        ? 'border-teal-300 bg-white/[0.05]'
+                        : 'border-white/10 bg-white/[0.02] hover:border-white/25'
+                    }`}
+                  >
+                    <div className="mb-4 flex items-start justify-between">
+                      <Icon className={`h-5 w-5 ${selected ? 'text-teal-300' : 'text-slate-400'}`} strokeWidth={1.75} aria-hidden />
+                      {selected && (
+                        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300">Selected</span>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="mb-1 font-serif text-lg font-medium text-white">{title}</h4>
+                      <p className="text-xs leading-relaxed text-slate-400">{body}</p>
+                    </div>
+                    <p className="mt-4 border-t border-white/10 pt-3 text-[11px] text-slate-300">{foot}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Block Overview Pill */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
-            <span className="font-medium">Total Block Curriculum:</span>
-            <span className="font-bold text-slate-900 font-mono">Full {totalQuestions} Questions</span>
+          <div className="flex items-center justify-between border-y border-white/10 py-3 text-xs text-slate-400">
+            <span>Total Block Curriculum</span>
+            <span className="font-mono tabular-nums text-white">Full {totalQuestions} Questions</span>
           </div>
-
         </div>
 
-        {/* Modal Footer Controls */}
-        <div className="p-6 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3 border-t border-white/10 p-6">
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+            className="rounded-md border border-white/15 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:opacity-60"
           >
             Cancel
           </button>
@@ -236,22 +203,21 @@ export function QuickPracticeModal({ isOpen, onClose, qbank, defaultMode = 'tuto
             type="button"
             onClick={handleStartBlock}
             disabled={isLoading}
-            className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-teal-700/25 transition-all hover:scale-105 inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 disabled:pointer-events-none disabled:opacity-60"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="h-4 w-4 motion-safe:animate-spin" aria-hidden />
                 <span>Launching {totalQuestions} Items...</span>
               </>
             ) : (
               <>
                 <span>Start {totalQuestions}-Question Block</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </>
             )}
           </button>
         </div>
-
       </div>
     </div>
   );

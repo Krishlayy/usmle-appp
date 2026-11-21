@@ -3,17 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Play, 
-  Clock, 
-  HelpCircle, 
-  CheckCircle2, 
-  Sparkles, 
-  Sliders, 
-  Layers, 
-  BookmarkCheck,
-  AlertCircle
-} from 'lucide-react';
+import { Play } from 'lucide-react';
+import { Reveal } from '@/components/ui/Reveal';
 
 interface SystemOption {
   id: string;
@@ -68,203 +59,186 @@ export default function CreateTestPage() {
     router.push(`/simulator?mode=${examMode}&count=${questionCount}&qbank=${activeSys.slug}`);
   };
 
+  const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300';
+  const legend = 'font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400';
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8 animate-page-enter">
-      
-      {/* Title Header */}
-      <div className="space-y-2 border-b border-slate-200 pb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold">
-          <Sliders className="w-3.5 h-3.5 text-teal-600" />
-          <span>Interactive Exam Builder</span>
-        </div>
-        <h1 className="text-3xl md:text-4xl font-extrabold font-serif text-slate-900 tracking-tight">
-          Custom Test Generation <span className="text-teal-700 italic">Matrix</span>
-        </h1>
-        <p className="text-sm text-slate-600 max-w-2xl">
-          Replicate the exact UWorld exam block builder. Configure mode, question pool status, organ systems, and timed block length.
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#070a0f] px-5 py-12 text-slate-100 md:px-10 md:py-16">
+      <div className="mx-auto max-w-4xl space-y-10">
 
-      <form onSubmit={handleGenerateBlock} className="space-y-8">
-        
-        {/* 1. TEST MODE SELECTOR */}
-        <div className="space-y-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono flex items-center gap-1.5">
-            <span>1. Select Examination Mode</span>
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
-            <div 
-              onClick={() => setExamMode('tutor')}
-              className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                examMode === 'tutor' 
-                  ? 'border-teal-600 bg-teal-50/70 shadow-sm ring-2 ring-teal-600/10' 
-                  : 'border-slate-200 bg-white hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <input 
-                  type="radio" 
-                  name="examMode" 
-                  checked={examMode === 'tutor'} 
-                  onChange={() => setExamMode('tutor')}
-                  className="text-teal-600 focus:ring-teal-500" 
-                />
-                <span className="font-bold text-sm text-slate-900">Tutor Mode (Immediate Rationale)</span>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed pl-5">
-                Reveals distractor breakdowns, educational objective, and high-yield video mnemonic immediately after each question.
-              </p>
-            </div>
-
-            <div 
-              onClick={() => setExamMode('timed')}
-              className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                examMode === 'timed' 
-                  ? 'border-teal-600 bg-teal-50/70 shadow-sm ring-2 ring-teal-600/10' 
-                  : 'border-slate-200 bg-white hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <input 
-                  type="radio" 
-                  name="examMode" 
-                  checked={examMode === 'timed'} 
-                  onChange={() => setExamMode('timed')}
-                  className="text-teal-600 focus:ring-teal-500" 
-                />
-                <span className="font-bold text-sm text-slate-900">Timed Mode (Strict Exam Pace)</span>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed pl-5">
-                Authentic 60-minute countdown with no answer reveals until the entire block is submitted for evaluation.
-              </p>
-            </div>
-
+        {/* Title Header */}
+        <Reveal>
+          <div className="border-b border-white/10 pb-8">
+            <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Interactive exam builder</p>
+            <h1 className="font-serif text-4xl font-medium tracking-tight text-white md:text-5xl">
+              Custom Test Generation <span className="text-teal-300">Matrix</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+              Replicate the exact UWorld exam block builder. Configure mode, question pool status, organ systems, and timed block length.
+            </p>
           </div>
-        </div>
+        </Reveal>
 
-        {/* 2. QUESTION POOL STATUS */}
-        <div className="space-y-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-            2. Question Status Filter
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            {[
-              { id: 'unused', label: 'Unused Questions' },
-              { id: 'incorrect', label: 'Incorrect Only' },
-              { id: 'flagged', label: 'Marked / Flagged' },
-              { id: 'all', label: 'All Pool (250 Qs)' },
-            ].map(status => {
-              const active = questionStatus === status.id;
-              return (
-                <div
-                  key={status.id}
-                  onClick={() => setQuestionStatus(status.id)}
-                  className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                    active 
-                      ? 'border-teal-600 bg-teal-50 font-bold text-teal-900 shadow-sm' 
-                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+        <form onSubmit={handleGenerateBlock} className="space-y-10">
+
+          {/* 1. TEST MODE SELECTOR */}
+          <fieldset className="space-y-3">
+            <legend className={`${legend} mb-3`}>1. Select Examination Mode</legend>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {[
+                { id: 'tutor' as const, title: 'Tutor Mode (Immediate Rationale)', body: 'Reveals distractor breakdowns, educational objective, and high-yield video mnemonic immediately after each question.' },
+                { id: 'timed' as const, title: 'Timed Mode (Strict Exam Pace)', body: 'Authentic 60-minute countdown with no answer reveals until the entire block is submitted for evaluation.' },
+              ].map((m) => (
+                <label
+                  key={m.id}
+                  className={`block cursor-pointer rounded-lg border p-5 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-teal-300 ${
+                    examMode === m.id
+                      ? 'border-teal-300 bg-white/[0.05]'
+                      : 'border-white/10 bg-white/[0.02] hover:border-white/25'
                   }`}
                 >
-                  <span className="text-xs">{status.label}</span>
-                  <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                    active ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-300'
-                  }`}>
-                    {active && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                  <span className="mb-2 flex items-center gap-2.5">
+                    <input
+                      type="radio"
+                      name="examMode"
+                      checked={examMode === m.id}
+                      onChange={() => setExamMode(m.id)}
+                      className="h-4 w-4 accent-teal-300"
+                    />
+                    <span className="text-sm font-medium text-white">{m.title}</span>
+                  </span>
+                  <span className="block pl-6 text-xs leading-relaxed text-slate-400">{m.body}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
-        {/* 3. ORGAN SYSTEM MULTI-SELECT */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-              3. Organ Systems & High-Yield Modules
-            </label>
-            <button 
-              type="button" 
-              onClick={toggleSelectAll} 
-              className="text-xs font-semibold text-teal-700 hover:underline"
+          {/* 2. QUESTION POOL STATUS */}
+          <fieldset className="space-y-3">
+            <legend className={`${legend} mb-3`}>2. Question Status Filter</legend>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { id: 'unused', label: 'Unused Questions' },
+                { id: 'incorrect', label: 'Incorrect Only' },
+                { id: 'flagged', label: 'Marked / Flagged' },
+                { id: 'all', label: 'All Pool (250 Qs)' },
+              ].map(status => {
+                const active = questionStatus === status.id;
+                return (
+                  <label
+                    key={status.id}
+                    className={`flex cursor-pointer items-center justify-between rounded-md border px-3 py-3 text-xs transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-teal-300 ${
+                      active
+                        ? 'border-teal-300 bg-white/[0.05] text-white'
+                        : 'border-white/10 text-slate-300 hover:border-white/25'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="questionStatus"
+                      className="sr-only"
+                      checked={active}
+                      onChange={() => setQuestionStatus(status.id)}
+                    />
+                    <span>{status.label}</span>
+                    <span
+                      aria-hidden
+                      className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border ${active ? 'border-teal-300' : 'border-white/25'}`}
+                    >
+                      {active && <span className="h-1.5 w-1.5 rounded-full bg-teal-300" />}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          {/* 3. ORGAN SYSTEM MULTI-SELECT */}
+          <fieldset className="space-y-3">
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <legend className={legend}>3. Organ Systems &amp; High-Yield Modules</legend>
+              <button
+                type="button"
+                onClick={toggleSelectAll}
+                className={`text-xs text-teal-300 underline-offset-4 transition-colors hover:text-teal-200 hover:underline ${focusRing}`}
+              >
+                {selectedSystems.length === AVAILABLE_SYSTEMS.length ? 'Deselect Extra' : 'Select All (5 Systems)'}
+              </button>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2 backdrop-blur-xl">
+              {AVAILABLE_SYSTEMS.map(sys => {
+                const isChecked = selectedSystems.includes(sys.id);
+                return (
+                  <label
+                    key={sys.id}
+                    className="flex cursor-pointer items-center justify-between gap-4 rounded-md border-b border-white/10 px-3 py-3 transition-colors last:border-b-0 hover:bg-white/[0.04] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-teal-300"
+                  >
+                    <span className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleSystem(sys.id)}
+                        className="h-4 w-4 accent-teal-300"
+                      />
+                      <span className="text-sm text-slate-200">{sys.title}</span>
+                    </span>
+                    <span className="shrink-0 font-mono text-[11px] tabular-nums text-slate-500">
+                      {sys.count} Qs
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          {/* 4. BLOCK QUESTION COUNT */}
+          <div className="space-y-3">
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <label htmlFor="question-count" className={legend}>
+                4. Number of Questions (Max 40 per USMLE block)
+              </label>
+              <span className="font-mono text-lg tabular-nums text-white">
+                {questionCount} Questions
+              </span>
+            </div>
+
+            <input
+              id="question-count"
+              type="range"
+              min="5"
+              max="40"
+              step="5"
+              value={questionCount}
+              onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+              className={`h-1 w-full cursor-pointer accent-teal-300 ${focusRing}`}
+            />
+
+            <div className="flex justify-between font-mono text-[11px] text-slate-500">
+              <span>5 Qs (Quick Drill)</span>
+              <span>20 Qs (Half Block)</span>
+              <span>40 Qs (Standard USMLE Block)</span>
+            </div>
+          </div>
+
+          {/* SUBMIT BUTTON */}
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row">
+            <div className="text-xs text-slate-500">
+              Selected: <span className="text-slate-200">{selectedSystems.length} systems</span> | <span className="text-slate-200">{examMode === 'tutor' ? 'Tutor Mode' : 'Timed 60m'}</span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isGenerating}
+              className={`flex w-full items-center justify-center gap-2 rounded-md bg-white px-8 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 disabled:opacity-60 sm:w-auto ${focusRing} focus-visible:outline-offset-2`}
             >
-              {selectedSystems.length === AVAILABLE_SYSTEMS.length ? 'Deselect Extra' : 'Select All (5 Systems)'}
+              <Play className="h-4 w-4" aria-hidden />
+              <span>{isGenerating ? 'Configuring Exam Block...' : 'Generate Exam Block'}</span>
             </button>
           </div>
 
-          <div className="space-y-2 bg-white rounded-xl border border-slate-200 p-4">
-            {AVAILABLE_SYSTEMS.map(sys => {
-              const isChecked = selectedSystems.includes(sys.id);
-              return (
-                <label 
-                  key={sys.id}
-                  onClick={() => toggleSystem(sys.id)}
-                  className="flex items-center justify-between py-2 border-b border-slate-100 last:border-b-0 cursor-pointer hover:bg-slate-50 px-2 rounded-lg transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <input 
-                      type="checkbox" 
-                      checked={isChecked}
-                      onChange={() => {}}
-                      className="rounded text-teal-600 focus:ring-teal-500" 
-                    />
-                    <span className="text-xs font-medium text-slate-900">{sys.title}</span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                    {sys.count} Qs
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 4. BLOCK QUESTION COUNT */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-              4. Number of Questions (Max 40 per USMLE block)
-            </label>
-            <span className="font-mono text-base font-bold text-teal-700 bg-teal-50 px-3 py-1 rounded-lg border border-teal-200">
-              {questionCount} Questions
-            </span>
-          </div>
-
-          <input 
-            type="range" 
-            min="5" 
-            max="40" 
-            step="5" 
-            value={questionCount} 
-            onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-            className="w-full accent-teal-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
-          />
-
-          <div className="flex justify-between text-[11px] text-slate-400 font-mono">
-            <span>5 Qs (Quick Drill)</span>
-            <span>20 Qs (Half Block)</span>
-            <span>40 Qs (Standard USMLE Block)</span>
-          </div>
-        </div>
-
-        {/* SUBMIT BUTTON */}
-        <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs text-slate-500">
-            Selected: <span className="font-semibold text-slate-800">{selectedSystems.length} systems</span> | <span className="font-semibold text-slate-800">{examMode === 'tutor' ? 'Tutor Mode' : 'Timed 60m'}</span>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isGenerating}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm shadow-md shadow-teal-700/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
-          >
-            <Play className="w-4 h-4 fill-white" />
-            <span>{isGenerating ? 'Configuring Exam Block...' : 'Generate Exam Block'}</span>
-          </button>
-        </div>
-
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

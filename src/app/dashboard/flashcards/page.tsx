@@ -2,17 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
-  Sparkles, 
-  RotateCw, 
-  CheckCircle2, 
-  Brain, 
-  Video, 
-  ChevronRight, 
-  ChevronLeft,
-  X,
-  Play
-} from 'lucide-react';
+import { RotateCw, Brain, Video, ChevronRight, ChevronLeft, X, Play } from 'lucide-react';
 
 interface Flashcard {
   id: string;
@@ -93,196 +83,201 @@ export default function FlashcardsReviewPage() {
     }
   };
 
+  const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300';
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto flex flex-col items-center justify-center space-y-6 animate-page-enter">
-      
-      {/* Header Bar */}
-      <div className="w-full flex items-center justify-between text-xs font-mono text-slate-500 border-b border-slate-200 pb-4">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
-            <Brain className="w-4 h-4 text-teal-600" />
-            <span>Due Today: <strong className="text-teal-700">18</strong></span>
+    <div className="min-h-screen bg-[#070a0f] px-5 py-12 text-slate-100 md:px-10 md:py-16">
+      <div className="mx-auto flex max-w-3xl flex-col gap-6">
+
+        {/* Header Bar */}
+        <div className="flex w-full items-center justify-between border-b border-white/10 pb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
+          <div className="flex items-center gap-6">
+            <span className="flex items-center gap-2">
+              <Brain className="h-4 w-4 text-teal-300" aria-hidden />
+              <span>Due Today: <strong className="font-medium tabular-nums text-white">18</strong></span>
+            </span>
+            <span>Reviewed: <strong className="font-medium tabular-nums text-white">{completedCount}</strong></span>
+          </div>
+          <span className="tabular-nums text-slate-300">
+            Card {currentIndex + 1} of {deck.length}
           </span>
-          <span>Reviewed: <strong className="text-cyan-700">{completedCount}</strong></span>
         </div>
-        <span className="font-semibold text-slate-700">
-          Card {currentIndex + 1} of {deck.length}
-        </span>
-      </div>
 
-      {/* 3D Flip Card Container */}
-      <div 
-        onClick={handleFlip}
-        className="w-full h-96 [perspective:1000px] cursor-pointer group"
-      >
-        <div 
-          className={`relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d] shadow-xl rounded-2xl ${
-            isFlipped ? '[transform:rotateY(180deg)]' : ''
-          }`}
+        {/* Flip Card (mouse convenience; keyboard users use the Flip button below) */}
+        <div
+          onClick={handleFlip}
+          className="group h-96 w-full cursor-pointer [perspective:1000px]"
         >
-          {/* Front of Card */}
-          <div className="absolute inset-0 bg-white rounded-2xl border border-slate-200/90 p-8 flex flex-col justify-between [backface-visibility:hidden]">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 font-mono">
-                  {currentCard.category}
-                </span>
-                <span className="text-xs text-slate-400 flex items-center gap-1">
-                  <RotateCw className="w-3.5 h-3.5 text-slate-400 group-hover:rotate-180 transition-transform duration-500" />
-                  Flip to see answer
-                </span>
-              </div>
-
-              <h2 className="text-lg md:text-xl font-bold font-serif text-slate-900 leading-relaxed pt-2">
-                {currentCard.front}
-              </h2>
-            </div>
-
-            <div className="text-center text-xs text-slate-400 font-sans border-t border-slate-100 pt-3">
-              Tap or click card to reveal answer & mnemonic pearl &rarr;
-            </div>
-          </div>
-
-          {/* Back of Card */}
-          <div className="absolute inset-0 bg-slate-900 text-white rounded-2xl border border-slate-800 p-8 flex flex-col justify-between [backface-visibility:hidden] [transform:rotateY(180deg)]">
-            <div className="space-y-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-teal-900/60 text-teal-300 border border-teal-700 font-mono inline-block">
-                High-Yield Recall Pearl & Synthesis
-              </span>
-              
-              <h3 className="font-serif font-bold text-lg text-teal-300 leading-snug">
-                {currentCard.backHeading}
-              </h3>
-
-              <div className="text-xs md:text-sm text-slate-200 leading-relaxed font-sans max-h-40 overflow-y-auto pr-1">
-                {currentCard.backText}
-              </div>
-            </div>
-
-            {/* Video Mnemonic Trigger inside Card */}
-            <div 
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowVideoModal(true);
-              }}
-              className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 flex items-center justify-between transition-colors cursor-pointer group/vid"
+          <div
+            className={`relative h-full w-full rounded-lg transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none ${
+              isFlipped ? '[transform:rotateY(180deg)]' : ''
+            }`}
+          >
+            {/* Front of Card */}
+            <div
+              inert={isFlipped}
+              className="absolute inset-0 flex flex-col justify-between rounded-lg border border-white/10 bg-[#0d1219] p-8 [backface-visibility:hidden]"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-teal-500 text-slate-900 flex items-center justify-center">
-                  <Play className="w-3.5 h-3.5 fill-slate-900 ml-0.5" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-teal-300/80">
+                    {currentCard.category}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <RotateCw className="h-3.5 w-3.5" aria-hidden />
+                    Flip to see answer
+                  </span>
                 </div>
-                <div>
-                  <div className="text-xs text-teal-300 font-semibold font-mono flex items-center gap-1.5">
-                    <span>Mnemonic: {currentCard.mnemonicTitle}</span>
-                  </div>
-                  <div className="text-[10px] text-slate-400">Duration {currentCard.mnemonicDuration} &bull; Clinical memory anchor</div>
+
+                <h2 className="pt-2 font-serif text-lg font-medium leading-relaxed text-white md:text-xl">
+                  {currentCard.front}
+                </h2>
+              </div>
+
+              <div className="border-t border-white/10 pt-3 text-center text-xs text-slate-500">
+                Tap or click card to reveal answer &amp; mnemonic pearl &rarr;
+              </div>
+            </div>
+
+            {/* Back of Card */}
+            <div
+              inert={!isFlipped}
+              className="absolute inset-0 flex flex-col justify-between rounded-lg border border-white/15 bg-[#0d1219] p-8 [backface-visibility:hidden] [transform:rotateY(180deg)]"
+            >
+              <div className="space-y-3">
+                <span className="inline-block font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+                  High-Yield Recall Pearl &amp; Synthesis
+                </span>
+
+                <h3 className="font-serif text-lg font-medium leading-snug text-white">
+                  {currentCard.backHeading}
+                </h3>
+
+                <div className="max-h-40 overflow-y-auto pr-1 text-sm leading-relaxed text-slate-300">
+                  {currentCard.backText}
                 </div>
               </div>
-              <span className="text-xs text-teal-400 font-bold group-hover/vid:translate-x-0.5 transition-transform">
-                Play &rarr;
-              </span>
+
+              {/* Video Mnemonic Trigger inside Card */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowVideoModal(true);
+                }}
+                className={`flex w-full items-center justify-between rounded-md border border-white/15 p-3 text-left transition-colors hover:border-white/40 ${focusRing}`}
+              >
+                <span className="flex items-center gap-3">
+                  <Play className="h-4 w-4 text-teal-300" aria-hidden />
+                  <span>
+                    <span className="block text-xs text-white">Mnemonic: {currentCard.mnemonicTitle}</span>
+                    <span className="block text-[11px] text-slate-500">Duration {currentCard.mnemonicDuration} &bull; Clinical memory anchor</span>
+                  </span>
+                </span>
+                <span className="text-xs text-teal-300">Play &rarr;</span>
+              </button>
             </div>
+
           </div>
-
         </div>
-      </div>
 
-      {/* SM-2 Interval Rating Controls */}
-      <div className="w-full grid grid-cols-4 gap-3 pt-2">
-        <button 
-          onClick={() => handleRate('again')}
-          className="py-2.5 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-700 font-bold text-xs shadow-sm transition-all flex flex-col items-center hover:scale-[1.02]"
-        >
-          <span>Again</span>
-          <span className="text-[10px] font-mono text-rose-500 font-normal">&lt; 1 min</span>
-        </button>
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={handleFlip}
+            aria-pressed={isFlipped}
+            className={`rounded-md border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white ${focusRing}`}
+          >
+            {isFlipped ? 'Show question' : 'Show answer'}
+          </button>
+        </div>
 
-        <button 
-          onClick={() => handleRate('hard')}
-          className="py-2.5 rounded-xl border border-amber-200 bg-white hover:bg-amber-50 text-amber-700 font-bold text-xs shadow-sm transition-all flex flex-col items-center hover:scale-[1.02]"
-        >
-          <span>Hard</span>
-          <span className="text-[10px] font-mono text-amber-500 font-normal">1 day</span>
-        </button>
+        {/* SM-2 Interval Rating Controls */}
+        <div className="grid w-full grid-cols-4 gap-2">
+          {[
+            { id: 'again', label: 'Again', interval: '< 1 min' },
+            { id: 'hard', label: 'Hard', interval: '1 day' },
+            { id: 'good', label: 'Good', interval: '3 days' },
+            { id: 'easy', label: 'Easy', interval: '7 days' },
+          ].map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => handleRate(r.id)}
+              className={`flex flex-col items-center rounded-md border border-white/15 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white ${focusRing}`}
+            >
+              <span>{r.label}</span>
+              <span className="font-mono text-[11px] font-normal text-slate-500">{r.interval}</span>
+            </button>
+          ))}
+        </div>
 
-        <button 
-          onClick={() => handleRate('good')}
-          className="py-2.5 rounded-xl border border-teal-200 bg-white hover:bg-teal-50 text-teal-800 font-bold text-xs shadow-sm transition-all flex flex-col items-center hover:scale-[1.02]"
-        >
-          <span>Good</span>
-          <span className="text-[10px] font-mono text-teal-600 font-normal">3 days</span>
-        </button>
+        {/* Card Navigation Footer */}
+        <div className="flex w-full items-center justify-between border-t border-white/10 pt-4 text-sm text-slate-400">
+          <button
+            type="button"
+            onClick={() => {
+              setIsFlipped(false);
+              setCurrentIndex(prev => (prev > 0 ? prev - 1 : deck.length - 1));
+            }}
+            className={`flex items-center gap-1 transition-colors hover:text-white ${focusRing}`}
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden />
+            <span>Previous Card</span>
+          </button>
 
-        <button 
-          onClick={() => handleRate('easy')}
-          className="py-2.5 rounded-xl border border-emerald-200 bg-white hover:bg-emerald-50 text-emerald-800 font-bold text-xs shadow-sm transition-all flex flex-col items-center hover:scale-[1.02]"
-        >
-          <span>Easy</span>
-          <span className="text-[10px] font-mono text-emerald-600 font-normal">7 days</span>
-        </button>
-      </div>
+          <Link
+            href="/dashboard"
+            className={`text-teal-300 transition-colors hover:text-teal-200 ${focusRing}`}
+          >
+            Return to Dashboard &rarr;
+          </Link>
 
-      {/* Card Navigation Footer */}
-      <div className="w-full flex items-center justify-between text-xs text-slate-500 pt-4 border-t border-slate-200">
-        <button
-          onClick={() => {
-            setIsFlipped(false);
-            setCurrentIndex(prev => (prev > 0 ? prev - 1 : deck.length - 1));
-          }}
-          className="flex items-center gap-1 hover:text-slate-800 transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Previous Card</span>
-        </button>
-
-        <Link 
-          href="/dashboard"
-          className="text-teal-700 font-semibold hover:underline"
-        >
-          Return to Dashboard &rarr;
-        </Link>
-
-        <button
-          onClick={() => {
-            setIsFlipped(false);
-            setCurrentIndex(prev => (prev + 1 < deck.length ? prev + 1 : 0));
-          }}
-          className="flex items-center gap-1 hover:text-slate-800 transition-colors"
-        >
-          <span>Next Card</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsFlipped(false);
+              setCurrentIndex(prev => (prev + 1 < deck.length ? prev + 1 : 0));
+            }}
+            className={`flex items-center gap-1 transition-colors hover:text-white ${focusRing}`}
+          >
+            <span>Next Card</span>
+            <ChevronRight className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
       </div>
 
       {/* Video Modal */}
       {showVideoModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-4 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#070a0f]/85 p-4 backdrop-blur-sm">
+          <div role="dialog" aria-modal="true" aria-label={currentCard.mnemonicTitle} className="w-full max-w-2xl space-y-4 rounded-lg border border-white/15 bg-[#0d1219] p-6">
             <div className="flex items-center justify-between text-white">
               <div className="flex items-center gap-2">
-                <Video className="w-5 h-5 text-teal-400" />
-                <h3 className="font-serif font-bold text-base">{currentCard.mnemonicTitle}</h3>
+                <Video className="h-4 w-4 text-teal-300" aria-hidden />
+                <h3 className="font-serif text-base font-medium">{currentCard.mnemonicTitle}</h3>
               </div>
-              <button 
+              <button
+                type="button"
                 onClick={() => setShowVideoModal(false)}
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center"
+                aria-label="Close video"
+                className={`rounded-md p-1.5 text-slate-400 transition-colors hover:text-white ${focusRing}`}
               >
-                <X className="w-4 h-4" />
+                <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
 
-            <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
-              <video 
-                src="/videos/mnemonics/autoimmune/boardroom.mp4" 
-                controls 
-                autoPlay 
-                className="w-full h-full object-contain"
+            <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-md border border-white/10 bg-black">
+              <video
+                src="/videos/mnemonics/autoimmune/boardroom.mp4"
+                controls
+                autoPlay
+                className="h-full w-full object-contain"
               />
             </div>
 
-            <div className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400">
               High-yield visual memory anchor for long-term retention. Correlates clinical findings with pathognomonic board clues.
-            </div>
+            </p>
           </div>
         </div>
       )}

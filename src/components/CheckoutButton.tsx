@@ -45,7 +45,7 @@ export function CheckoutButton({ qbankId }: { qbankId: string }) {
   return (
     <Button
       type="button"
-      variant="secondary"
+      variant="primary"
       onClick={handleCheckout}
       isLoading={loading}
       className="w-full h-11"

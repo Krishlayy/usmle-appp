@@ -12,7 +12,8 @@ import { Tag } from '@/components/ui/Tag';
 import { StatBlock } from '@/components/ui/StatBlock';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { QuickPracticeButtons } from '@/components/QuickPracticeButtons';
-import { Clock, GraduationCap, ChevronRight, FileText, LayoutTemplate, Brain, ChevronLeft } from 'lucide-react';
+import { Reveal } from '@/components/ui/Reveal';
+import { ChevronRight, FileText, LayoutTemplate, Brain, ChevronLeft } from 'lucide-react';
 
 export default async function QBankDashboardPage(
   props: { 
@@ -130,128 +131,109 @@ export default async function QBankDashboardPage(
     };
   });
 
+  const tools = [
+    { href: `/dashboard/${qbank.slug}/notes`, icon: FileText, title: 'My Notes', body: 'Review personal notes linked to specific questions and concepts.' },
+    { href: `/dashboard/${qbank.slug}/flashcards`, icon: Brain, title: 'Flashcards', body: "Master concepts using spaced-repetition flashcards you've created." },
+    { href: `/dashboard/${qbank.slug}/previous`, icon: LayoutTemplate, title: 'Previous Blocks', body: 'Review your performance on past blocks and resume suspended sessions.' },
+  ];
+
   return (
-    <div className="container mx-auto py-12 px-4 md:px-8 max-w-7xl animate-page-enter">
+    <div className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-16">
       {/* Header Section */}
-      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:text-primary transition-colors mb-4">
-            <ChevronLeft className="w-4 h-4" /> Back to Library
-          </Link>
-          <div className="flex items-center gap-4">
-            <h1 className="text-scale-xl text-primary tracking-tight">{qbank.title}</h1>
-            <Tag variant="success" size="sm">Active Subscription</Tag>
+      <Reveal>
+        <div className="mb-14 flex flex-col justify-between gap-8 md:flex-row md:items-end">
+          <div>
+            <Link href="/dashboard" className="mb-6 inline-flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300">
+              <ChevronLeft className="h-4 w-4" aria-hidden /> Back to Library
+            </Link>
+            <div className="flex flex-wrap items-center gap-4">
+              <h1 className="font-serif text-4xl font-medium tracking-tight text-white md:text-5xl">{qbank.title}</h1>
+              <Tag variant="success" size="sm">Active Subscription</Tag>
+            </div>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+              Track your performance, review your notes, or start a new practice session to master this material.
+            </p>
           </div>
-          <p className="text-secondary text-scale-sm mt-2 max-w-2xl">
-            Track your performance, review your notes, or start a new practice session to master this material.
-          </p>
+
+          <QuickPracticeButtons
+            qbank={{
+              id: qbank.id,
+              title: qbank.title,
+              slug: qbank.slug,
+              description: qbank.description || undefined,
+              totalQuestions: qbank.totalQuestions,
+              specialtyTag: qbank.specialtyTag,
+              completionPercentage,
+              accuracy,
+              attemptedCount: uniqueQuestionsAttempted,
+            }}
+          />
         </div>
-        
-        <QuickPracticeButtons
-          qbank={{
-            id: qbank.id,
-            title: qbank.title,
-            slug: qbank.slug,
-            description: qbank.description || undefined,
-            totalQuestions: qbank.totalQuestions,
-            specialtyTag: qbank.specialtyTag,
-            completionPercentage,
-            accuracy,
-            attemptedCount: uniqueQuestionsAttempted,
-          }}
-        />
-      </div>
+      </Reveal>
 
       {/* Top Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <Card elevation="subtle" className="p-6 flex flex-col h-full">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-[14px] font-medium text-secondary">Overall Progress</h3>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-[28px] font-bold text-primary tracking-tight">{uniqueQuestionsAttempted}</span>
-            <span className="text-[14px] font-medium text-muted">/ {qbank.totalQuestions} Questions</span>
-          </div>
-          <div className="mt-auto">
-            <ProgressBar progress={completionPercentage} />
-          </div>
-        </Card>
-        
-        <StatBlock 
-          label="Overall Accuracy" 
-          value={`${accuracy}%`} 
-          subValue="all attempts"
-        />
+      <Reveal delay={0.05}>
+        <div className="mb-14 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Card elevation="subtle" className="flex h-full flex-col p-6">
+            <h3 className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Overall Progress</h3>
+            <div className="flex items-baseline gap-2">
+              <span className="font-mono text-3xl font-medium tabular-nums tracking-tight text-white">{uniqueQuestionsAttempted}</span>
+              <span className="text-sm text-slate-500">/ {qbank.totalQuestions} Questions</span>
+            </div>
+            <div className="mt-auto pt-5">
+              <ProgressBar progress={completionPercentage} label="Overall progress" />
+            </div>
+          </Card>
 
-        <StatBlock 
-          label="Questions to Review" 
-          value={flaggedCount} 
-          subValue="flagged items"
-        />
-      </div>
+          <StatBlock
+            label="Overall Accuracy"
+            value={`${accuracy}%`}
+            subValue="all attempts"
+          />
+
+          <StatBlock
+            label="Questions to Review"
+            value={flaggedCount}
+            subValue="flagged items"
+          />
+        </div>
+      </Reveal>
 
       {/* Analytics Charts */}
-      <div className="mb-12">
-        <Card elevation="subtle" className="p-6 flex flex-col h-full w-full">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-scale-lg text-primary tracking-tight">Recent Performance</h2>
-            <Button variant="ghost" size="sm">View History</Button>
-          </div>
-          <div className="w-full min-h-[300px]">
-            <PerformanceChart data={performanceData} />
-          </div>
-        </Card>
-      </div>
+      <Reveal>
+        <div className="mb-14">
+          <Card elevation="subtle" className="flex h-full w-full flex-col p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="font-serif text-xl font-medium tracking-tight text-white">Recent Performance</h2>
+              <Button variant="ghost" size="sm" className="text-slate-300">View History</Button>
+            </div>
+            <div className="min-h-[300px] w-full">
+              <PerformanceChart data={performanceData} />
+            </div>
+          </Card>
+        </div>
+      </Reveal>
 
       {/* Study Tools */}
-      <h2 className="text-scale-lg text-primary tracking-tight mb-6">Study Tools</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        <Link href={`/dashboard/${qbank.slug}/notes`} className="group">
-          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
-                <FileText className="w-6 h-6" />
-              </div>
-              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600 transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </div>
-            </div>
-            <h3 className="text-[18px] font-bold text-primary mb-2">My Notes</h3>
-            <p className="text-scale-sm text-secondary">Review personal notes linked to specific questions and concepts.</p>
-          </Card>
-        </Link>
-        
-        <Link href={`/dashboard/${qbank.slug}/flashcards`} className="group">
-          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
-                <Brain className="w-6 h-6" />
-              </div>
-              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600 transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </div>
-            </div>
-            <h3 className="text-[18px] font-bold text-primary mb-2">Flashcards</h3>
-            <p className="text-scale-sm text-secondary">Master concepts using spaced-repetition flashcards you've created.</p>
-          </Card>
-        </Link>
-
-        <Link href={`/dashboard/${qbank.slug}/previous`} className="group">
-          <Card elevation="subtle" className="p-6 h-full transition-all duration-200 group-hover:shadow-md group-hover:border-slate-200 group-hover:-translate-y-1 bg-white">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
-                <LayoutTemplate className="w-6 h-6" />
-              </div>
-              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600 transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </div>
-            </div>
-            <h3 className="text-[18px] font-bold text-primary mb-2">Previous Blocks</h3>
-            <p className="text-scale-sm text-secondary">Review your performance on past blocks and resume suspended sessions.</p>
-          </Card>
-        </Link>
+      <Reveal>
+        <h2 className="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Study Tools</h2>
+      </Reveal>
+      <div className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {tools.map((tool, i) => (
+          <Reveal key={tool.href} delay={i * 0.05}>
+            <Link href={tool.href} className="group block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">
+              <Card elevation="subtle" className="h-full p-6 transition-colors group-hover:border-white/25">
+                <div className="mb-6 flex items-start justify-between">
+                  <tool.icon className="h-5 w-5 text-teal-300" strokeWidth={1.75} aria-hidden />
+                  <ChevronRight className="h-4 w-4 text-slate-500 transition-colors group-hover:text-white" aria-hidden />
+                </div>
+                <h3 className="mb-2 font-serif text-lg font-medium text-white">{tool.title}</h3>
+                <p className="text-sm leading-relaxed text-slate-400">{tool.body}</p>
+              </Card>
+            </Link>
+          </Reveal>
+        ))}
       </div>
-
     </div>
   );
 }

@@ -2,17 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Clock, 
-  Target, 
-  Play, 
-  Sparkles, 
-  Award,
-  CheckCircle2,
-  ArrowRight
-} from 'lucide-react';
+import { TrendingUp, Clock, Target, Play, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Reveal } from '@/components/ui/Reveal';
 
 interface SystemMastery {
   name: string;
@@ -42,150 +33,139 @@ const PERFORMANCE_DATA = {
 export default function PerformanceDashboardPage() {
   const d = PERFORMANCE_DATA;
 
+  const kpis = [
+    { label: 'Step 1 Pass Index', value: d.step1PassLikelihood, sub: `95% Confidence: ${d.confidenceInterval}`, Icon: Target },
+    { label: 'Peer Percentile', value: `${d.peerPercentile}th`, sub: 'Above 78% of active candidates', Icon: TrendingUp },
+    { label: 'Cumulative Accuracy', value: d.overallAccuracy, sub: `${d.totalCorrect} / ${d.totalQuestionsAnswered} Questions Correct`, Icon: CheckCircle2 },
+    { label: 'Average Pace', value: `${d.averageSecondsPerQuestion}s`, sub: 'Target USMLE pace: 72s / question', Icon: Clock },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8 animate-page-enter">
-      
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold">
-            <Award className="w-3.5 h-3.5 text-teal-600" />
-            <span>USMLE Peer Norming</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold font-serif text-slate-900 tracking-tight">
-            Comparative Peer Analytics & Score <span className="text-teal-700 italic">Predictor</span>
-          </h1>
-          <p className="text-sm text-slate-600 max-w-2xl">
-            Trace your cumulative board preparation against 12,000+ national peer medical student cohorts.
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#070a0f] px-5 py-12 text-slate-100 md:px-10 md:py-16">
+      <div className="mx-auto max-w-6xl space-y-12">
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/create-test"
-            className="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs shadow-sm transition-all flex items-center gap-2"
-          >
-            <Play className="w-3.5 h-3.5 fill-white" />
-            <span>Generate New Block</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-teal-500/40 transition-all">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-teal-700 font-mono flex items-center justify-between">
-            <span>Step 1 Pass Index</span>
-            <Target className="w-4 h-4 text-teal-600" />
-          </div>
-          <div className="text-4xl font-extrabold text-slate-900 font-serif">{d.step1PassLikelihood}</div>
-          <div className="text-xs text-slate-500">95% Confidence: {d.confidenceInterval}</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-cyan-500/40 transition-all">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-cyan-700 font-mono flex items-center justify-between">
-            <span>Peer Percentile</span>
-            <TrendingUp className="w-4 h-4 text-cyan-600" />
-          </div>
-          <div className="text-4xl font-extrabold text-slate-900 font-serif">{d.peerPercentile}th</div>
-          <div className="text-xs text-slate-500">Above 78% of active candidates</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-slate-400/40 transition-all">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 font-mono flex items-center justify-between">
-            <span>Cumulative Accuracy</span>
-            <CheckCircle2 className="w-4 h-4 text-slate-500" />
-          </div>
-          <div className="text-4xl font-extrabold text-slate-900 font-serif">{d.overallAccuracy}</div>
-          <div className="text-xs text-slate-500">{d.totalCorrect} / {d.totalQuestionsAnswered} Questions Correct</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-amber-500/40 transition-all">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700 font-mono flex items-center justify-between">
-            <span>Average Pace</span>
-            <Clock className="w-4 h-4 text-amber-600" />
-          </div>
-          <div className="text-4xl font-extrabold text-slate-900 font-serif">{d.averageSecondsPerQuestion}s</div>
-          <div className="text-xs text-slate-500">Target USMLE pace: 72s / question</div>
-        </div>
-
-      </div>
-
-      {/* Organ System Accuracy Breakdown */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/90 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
-          <div>
-            <h3 className="text-lg font-bold font-serif text-slate-900">
-              Organ-System Mastery vs Peer Benchmark
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Identifies weak topics for targeted drill and embedded video mnemonic reinforcement.
-            </p>
-          </div>
-          <div className="flex items-center gap-4 text-xs font-semibold">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-teal-600 inline-block" />
-              <span className="text-slate-800">Your Accuracy</span>
+        {/* Header */}
+        <Reveal>
+          <div className="flex flex-col justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
+            <div>
+              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">USMLE peer norming</p>
+              <h1 className="font-serif text-4xl font-medium leading-[1.1] tracking-tight text-white md:text-5xl">
+                Comparative Peer Analytics &amp; Score <span className="text-teal-300">Predictor</span>
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+                Trace your cumulative board preparation against 12,000+ national peer medical student cohorts.
+              </p>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-slate-300 inline-block" />
-              <span className="text-slate-500">Peer Average</span>
-            </div>
+
+            <Link
+              href="/dashboard/create-test"
+              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
+            >
+              <Play className="h-4 w-4" aria-hidden />
+              <span>Generate New Block</span>
+            </Link>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="space-y-6">
-          {d.systems.map((sys, idx) => {
-            const isAhead = sys.accuracy >= sys.peerAverage;
-            const diff = sys.accuracy - sys.peerAverage;
+        {/* KPI Stats Grid */}
+        <Reveal delay={0.05}>
+          <dl className="grid grid-cols-1 border-y border-white/10 sm:grid-cols-2 sm:divide-x sm:divide-white/10 lg:grid-cols-4">
+            {kpis.map(({ label, value, sub, Icon }) => (
+              <div key={label} className="px-4 py-6 first:pl-0 md:px-8">
+                <dt className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                  <span>{label}</span>
+                  <Icon className="h-4 w-4 text-slate-500" aria-hidden />
+                </dt>
+                <dd className="mt-3 font-mono text-3xl font-medium tabular-nums text-white md:text-4xl">{value}</dd>
+                <p className="mt-2 text-xs text-slate-500">{sub}</p>
+              </div>
+            ))}
+          </dl>
+        </Reveal>
 
-            return (
-              <div key={idx} className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-900">{sys.name}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-slate-500">{sys.correct}/{sys.answered} ({sys.accuracy}%)</span>
-                    <span className={`font-mono font-bold px-1.5 py-0.5 rounded text-[11px] ${
-                      isAhead ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-                    }`}>
-                      {isAhead ? `+${diff}% vs Peers` : `${diff}% vs Peers`}
-                    </span>
-                  </div>
+        {/* Organ System Accuracy Breakdown */}
+        <Reveal>
+          <section className="space-y-8 rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-8">
+            <div className="flex flex-col justify-between gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-center">
+              <div>
+                <h2 className="font-serif text-xl font-medium tracking-tight text-white">
+                  Organ-System Mastery vs Peer Benchmark
+                </h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  Identifies weak topics for targeted drill and embedded video mnemonic reinforcement.
+                </p>
+              </div>
+              <div className="flex items-center gap-5 text-xs">
+                <div className="flex items-center gap-2">
+                  <span aria-hidden className="inline-block h-px w-5 bg-teal-300" />
+                  <span className="text-slate-200">Your Accuracy</span>
                 </div>
-
-                {/* Dual Progress Bars */}
-                <div className="space-y-1">
-                  <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
-                    <div 
-                      className="bg-teal-600 h-full rounded-full transition-all duration-500" 
-                      style={{ width: `${sys.accuracy}%` }} 
-                    />
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden flex">
-                    <div 
-                      className="bg-slate-300 h-full rounded-full" 
-                      style={{ width: `${sys.peerAverage}%` }} 
-                    />
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span aria-hidden className="inline-block h-px w-5 bg-slate-500" />
+                  <span className="text-slate-500">Peer Average</span>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
 
-        <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-          <span className="text-xs text-slate-500">Ready to boost lower-scoring systems?</span>
-          <Link
-            href="/simulator?mode=tutor"
-            className="text-xs font-semibold text-teal-700 hover:text-teal-800 flex items-center gap-1"
-          >
-            <span>Launch Targeted Tutor Drill</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+            <div className="space-y-7">
+              {d.systems.map((sys, idx) => {
+                const isAhead = sys.accuracy >= sys.peerAverage;
+                const diff = sys.accuracy - sys.peerAverage;
+
+                return (
+                  <div key={idx} className="space-y-3">
+                    <div className="flex flex-col justify-between gap-1 text-xs sm:flex-row sm:items-center">
+                      <span className="text-sm text-slate-200">{sys.name}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="font-mono tabular-nums text-slate-400">{sys.correct}/{sys.answered} ({sys.accuracy}%)</span>
+                        <span className={`font-mono text-[11px] tabular-nums ${isAhead ? 'text-teal-300' : 'text-rose-300'}`}>
+                          {isAhead ? `+${diff}% vs Peers` : `${diff}% vs Peers`}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Dual hairline progress */}
+                    <div className="space-y-2">
+                      <div
+                        className="h-0.5 w-full bg-white/10"
+                        role="progressbar"
+                        aria-valuenow={sys.accuracy}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`${sys.name} accuracy`}
+                      >
+                        <div className="h-0.5 bg-teal-300 transition-[width] duration-500" style={{ width: `${sys.accuracy}%` }} />
+                      </div>
+                      <div
+                        className="h-px w-full bg-white/10"
+                        role="progressbar"
+                        aria-valuenow={sys.peerAverage}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`${sys.name} peer average`}
+                      >
+                        <div className="h-px bg-slate-500" style={{ width: `${sys.peerAverage}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-between border-t border-white/10 pt-5">
+              <span className="text-xs text-slate-500">Ready to boost lower-scoring systems?</span>
+              <Link
+                href="/simulator?mode=tutor"
+                className="flex items-center gap-1 text-sm text-teal-300 transition-colors hover:text-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+              >
+                <span>Launch Targeted Tutor Drill</span>
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
+            </div>
+          </section>
+        </Reveal>
+
       </div>
-
     </div>
   );
 }

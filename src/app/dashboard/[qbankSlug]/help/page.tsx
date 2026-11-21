@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { HelpCircle, Mail, Send, CheckCircle2 } from 'lucide-react';
+import { Send, CheckCircle2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 
 export default function HelpPage() {
@@ -29,84 +28,80 @@ export default function HelpPage() {
     setSubmitted(true);
   };
 
+  const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300';
+  const field =
+    `w-full rounded-md border border-white/15 bg-white/[0.04] p-3 text-sm text-white placeholder:text-slate-500 transition-colors hover:border-white/30 focus:border-teal-300 ${focusRing}`;
+  const faqs = [
+    { q: 'How do I review past tests?', a: 'You can view all your previously completed and suspended tests by navigating to the "Previous Tests" tab in the sidebar. Click on any test to see detailed analytics or review the questions.' },
+    { q: 'How is my performance calculated?', a: 'Your performance is tracked across all completed blocks. The Results page compares your most recent block score with your immediately preceding block to show a trend, and breaks down your accuracy by subtopic.' },
+    { q: 'Where can I see my notes?', a: 'During a test, you can add notes to a specific question. These notes are automatically saved and aggregated under the "Notes" tab in your dashboard, sorted by the date you took the note.' },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto py-10 px-6 font-sans">
-      <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-200">
-        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-          <HelpCircle size={24} />
-        </div>
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Help & Support</h1>
-          <p className="text-slate-500 mt-1">We're here to help you get the most out of your QBank.</p>
-        </div>
+    <div className="mx-auto max-w-5xl px-5 py-12 md:px-10 md:py-16">
+      <div className="mb-10 border-b border-white/10 pb-6">
+        <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Support</p>
+        <h1 className="font-serif text-4xl font-medium tracking-tight text-white">Help &amp; Support</h1>
+        <p className="mt-2 text-sm text-slate-400">We&apos;re here to help you get the most out of your QBank.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800 mb-4">Frequently Asked Questions</h2>
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+        <section>
+          <h2 className="mb-5 text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Frequently Asked Questions</h2>
           <div className="space-y-4">
-            <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-800 mb-2">How do I review past tests?</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                You can view all your previously completed and suspended tests by navigating to the "Previous Tests" tab in the sidebar. Click on any test to see detailed analytics or review the questions.
-              </p>
-            </div>
-            <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-800 mb-2">How is my performance calculated?</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Your performance is tracked across all completed blocks. The Results page compares your most recent block score with your immediately preceding block to show a trend, and breaks down your accuracy by subtopic.
-              </p>
-            </div>
-            <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-800 mb-2">Where can I see my notes?</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                During a test, you can add notes to a specific question. These notes are automatically saved and aggregated under the "Notes" tab in your dashboard, sorted by the date you took the note.
-              </p>
-            </div>
+            {faqs.map((f) => (
+              <div key={f.q} className="rounded-lg border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl">
+                <h3 className="mb-2 font-serif text-lg font-medium text-white">{f.q}</h3>
+                <p className="text-sm leading-relaxed text-slate-400">{f.a}</p>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
 
-        <div>
-          <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-800 mb-2">Contact Support</h2>
-            <p className="text-sm text-slate-500 mb-6">Which difficulty are you facing? Select an option below to generate an email to our support team.</p>
-            
-            <div className="space-y-4">
+        <section>
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+            <h2 className="mb-2 font-serif text-xl font-medium text-white">Contact Support</h2>
+            <p className="mb-6 text-sm text-slate-400">Which difficulty are you facing? Select an option below to generate an email to our support team.</p>
+
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Issue Category</label>
-                <select 
+                <label htmlFor="issue-category" className="mb-2 block font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Issue Category</label>
+                <select
+                  id="issue-category"
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
-                  className="w-full p-3 bg-white border border-slate-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-slate-700 shadow-sm"
+                  className={field}
                 >
                   <option value="" disabled>Select the difficulty you are facing...</option>
                   {difficulties.map((diff, idx) => (
-                    <option key={idx} value={diff}>{diff}</option>
+                    <option key={idx} value={diff} className="bg-[#0d1219]">{diff}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Additional Details</label>
-                <textarea 
+                <label htmlFor="issue-details" className="mb-2 block font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Additional Details</label>
+                <textarea
+                  id="issue-details"
                   value={customText}
                   onChange={(e) => setCustomText(e.target.value)}
                   placeholder="Describe your issue in more detail here..."
-                  className="w-full p-3 bg-white border border-slate-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 text-sm h-32 resize-none shadow-sm"
+                  className={`${field} h-32 resize-none`}
                 />
               </div>
 
-              <button 
+              <button
+                type="button"
                 onClick={handleEmailSupport}
                 disabled={!difficulty}
-                className="w-full flex justify-center items-center gap-2 bg-[#003b5c] hover:bg-[#004f7a] text-white font-bold py-3 px-4 rounded-md transition-colors shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`flex w-full items-center justify-center gap-2 rounded-md bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} focus-visible:outline-offset-2`}
               >
-                {submitted ? <CheckCircle2 size={18} /> : <Send size={18} />}
+                {submitted ? <CheckCircle2 size={16} aria-hidden /> : <Send size={16} aria-hidden />}
                 {submitted ? 'Email Opened in Client' : 'Generate Support Email'}
               </button>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
