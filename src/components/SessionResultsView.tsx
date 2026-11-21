@@ -3,23 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Target, 
-  RotateCcw, 
-  Plus, 
-  ChevronLeft, 
-  Flag, 
-  Sparkles, 
-  Award,
-  TrendingUp,
-  BarChart2,
-  BookOpen,
-  Eye,
-  X
-} from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Target, RotateCcw, Plus, ChevronLeft, Flag, Sparkles, TrendingUp, BookOpen, X } from 'lucide-react';
 import { VideoMnemonicPlayer } from './VideoMnemonicPlayer';
 import { sanitizeHTML } from '@/lib/sanitize';
 
@@ -137,9 +121,11 @@ export function SessionResultsView({ initialData, qbankSlug, sessionId }: Sessio
 
   if (loading || !data) {
     return (
-      <div className="min-h-screen bg-[#080d1a] flex flex-col items-center justify-center text-white">
-        <div className="w-12 h-12 rounded-full border-4 border-teal-500 border-t-transparent animate-spin mb-4" />
-        <p className="text-teal-300 font-mono text-sm">Computing Exam Performance Analytics...</p>
+      <div role="status" className="flex min-h-screen flex-col items-center justify-center bg-[#070a0f] text-slate-400">
+        <div className="relative mb-4 h-px w-40 overflow-hidden bg-white/10">
+          <div className="absolute inset-y-0 left-0 w-full bg-teal-300 motion-safe:animate-[sweep_1.6s_ease-in-out_infinite]" />
+        </div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em]">Computing Exam Performance Analytics...</p>
       </div>
     );
   }
@@ -185,309 +171,258 @@ export function SessionResultsView({ initialData, qbankSlug, sessionId }: Sessio
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (scorePercentage / 100) * circumference;
 
+  const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300';
+  const metrics = [
+    { label: 'Percentile', value: `${percentile}th`, Icon: TrendingUp },
+    { label: 'Time Elapsed', value: `${totalMinutes}m ${remainingSeconds}s`, Icon: Clock },
+    { label: 'Avg Pace', value: `${avgSecondsPerQ}s / Q`, Icon: Target },
+  ];
+  const counts = [
+    { label: 'Correct Answers', value: correctQuestions.length, Icon: CheckCircle2, tone: 'text-teal-300' },
+    { label: 'Incorrect Choices', value: incorrectQuestions.length, Icon: XCircle, tone: 'text-rose-300' },
+    { label: 'Marked Items', value: markedQuestions.length, Icon: Flag, tone: 'text-amber-300' },
+    { label: 'Omitted / Skipped', value: omittedQuestions.length, Icon: BookOpen, tone: 'text-slate-300' },
+  ];
+  const filters = [
+    { id: 'all' as const, label: `All (${totalQuestions})` },
+    { id: 'correct' as const, label: `Correct (${correctQuestions.length})` },
+    { id: 'incorrect' as const, label: `Incorrect (${incorrectQuestions.length})` },
+    { id: 'marked' as const, label: `Marked (${markedQuestions.length})` },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#080d1a] text-slate-100 font-sans selection:bg-teal-500/30 selection:text-teal-200">
+    <div className="min-h-screen bg-[#070a0f] text-slate-100 selection:bg-teal-300/30 selection:text-white">
       
-      {/* Top Clinical Header */}
-      <header className="sticky top-0 z-30 bg-[#0b1120]/95 backdrop-blur-md border-b border-teal-900/40 px-4 sm:px-8 py-3.5 shadow-md">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      {/* Top Header */}
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#070a0f]/80 px-5 py-3.5 backdrop-blur-xl md:px-10">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link 
             href={isMock ? "/" : `/dashboard/${qbankSlug}`}
-            className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-400 hover:text-teal-300 transition-colors"
+            className={`flex items-center gap-2 text-sm text-slate-400 transition-colors hover:text-white ${focusRing}`}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden />
             <span>Back to Question Banks</span>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Link 
               href={reviewUrl}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-teal-300 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-xs"
+              className={`inline-flex items-center gap-2 rounded-md border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white ${focusRing}`}
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="h-4 w-4" aria-hidden />
               <span>Review Entire Block</span>
             </Link>
 
             <Link 
               href={newBlockUrl}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-teal-500/20"
+              className={`inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 ${focusRing} focus-visible:outline-offset-2`}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" aria-hidden />
               <span>Start New Block</span>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28">
+      {/* Content. The root layout owns <main>. */}
+      <div className="mx-auto max-w-6xl px-5 py-12 pb-28 md:px-10">
         
         {/* Hero Performance Banner */}
-        <div className="bg-[#0f172a]/90 border border-teal-900/40 rounded-3xl p-6 sm:p-10 mb-10 shadow-2xl backdrop-blur-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 justify-between relative z-10">
-            {/* Left: Score Donut */}
+        <section className="mb-10 rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-10">
+          <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:gap-12">
             <div className="flex items-center gap-6">
-              <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
-                <svg className="transform -rotate-90 w-36 h-36">
-                  <circle cx="72" cy="72" r={radius} stroke="#1e293b" strokeWidth="10" fill="transparent" />
+              <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
+                <svg viewBox="0 0 144 144" className="h-32 w-32 -rotate-90" aria-hidden>
+                  <circle cx="72" cy="72" r={radius} stroke="rgba(255,255,255,0.1)" strokeWidth="2" fill="transparent" />
                   <circle 
                     cx="72" cy="72" r={radius} 
-                    stroke="#14b8a6" 
-                    strokeWidth="10" 
+                    stroke="#5eead4" 
+                    strokeWidth="2" 
                     fill="transparent" 
                     strokeDasharray={circumference} 
                     strokeDashoffset={strokeDashoffset} 
-                    className="transition-all duration-1000 ease-out" 
-                    strokeLinecap="round"
+                    className="transition-all duration-1000 ease-out motion-reduce:transition-none" 
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-3xl font-black font-mono text-white">{scorePercentage}%</span>
-                  <span className="text-[10px] font-mono font-bold text-teal-400 uppercase tracking-wider">Score</span>
+                  <span className="font-mono text-3xl font-medium tabular-nums text-white">{scorePercentage}%</span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Score</span>
                 </div>
               </div>
 
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-950/80 border border-teal-500/30 text-teal-300 text-xs font-mono font-bold mb-2">
-                  <Award className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Block Completed</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-serif mb-1">
+                <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Block completed</p>
+                <h1 className="mb-2 font-serif text-3xl font-medium tracking-tight text-white">
                   Examination Performance
                 </h1>
-                <p className="text-sm text-slate-300 font-sans">
-                  Total Score: <strong className="text-white font-mono">{correctQuestions.length} / {totalQuestions}</strong> correct ({scorePercentage}%)
+                <p className="text-sm text-slate-400">
+                  Total Score: <strong className="font-mono font-medium tabular-nums text-white">{correctQuestions.length} / {totalQuestions}</strong> correct ({scorePercentage}%)
                 </p>
               </div>
             </div>
 
-            {/* Right: Key Exam Metrics Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full md:w-auto">
-              <div className="bg-[#131d33]/80 border border-slate-800 rounded-2xl p-4 text-center">
-                <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Percentile</span>
+            <dl className="grid w-full grid-cols-2 gap-px bg-white/10 sm:grid-cols-3 md:w-auto">
+              {metrics.map(({ label, value, Icon }, i) => (
+                <div key={label} className={`bg-[#0b0f16] p-4 text-center ${i === 2 ? 'col-span-2 sm:col-span-1' : ''}`}>
+                  <dt className="mb-1 flex items-center justify-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                    <Icon className="h-3.5 w-3.5 text-teal-300" aria-hidden />
+                    <span>{label}</span>
+                  </dt>
+                  <dd className="font-mono text-2xl font-medium tabular-nums text-white">{value}</dd>
                 </div>
-                <div className="text-2xl font-black font-mono text-teal-300">
-                  {percentile}th
-                </div>
-              </div>
+              ))}
+            </dl>
+          </div>
+        </section>
 
-              <div className="bg-[#131d33]/80 border border-slate-800 rounded-2xl p-4 text-center">
-                <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Time Elapsed</span>
-                </div>
-                <div className="text-2xl font-black font-mono text-white">
-                  {totalMinutes}m {remainingSeconds}s
-                </div>
-              </div>
-
-              <div className="bg-[#131d33]/80 border border-slate-800 rounded-2xl p-4 text-center col-span-2 sm:col-span-1">
-                <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
-                  <Target className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Avg Pace</span>
-                </div>
-                <div className="text-2xl font-black font-mono text-teal-300">
-                  {avgSecondsPerQ}s / Q
-                </div>
+        {/* Count strip */}
+        <dl className="mb-10 grid grid-cols-2 border-y border-white/10 lg:grid-cols-4 lg:divide-x lg:divide-white/10">
+          {counts.map(({ label, value, Icon, tone }) => (
+            <div key={label} className="flex items-center gap-4 px-4 py-5 first:pl-0">
+              <Icon className={`h-5 w-5 shrink-0 ${tone}`} strokeWidth={1.75} aria-hidden />
+              <div>
+                <dd className={`font-mono text-2xl font-medium tabular-nums ${tone}`}>{value}</dd>
+                <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">{label}</dt>
               </div>
             </div>
-          </div>
-        </div>
+          ))}
+        </dl>
 
-        {/* 4 Performance Metric Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <div className="bg-[#0f172a]/80 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
+        {/* Section 2: Interactive Matrix */}
+        <section className="mb-10 rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-8">
+          <div className="mb-6 flex flex-col items-start justify-between gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-center">
             <div>
-              <div className="text-2xl font-black font-mono text-emerald-400">{correctQuestions.length}</div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Correct Answers</div>
-            </div>
-          </div>
-
-          <div className="bg-[#0f172a]/80 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-400 flex items-center justify-center shrink-0">
-              <XCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-2xl font-black font-mono text-rose-400">{incorrectQuestions.length}</div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Incorrect Choices</div>
-            </div>
-          </div>
-
-          <div className="bg-[#0f172a]/80 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-950/80 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0">
-              <Flag className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-2xl font-black font-mono text-amber-400">{markedQuestions.length}</div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Marked Items</div>
-            </div>
-          </div>
-
-          <div className="bg-[#0f172a]/80 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-slate-800/80 border border-slate-700/60 text-slate-400 flex items-center justify-center shrink-0">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-2xl font-black font-mono text-slate-300">{omittedQuestions.length}</div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Omitted / Skipped</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Section 2: Interactive 1-50 Matrix */}
-        <div className="bg-[#0f172a]/90 border border-teal-900/35 rounded-3xl p-6 sm:p-8 shadow-xl mb-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-teal-900/30 pb-5 mb-6">
-            <div>
-              <h2 className="text-xl font-bold font-serif text-white mb-1">
+              <h2 className="mb-1 font-serif text-xl font-medium tracking-tight text-white">
                 Question Matrix &amp; Item Breakdown
               </h2>
-              <p className="text-xs text-slate-400 font-sans">
-                Click any item below to inspect the clinical rationale, accurate board answer, and video mnemonic.
+              <p className="text-xs text-slate-400">
+                Select any item below to inspect the clinical rationale, accurate board answer, and video mnemonic.
               </p>
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#0b1120] rounded-xl border border-slate-800">
-              <button 
-                type="button"
-                onClick={() => setActiveFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
-                  activeFilter === 'all' ? 'bg-teal-500 text-slate-950 shadow-xs' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                All ({totalQuestions})
-              </button>
-              <button 
-                type="button"
-                onClick={() => setActiveFilter('correct')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
-                  activeFilter === 'correct' ? 'bg-emerald-500 text-slate-950 shadow-xs' : 'text-emerald-400 hover:text-emerald-300'
-                }`}
-              >
-                Correct ({correctQuestions.length})
-              </button>
-              <button 
-                type="button"
-                onClick={() => setActiveFilter('incorrect')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
-                  activeFilter === 'incorrect' ? 'bg-rose-500 text-white shadow-xs' : 'text-rose-400 hover:text-rose-300'
-                }`}
-              >
-                Incorrect ({incorrectQuestions.length})
-              </button>
-              <button 
-                type="button"
-                onClick={() => setActiveFilter('marked')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
-                  activeFilter === 'marked' ? 'bg-amber-500 text-slate-950 shadow-xs' : 'text-amber-400 hover:text-amber-300'
-                }`}
-              >
-                Marked ({markedQuestions.length})
-              </button>
+            <div role="group" aria-label="Filter items" className="flex flex-wrap items-center gap-1.5">
+              {filters.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  aria-pressed={activeFilter === f.id}
+                  onClick={() => setActiveFilter(f.id)}
+                  className={`rounded-md border px-3 py-1.5 font-mono text-xs tabular-nums transition-colors ${focusRing} ${
+                    activeFilter === f.id
+                      ? 'border-white bg-white text-slate-950'
+                      : 'border-white/15 text-slate-300 hover:border-white/40 hover:text-white'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* 1-50 Grid of Question Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-2.5">
+          {/* Grid of Question Cards */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 md:grid-cols-10">
             {filteredQuestions.map((q, idx) => {
               const itemNumber = q.order !== undefined ? q.order + 1 : idx + 1;
               const isCorrect = q.isCorrect === true;
               const isIncorrect = q.selectedOptionId && q.isCorrect === false;
               const isOmitted = !q.selectedOptionId;
 
-              let statusBg = 'bg-[#131d33]/60 border-slate-800 text-slate-300 hover:border-slate-600';
-              if (isCorrect) statusBg = 'bg-emerald-950/70 border-emerald-500/50 text-emerald-200 hover:border-emerald-400 shadow-sm shadow-emerald-950/40';
-              else if (isIncorrect) statusBg = 'bg-rose-950/70 border-rose-500/50 text-rose-200 hover:border-rose-400 shadow-sm shadow-rose-950/40';
-              else if (isOmitted) statusBg = 'bg-slate-900/60 border-slate-800 text-slate-400';
+              let statusBg = 'border-white/10 text-slate-300 hover:border-white/30';
+              if (isCorrect) statusBg = 'border-teal-300/40 text-teal-200 hover:border-teal-300';
+              else if (isIncorrect) statusBg = 'border-rose-400/40 text-rose-200 hover:border-rose-300';
+              else if (isOmitted) statusBg = 'border-white/10 text-slate-500 hover:border-white/30';
+
+              const statusLabel = isCorrect ? 'Correct' : isIncorrect ? 'Incorrect' : 'Omitted';
 
               return (
                 <button
                   key={q.id}
                   type="button"
                   onClick={() => setPreviewQuestion(q)}
-                  className={`flex flex-col items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer hover:scale-105 ${statusBg} text-center`}
-                  title={`Question ${itemNumber}: ${isCorrect ? 'Correct' : isIncorrect ? 'Incorrect' : 'Omitted'}`}
+                  className={`flex flex-col items-center justify-between rounded-md border p-2.5 text-center transition-colors ${focusRing} ${statusBg}`}
+                  title={`Question ${itemNumber}: ${statusLabel}`}
+                  aria-label={`Question ${itemNumber}: ${statusLabel}${q.isFlagged ? ', marked' : ''}`}
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <span className="font-mono text-xs font-extrabold">{itemNumber}</span>
-                    {q.isFlagged && <Flag size={10} className="fill-amber-400 text-amber-400" />}
+                  <div className="flex w-full items-center justify-between">
+                    <span className="font-mono text-xs tabular-nums">{itemNumber}</span>
+                    {q.isFlagged && <Flag size={10} className="fill-amber-300 text-amber-300" aria-hidden />}
                   </div>
 
                   <div className="my-1">
-                    {isCorrect && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-                    {isIncorrect && <XCircle className="w-5 h-5 text-rose-400" />}
-                    {isOmitted && <span className="text-xs font-mono font-bold text-slate-500">—</span>}
+                    {isCorrect && <CheckCircle2 className="h-5 w-5 text-teal-300" aria-hidden />}
+                    {isIncorrect && <XCircle className="h-5 w-5 text-rose-300" aria-hidden />}
+                    {isOmitted && <span className="font-mono text-xs text-slate-500" aria-hidden>-</span>}
                   </div>
 
-                  <span className="text-[10px] font-mono text-slate-400">
+                  <span className="font-mono text-[11px] tabular-nums text-slate-500">
                     {q.timeTakenSec ? `${q.timeTakenSec}s` : '0s'}
                   </span>
                 </button>
               );
             })}
           </div>
-        </div>
+        </section>
 
         {/* Quick Review Modal Preview */}
         {previewQuestion && (
-          <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-md">
-            <div className="bg-[#0f172a] border border-teal-500/40 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 relative custom-scrollbar">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#070a0f]/85 p-4 backdrop-blur-md">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Question ${(previewQuestion.order ?? 0) + 1} review`}
+              className="custom-scrollbar relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-white/15 bg-[#0d1219] p-6 sm:p-8"
+            >
               <button 
                 type="button"
                 onClick={() => setPreviewQuestion(null)}
-                className="absolute top-5 right-5 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className={`absolute right-5 top-5 rounded-md p-1.5 text-slate-400 transition-colors hover:text-white ${focusRing}`}
                 title="Close Preview"
+                aria-label="Close preview"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" aria-hidden />
               </button>
 
-              <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 rounded-full bg-teal-950 border border-teal-500/40 text-teal-300 text-xs font-mono font-bold">
+              <div className="mb-4 flex items-center gap-4 pr-10 font-mono text-[11px] uppercase tracking-[0.18em]">
+                <span className="text-teal-300/80">
                   Question {(previewQuestion.order ?? 0) + 1} of {totalQuestions}
                 </span>
-                <span className="text-xs font-mono text-slate-400">QID: {previewQuestion.question.qid}</span>
+                <span className="text-slate-500">QID: {previewQuestion.question.qid}</span>
               </div>
 
               {/* Vignette */}
               <div 
-                className="text-slate-100 text-sm sm:text-base leading-relaxed mb-6 font-sans select-text border-b border-slate-800 pb-5"
+                className="mb-6 select-text border-b border-white/10 pb-5 text-sm leading-relaxed text-slate-100 sm:text-base"
                 dangerouslySetInnerHTML={{ __html: sanitizeHTML(previewQuestion.question.questionText) }}
               />
 
               {/* Options Breakdown */}
-              <div className="space-y-2.5 mb-6">
-                <div className="text-xs font-mono font-bold text-teal-400 uppercase tracking-wider mb-2">
+              <div className="mb-6 space-y-2">
+                <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">
                   Answer Choices
                 </div>
                 {previewQuestion.question.options.map((opt, i) => {
                   const isSelected = previewQuestion.selectedOptionId === opt.id;
-                  let borderStyle = 'border-slate-800 bg-[#131d33]/50 text-slate-300';
-                  if (opt.isCorrect) borderStyle = 'border-emerald-500 bg-emerald-950/80 text-emerald-200';
-                  else if (opt.isYellowDistractor) borderStyle = 'border-amber-500 bg-amber-950/70 text-amber-200';
-                  else if (isSelected) borderStyle = 'border-rose-500 bg-rose-950/80 text-rose-200';
+                  let borderStyle = 'border-white/10 text-slate-300';
+                  if (opt.isCorrect) borderStyle = 'border-teal-300/60 bg-teal-300/5 text-teal-100';
+                  else if (opt.isYellowDistractor) borderStyle = 'border-amber-300/60 bg-amber-300/5 text-amber-100';
+                  else if (isSelected) borderStyle = 'border-rose-400/60 bg-rose-400/5 text-rose-100';
 
                   return (
-                    <div key={opt.id} className={`p-3.5 rounded-xl border text-sm flex items-start gap-3 ${borderStyle}`}>
-                      <span className="w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                    <div key={opt.id} className={`flex items-start gap-3 rounded-md border p-3.5 text-sm ${borderStyle}`}>
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-white/15 font-mono text-xs">
                         {String.fromCharCode(65 + i)}
                       </span>
                       <div className="flex-1">
                         <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(opt.text) }} />
                         {opt.isCorrect && (
-                          <span className="inline-block mt-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-900 border border-emerald-400 text-emerald-300">
-                            ✓ Accurate Board Answer
+                          <span className="mt-1 inline-block font-mono text-[11px] uppercase tracking-wider text-teal-300">
+                            Accurate Board Answer
                           </span>
                         )}
                         {opt.isYellowDistractor && (
-                          <span className="inline-block mt-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-900 border border-amber-400 text-amber-300">
-                            ⚠️ High-Yield Distractor
+                          <span className="mt-1 inline-block font-mono text-[11px] uppercase tracking-wider text-amber-300">
+                            High-Yield Distractor
                           </span>
                         )}
                       </div>
@@ -498,7 +433,7 @@ export function SessionResultsView({ initialData, qbankSlug, sessionId }: Sessio
 
               {/* Video Mnemonic if present */}
               {previewQuestion.question.videoUrl && (
-                <div className="mb-6 rounded-2xl overflow-hidden border border-teal-500/40 bg-black">
+                <div className="mb-6 overflow-hidden rounded-md border border-white/10 bg-black">
                   <VideoMnemonicPlayer 
                     videoUrl={previewQuestion.question.videoUrl} 
                     title={`Visual Mnemonic (Question ${(previewQuestion.order ?? 0) + 1})`}
@@ -508,13 +443,13 @@ export function SessionResultsView({ initialData, qbankSlug, sessionId }: Sessio
 
               {/* Clinical Discussion */}
               {previewQuestion.question.explanation && (
-                <div className="p-5 rounded-2xl bg-[#080d1a] border border-teal-900/40">
-                  <div className="text-xs font-mono font-bold uppercase tracking-wider text-teal-400 mb-2 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-teal-400" />
+                <div className="rounded-md border border-white/10 p-5">
+                  <div className="mb-2 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+                    <Sparkles className="h-4 w-4" aria-hidden />
                     Educational Discussion &amp; Key Takeaways
                   </div>
                   <div 
-                    className="text-slate-200 text-xs sm:text-sm leading-relaxed qbank-explanation-body select-text"
+                    className="qbank-explanation-body select-text text-sm leading-relaxed text-slate-300"
                     dangerouslySetInnerHTML={{ __html: sanitizeHTML(previewQuestion.question.explanation) }}
                   />
                 </div>
@@ -524,7 +459,7 @@ export function SessionResultsView({ initialData, qbankSlug, sessionId }: Sessio
                 <button
                   type="button"
                   onClick={() => setPreviewQuestion(null)}
-                  className="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                  className={`rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 ${focusRing} focus-visible:outline-offset-2`}
                 >
                   Close Preview
                 </button>
@@ -533,7 +468,7 @@ export function SessionResultsView({ initialData, qbankSlug, sessionId }: Sessio
           </div>
         )}
 
-      </main>
+      </div>
     </div>
   );
 }

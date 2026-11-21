@@ -1,9 +1,9 @@
 export default function GraphsPage() {
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Performance Graphs</h1>
-      <div className="bg-white p-6 rounded shadow-sm border border-slate-200">
-        <p className="text-slate-500">Your visual performance graphs will appear here. This feature is coming soon.</p>
+    <div className="mx-auto max-w-4xl px-5 py-12 md:px-10 md:py-16">
+      <h1 className="mb-6 font-serif text-4xl font-medium tracking-tight text-white">Performance Graphs</h1>
+      <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+        <p className="text-slate-400">Your visual performance graphs will appear here. This feature is coming soon.</p>
       </div>
     </div>
   );
