@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card } from '@/components/ui/Card';
 import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
+import { AuthShell } from '@/components/ui/AuthShell';
 import Link from 'next/link';
 
 function VerifyEmailContent() {
@@ -48,57 +48,41 @@ function VerifyEmailContent() {
   }, [token]);
 
   return (
-    <Card className="max-w-md w-full p-8 text-center space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Email Verification</h1>
-      
+    <AuthShell eyebrow="Verification" title="Email Verification">
       {status === 'loading' && (
-        <div className="flex flex-col items-center justify-center py-4 space-y-4">
-          <Loader className="w-8 h-8 text-[#0D9488]" />
-          <p className="text-gray-600">{message}</p>
+        <div role="status" className="flex items-center gap-3 text-sm text-slate-400">
+          <Loader className="h-5 w-5" />
+          <p>{message}</p>
         </div>
       )}
 
       {status === 'success' && (
         <div className="space-y-6">
-          <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <p className="text-gray-900 font-medium">{message}</p>
+          <p role="status" className="text-sm leading-relaxed text-teal-200">{message}</p>
           <Link href="/login" className="block">
-            <Button className="w-full bg-[#0D9488] hover:bg-[#0a7d6f] text-white">
-              Proceed to Login
-            </Button>
+            <Button className="h-11 w-full text-sm">Proceed to Login</Button>
           </Link>
         </div>
       )}
 
       {status === 'error' && (
         <div className="space-y-6">
-          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <p className="text-red-600 font-medium">{message}</p>
+          <p role="alert" className="rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{message}</p>
           <Link href="/signup" className="block">
-            <Button variant="secondary" className="w-full border-[#E5E7EB] text-gray-700 hover:bg-gray-50">
+            <Button variant="secondary" className="h-11 w-full text-sm text-slate-100">
               Back to Sign Up
             </Button>
           </Link>
         </div>
       )}
-    </Card>
+    </AuthShell>
   );
 }
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAF9] flex items-center justify-center p-4">
-      <Suspense fallback={<div className="p-8 text-center"><Loader className="w-8 h-8 mx-auto text-[#0D9488]" /></div>}>
-        <VerifyEmailContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div className="flex min-h-[calc(100vh-56px)] items-center justify-center"><Loader className="h-5 w-5" /></div>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

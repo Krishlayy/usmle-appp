@@ -54,10 +54,13 @@ export default async function TestSessionPage(
     where: { userId: session.user.id, qbankId: testSession.qbankId },
   });
 
+  // Review (and the answer key) is only ever available once the block is completed.
+  const exposeAnswers = testSession.status === 'completed';
+
   const mappedSession = {
     id: testSession.id,
     qbankSlug: params.qbankSlug,
-    mode: testSession.mode as 'timed' | 'tutor',
+    mode: (isReviewMode && testSession.status === 'completed' ? 'review' : testSession.mode) as 'timed' | 'tutor' | 'review',
     durationSec: testSession.durationSec,
     blockNumber,
     questions: testSession.progress.map((p, index) => ({
@@ -67,21 +70,25 @@ export default async function TestSessionPage(
         id: p.question.id,
         qid: p.question.qid,
         questionText: p.question.questionText,
-        explanation: p.question.explanation,
-        acceptableAnswers: p.question.acceptableAnswers,
+        // Answer key stays on the server until the block is reviewed (or, in tutor mode,
+        // is fetched one question at a time via /api/test-sessions/[id]/reveal).
+        answersHidden: !exposeAnswers,
+        explanation: exposeAnswers ? p.question.explanation : null,
+        acceptableAnswers: exposeAnswers ? p.question.acceptableAnswers : [],
         tags: p.question.tags,
-        videoUrl: p.question.videoUrl || null,
+        videoUrl: exposeAnswers ? p.question.videoUrl || null : null,
         media: p.question.media,
         options: (p.question.options as { id: string; text: string; isCorrect?: boolean; isYellowDistractor?: boolean; explanation?: string | null }[]).map(opt => ({
-          ...opt,
-          isCorrect: opt.id === p.question.correctAnswer || Boolean(opt.isCorrect),
-          isYellowDistractor: Boolean(opt.isYellowDistractor),
-          explanation: opt.explanation || null,
+          id: opt.id,
+          text: opt.text,
+          isCorrect: exposeAnswers && (opt.id === p.question.correctAnswer || Boolean(opt.isCorrect)),
+          isYellowDistractor: exposeAnswers && Boolean(opt.isYellowDistractor),
+          explanation: exposeAnswers ? opt.explanation || null : null,
         })),
       },
       isFlagged: p.flagged,
       selectedOptionId: p.selectedAnswer,
-      isCorrect: p.isCorrect,
+      isCorrect: exposeAnswers ? p.isCorrect : null,
       timeTakenSec: p.timeTakenSec || 0,
       notes: p.notes || null,
       strikethroughs: p.strikethroughs || [],

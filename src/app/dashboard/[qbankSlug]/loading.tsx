@@ -1,65 +1,23 @@
 export default function QBankDashboardLoading() {
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans animate-pulse">
-      <div className="container mx-auto py-10 px-4 md:px-8 max-w-7xl">
-        {/* Header Section Skeleton */}
+    <div className="px-5 py-12 md:px-10" role="status" aria-label="Loading question bank">
+      <div className="mx-auto max-w-6xl motion-safe:animate-pulse">
         <div className="mb-10">
-          <div className="h-4 w-24 bg-gray-200 rounded mb-6"></div>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="h-9 w-64 bg-gray-200 rounded"></div>
-                <div className="h-6 w-32 bg-gray-200 rounded-md"></div>
-              </div>
-              <div className="h-5 w-full max-w-xl bg-gray-200 rounded"></div>
-            </div>
-            <div className="flex gap-3">
-              <div className="h-10 w-32 bg-gray-200 rounded-lg"></div>
-              <div className="h-10 w-32 bg-gray-200 rounded-lg"></div>
-            </div>
-          </div>
+          <div className="mb-5 h-3 w-24 rounded-sm bg-white/10" />
+          <div className="h-10 w-2/3 max-w-lg rounded-sm bg-white/10" />
+          <div className="mt-4 h-4 w-full max-w-xl rounded-sm bg-white/10" />
         </div>
-
-        {/* Top Stats Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="mb-10 grid grid-cols-3 divide-x divide-white/10 border-y border-white/10">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm h-40 flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gray-200"></div>
-                <div className="h-4 w-32 bg-gray-200 rounded"></div>
-              </div>
-              <div className="mt-auto flex items-baseline gap-2">
-                <div className="h-10 w-16 bg-gray-200 rounded"></div>
-                <div className="h-4 w-24 bg-gray-200 rounded"></div>
-              </div>
+            <div key={i} className="px-4 py-6 first:pl-0 md:px-8">
+              <div className="h-3 w-20 rounded-sm bg-white/10" />
+              <div className="mt-3 h-8 w-16 rounded-sm bg-white/10" />
             </div>
           ))}
         </div>
-
-        {/* Chart Skeleton */}
-        <div className="mb-12">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm h-[400px]">
-            <div className="flex justify-between items-center mb-6">
-              <div className="h-6 w-48 bg-gray-200 rounded"></div>
-              <div className="h-4 w-24 bg-gray-200 rounded"></div>
-            </div>
-            <div className="w-full h-72 bg-gray-100 rounded-lg"></div>
-          </div>
-        </div>
-
-        {/* Study Tools Skeleton */}
-        <div className="h-6 w-32 bg-gray-200 rounded mb-6"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-6 h-48 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gray-200"></div>
-                <div className="w-8 h-8 rounded-full bg-gray-200"></div>
-              </div>
-              <div className="h-6 w-32 bg-gray-200 rounded mb-3"></div>
-              <div className="h-4 w-full bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
-            </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-48 rounded-lg border border-white/10 bg-white/[0.03]" />
           ))}
         </div>
       </div>

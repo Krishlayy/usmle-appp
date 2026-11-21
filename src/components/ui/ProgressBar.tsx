@@ -27,16 +27,23 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   }, [progress]);
 
   return (
-    <div className={`w-full flex flex-col gap-2 ${className}`}>
+    <div className={`flex w-full flex-col gap-2 ${className}`}>
       {(label || showPercentage) && (
-        <div className="flex justify-between items-end text-[13px]">
-          {label && <span className="font-medium text-primary">{label}</span>}
-          {showPercentage && <span className="font-medium text-secondary tabular-nums">{Math.round(progress)}%</span>}
+        <div className="flex items-end justify-between text-xs">
+          {label && <span className="text-slate-300">{label}</span>}
+          {showPercentage && <span className="font-mono tabular-nums text-slate-400">{Math.round(progress)}%</span>}
         </div>
       )}
-      <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-        <div 
-          className={`bg-[var(--color-accent)] h-full rounded-full transition-all duration-700 ease-out ${barClassName}`}
+      <div
+        className="h-px w-full bg-white/10"
+        role="progressbar"
+        aria-valuenow={Math.round(Math.max(0, Math.min(100, progress)))}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={label || 'Progress'}
+      >
+        <div
+          className={`h-px bg-teal-300 transition-[width] duration-700 ease-out ${barClassName}`}
           style={{ width: `${fill}%` }}
         />
       </div>

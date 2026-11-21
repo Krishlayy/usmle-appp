@@ -26,17 +26,25 @@ export function TimerDisplay({
   const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
   const [timeElapsed, setTimeElapsed] = useState(initialElapsed);
 
+  const onTimeUpRef = useRef(onTimeUp);
+  const firedRef = useRef(false);
+  useEffect(() => { onTimeUpRef.current = onTimeUp; }, [onTimeUp]);
+
   useEffect(() => {
     if (!isTimed || timeLeft === null || isPaused) return;
     if (timeLeft <= 0) {
-      onTimeUp();
+      // Fire once: the old code re-invoked onTimeUp on every re-render at 0.
+      if (!firedRef.current) {
+        firedRef.current = true;
+        onTimeUpRef.current();
+      }
       return;
     }
     const timer = setInterval(() => {
       setTimeLeft(prev => (prev && prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
-  }, [isTimed, timeLeft, onTimeUp, isPaused]);
+  }, [isTimed, timeLeft, isPaused]);
 
   useEffect(() => {
     if (isPaused) return;

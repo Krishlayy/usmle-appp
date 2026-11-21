@@ -4,6 +4,9 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import AdminLogoutButton from '@/components/AdminLogoutButton';
 
+// Admin pages read the DB per-request (auth + live data); never prerender them at build time.
+export const dynamic = 'force-dynamic';
+
 export default async function AdminLayout({
   children,
 }: {

@@ -38,7 +38,9 @@ export default async function SessionResultsPage(props: {
         where: { slug: params.qbankSlug },
       });
 
-      if (testSession && testSession.userId === session.user.id) {
+      // Never serve the answer key for a block that hasn't been submitted (a student could
+      // otherwise open /results mid-test and read answers).
+      if (testSession && testSession.userId === session.user.id && testSession.status === 'completed') {
         initialData = {
           sessionId: testSession.id,
           qbankSlug: qbank?.slug || params.qbankSlug,

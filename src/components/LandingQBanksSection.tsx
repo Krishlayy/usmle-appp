@@ -3,21 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { 
-  GraduationCap, 
-  Clock, 
-  ArrowRight, 
-  Sparkles, 
-  ShieldCheck, 
-  Layers,
-  BookOpen,
-  CheckCircle2,
-  Lock,
-  Play,
-  Volume2,
-  VolumeX
-} from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { QuickPracticeModal, QBankData } from './QuickPracticeModal';
+import { Reveal } from '@/components/ui/Reveal';
 
 export interface LandingQBankItem {
   id: string;
@@ -129,139 +117,111 @@ export function LandingQBanksSection({ customQBanks }: LandingQBanksSectionProps
   };
 
   return (
-    <section id="qbanks" className="w-full max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-      {/* Section Header */}
-      <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-14">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200/80 text-teal-800 text-xs font-bold mb-4 font-mono uppercase tracking-wider">
-          <Layers className="w-3.5 h-3.5 text-teal-600" />
-          <span>Curated System Question Banks</span>
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold font-serif text-slate-900 tracking-tight mb-4">
+    <section id="qbanks" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-24 md:px-10">
+      <Reveal>
+        <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">
+          Curated system question banks
+        </p>
+        <h2 className="max-w-2xl font-serif text-3xl font-medium tracking-tight text-white md:text-4xl">
           All 4 High-Yield Question Banks
         </h2>
-        <p className="text-base text-slate-600 leading-relaxed font-sans">
-          Select any system to drill all 50 board-curated questions. Choose between self-paced <strong>Tutor Mode</strong> for instant rationales and visual mnemonics, or <strong>Timed Mode</strong> for authentic exam pacing.
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+          Select any system to drill all 50 board-curated questions. Choose between self-paced <strong className="font-medium text-slate-200">Tutor Mode</strong> for instant rationales and visual mnemonics, or <strong className="font-medium text-slate-200">Timed Mode</strong> for authentic exam pacing.
         </p>
-      </div>
+      </Reveal>
 
-      {/* 2x2 Clean Clinical Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {qbanks.map((qbank) => {
+      <div className="mt-12 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {qbanks.map((qbank, i) => {
           const isMuted = mutedStates[qbank.slug] ?? true;
 
           return (
-            <div
-              key={qbank.id}
-              className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm hover:shadow-2xl hover:border-teal-500/50 transition-all duration-300 relative group overflow-hidden"
-            >
-              {/* Top Accent Strip */}
-              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-teal-500 to-cyan-600" />
-
-              <div>
-                {/* PIP Video Mnemonic Preview Window */}
-                {qbank.previewVideoUrl && (
-                  <div className="relative w-full h-48 sm:h-52 rounded-2xl overflow-hidden bg-slate-950 mb-6 border border-slate-200 group-hover:border-teal-500/40 shadow-inner group/video">
-                    <video
-                      src={qbank.previewVideoUrl}
-                      autoPlay
-                      loop
-                      muted={isMuted}
-                      playsInline
-                      className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 pointer-events-none" />
-                    
-                    {/* Top Overlay Badge */}
-                    <div className="absolute top-3 left-3 flex items-center gap-2 pointer-events-none">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/80 border border-teal-500/40 backdrop-blur-md text-[10px] font-mono font-bold text-teal-300">
-                        <Sparkles className="w-3 h-3 text-teal-400" />
-                        <span>Mnemonic Preview</span>
+            <Reveal key={qbank.id} delay={Math.min(i, 5) * 0.05}>
+              <article className="group flex h-full flex-col justify-between rounded-lg border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl transition-colors hover:border-white/25">
+                <div>
+                  {qbank.previewVideoUrl && (
+                    <div className="relative mb-6 h-48 w-full overflow-hidden rounded-md border border-white/10 bg-black sm:h-52">
+                      <video
+                        src={qbank.previewVideoUrl}
+                        autoPlay
+                        loop
+                        muted={isMuted}
+                        playsInline
+                        aria-label={`${qbank.title} mnemonic preview`}
+                        className="h-full w-full object-cover opacity-80 transition-opacity duration-300 group-hover:opacity-100"
+                      />
+                      <span className="pointer-events-none absolute left-3 top-3 rounded-sm border border-white/15 bg-[#070a0f]/80 px-2 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300">
+                        Mnemonic preview
                       </span>
+                      <button
+                        type="button"
+                        onClick={(e) => toggleMute(qbank.slug, e)}
+                        className="absolute bottom-3 right-3 z-10 rounded-md border border-white/15 bg-[#070a0f]/80 p-2 text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                        title={isMuted ? "Unmute preview" : "Mute preview"}
+                        aria-label={isMuted ? "Unmute preview" : "Mute preview"}
+                      >
+                        {isMuted ? <VolumeX className="h-4 w-4" aria-hidden /> : <Volume2 className="h-4 w-4" aria-hidden />}
+                      </button>
                     </div>
+                  )}
 
-                    {/* Sound Toggle Button */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-teal-300/80">
+                      {qbank.specialtyTag}
+                    </span>
+                    <span className="font-mono text-[11px] uppercase tracking-wider tabular-nums text-slate-500">
+                      {qbank.totalQuestions} Questions &middot; {qbank.mnemonicCount} Mnemonics
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 font-serif text-2xl font-medium leading-snug tracking-tight text-white">
+                    {qbank.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-400">
+                    {qbank.description}
+                  </p>
+
+                  <div className="mt-6">
+                    <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                      High-Yield Concepts Included
+                    </p>
+                    <ul className="flex flex-wrap gap-2">
+                      {qbank.topics.map((t, idx) => (
+                        <li
+                          key={idx}
+                          className="rounded-md border border-white/10 px-2.5 py-1 text-xs text-slate-300"
+                        >
+                          {t}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="mt-8 border-t border-white/10 pt-6">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <button
                       type="button"
-                      onClick={(e) => toggleMute(qbank.slug, e)}
-                      className="absolute bottom-3 right-3 p-2 rounded-xl bg-slate-950/80 border border-white/20 text-white hover:bg-teal-600 transition-colors shadow-md cursor-pointer z-10"
-                      title={isMuted ? "Unmute preview" : "Mute preview"}
+                      onClick={() => handleStart(qbank, 'tutor')}
+                      className="rounded-md border border-white/15 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
                     >
-                      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      Tutor Mode (50 Qs)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStart(qbank, 'timed')}
+                      className="rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+                    >
+                      Timed Mode (50 Qs)
                     </button>
                   </div>
-                )}
 
-                {/* Header Badges */}
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-teal-50 border border-teal-200/80 text-[11px] font-bold text-teal-800 font-mono">
-                    <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
-                    {qbank.specialtyTag}
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded border border-slate-200 font-mono">
-                      {qbank.totalQuestions} Questions
-                    </span>
-                    <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded border border-teal-200 font-mono">
-                      {qbank.mnemonicCount} Mnemonics
-                    </span>
+                  <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+                    <span><span className="font-mono tabular-nums text-slate-300">{qbank.exhibitCount}</span> Interactive Exhibits</span>
+                    <span>Selectable Tables &amp; Full Distractors</span>
                   </div>
                 </div>
-
-                {/* Title & Description */}
-                <h3 className="text-2xl font-bold font-serif text-slate-900 group-hover:text-teal-700 transition-colors mb-3">
-                  {qbank.title}
-                </h3>
-                <p className="text-sm text-slate-600 leading-relaxed font-sans mb-6">
-                  {qbank.description}
-                </p>
-
-                {/* Topic Tags */}
-                <div className="mb-6">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 font-mono">
-                    High-Yield Concepts Included
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {qbank.topics.map((t, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Actions: Strictly Tutor Mode & Timed Mode */}
-              <div className="pt-6 border-t border-slate-100">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleStart(qbank, 'tutor')}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-teal-200 bg-teal-50/70 hover:bg-teal-100/90 text-teal-900 text-sm font-bold shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
-                  >
-                    <GraduationCap className="w-4 h-4 text-teal-700" />
-                    <span>Tutor Mode (50 Qs)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleStart(qbank, 'timed')}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold shadow-md shadow-teal-700/20 transition-all hover:scale-[1.02] cursor-pointer"
-                  >
-                    <Clock className="w-4 h-4" />
-                    <span>Timed Mode (50 Qs)</span>
-                  </button>
-                </div>
-
-                <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 font-sans">
-                  <span>{qbank.exhibitCount} Interactive Exhibits</span>
-                  <span>Selectable Tables &amp; Full Distractors</span>
-                </div>
-              </div>
-            </div>
+              </article>
+            </Reveal>
           );
         })}
       </div>

@@ -14,7 +14,10 @@ const pool = new Pool({ connectionString });
 
 async function main() {
   const email = 'admin@medico.com';
-  const password = 'password123';
+  const password = process.env.ADMIN_SEED_PASSWORD;
+  if (!password || password.length < 12) {
+    throw new Error('Set ADMIN_SEED_PASSWORD (min 12 chars) before running this script.');
+  }
   const passwordHash = await bcrypt.hash(password, 10);
   const id = crypto.randomUUID();
 
@@ -32,8 +35,7 @@ async function main() {
     }
     
     console.log(`Email: ${email}`);
-    console.log(`Password: ${password}\n`);
-  } catch (err) {
+    } catch (err) {
     console.error('Error inserting user:', err);
   } finally {
     await pool.end();

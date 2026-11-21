@@ -53,3 +53,22 @@ gsap.min.js
 *.html
 !src/**/*.html
 
+
+# Local tooling / scratch (never commit)
+.history/
+k6-bin/
+archive/
+temp_docx/
+temp_preview.html
+import_preview.json
+check-admins.js
+check-zufeshan.js
+find-admins.js
+seed-admins.cjs
+seed-admins.ts
+seed-extra-admins.js
+standardize-admins.js
+update-admins.js
+test-authorize.js
+test-login-api.js
+/test.js

@@ -6,16 +6,16 @@ export interface LoaderProps {
 }
 
 export const Loader: React.FC<LoaderProps> = ({ size = 'sm', className = '' }) => {
-  const sizeClasses = size === 'sm' ? 'w-10 h-10' : 'w-32 h-32';
+  const sizeClasses = size === 'sm' ? 'h-5 w-5' : 'h-16 w-16';
   
   return (
-    <div className={`inline-flex items-center justify-center text-accent ${sizeClasses} ${className}`}>
-      <svg viewBox="0 0 120 120" className="w-full h-full">
+    <div className={`inline-flex items-center justify-center text-teal-300 ${sizeClasses} ${className}`}>
+      <svg viewBox="0 0 120 120" className="h-full w-full" role="status" aria-label="Loading">
         <path
           d="M15,85 C30,55 40,95 55,60 C65,38 75,80 90,45 C98,28 100,50 105,35"
           fill="none"
           stroke="currentColor"
-          strokeWidth={size === 'sm' ? 8 : 4}
+          strokeWidth={size === 'sm' ? 10 : 4}
           strokeLinecap="round"
           strokeDasharray="220"
           strokeDashoffset="220"
@@ -28,7 +28,7 @@ export const Loader: React.FC<LoaderProps> = ({ size = 'sm', className = '' }) =
             repeatCount="indefinite"
           />
         </path>
-        <circle r={size === 'sm' ? 8 : 4} fill="currentColor">
+        <circle r={size === 'sm' ? 10 : 4} fill="currentColor">
           <animateMotion
             dur="2.2s"
             repeatCount="indefinite"

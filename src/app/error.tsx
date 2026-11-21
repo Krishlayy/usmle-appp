@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { VideoBackdrop } from '@/components/ui/VideoBackdrop';
 
 export default function GlobalError({
   error,
@@ -16,24 +17,25 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 text-center bg-white p-10 rounded-xl shadow-md border">
-        <div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Something went wrong</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            We&apos;ve encountered an unexpected error. Our team has been notified.
-          </p>
-        </div>
-        <div className="flex flex-col space-y-4">
+    <div className="relative flex min-h-[calc(100vh-56px)] flex-1 items-center justify-center px-5 py-16 text-slate-100">
+      <VideoBackdrop />
+      <div className="w-full max-w-md rounded-lg border border-white/10 bg-white/[0.03] p-8 backdrop-blur-xl sm:p-10">
+        <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-300/80">Error</p>
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-white">Something went wrong</h1>
+        <p className="mt-3 text-sm leading-relaxed text-slate-400">
+          We&apos;ve encountered an unexpected error. Our team has been notified.
+        </p>
+        <div className="mt-8 flex flex-col gap-3">
           <button
+            type="button"
             onClick={() => reset()}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
           >
             Try again
           </button>
           <Link
             href="/"
-            className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="rounded-md border border-white/15 px-4 py-2.5 text-center text-sm font-medium text-slate-200 transition-colors hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
           >
             Return Home
           </Link>

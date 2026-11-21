@@ -11,6 +11,7 @@ export interface Option {
 export interface Question {
   id: string;
   qid: string;
+  answersHidden?: boolean;
   questionText: string;
   explanation: string | null;
   acceptableAnswers: string[];

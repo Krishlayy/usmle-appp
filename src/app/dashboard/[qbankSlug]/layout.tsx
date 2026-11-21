@@ -12,12 +12,13 @@ export default async function QBankLayout(
     children
   } = props;
 
+  // The root layout already provides <main>; this region is a plain container.
   return (
-    <div className="flex flex-1 overflow-hidden h-[calc(100vh-64px)]">
+    <div className="flex h-[calc(100vh-56px)] flex-1 overflow-hidden bg-[#070a0f] text-slate-100">
       <QBankSidebar qbankSlug={params.qbankSlug} />
-      <main className="flex-1 overflow-y-auto bg-slate-50">
+      <div className="flex-1 overflow-y-auto">
         {children}
-      </main>
+      </div>
     </div>
   );
 }

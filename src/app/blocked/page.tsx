@@ -1,43 +1,36 @@
-import { AlertTriangle, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import Link from 'next/link';
+import { AuthShell } from '@/components/ui/AuthShell';
 
 export default function BlockedPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white shadow-xl rounded-2xl p-8 border-t-4 border-red-600 text-center">
-        <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle className="w-8 h-8" />
-        </div>
-        
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Account Suspended</h1>
-        
-        <p className="text-gray-600 mb-6 leading-relaxed">
-          Your account has been temporarily blocked due to repeated violations of our Anti-Cheat Security System. We enforce strict policies against copying, pasting, and navigating away from the test window to protect the integrity of our questions.
+    <AuthShell eyebrow="Security" title="Account Suspended">
+      <p className="mb-6 text-sm leading-relaxed text-slate-400">
+        Your account has been temporarily blocked due to repeated violations of our Anti-Cheat Security System. We enforce strict policies against copying, pasting, and navigating away from the test window to protect the integrity of our questions.
+      </p>
+
+      <div className="mb-8 rounded-md border border-white/10 p-4 text-left">
+        <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-300">How to restore access</p>
+        <p className="text-sm leading-relaxed text-slate-400">
+          Please submit a formal email explaining the situation and confirming your adherence to our testing policies moving forward.
         </p>
-
-        <div className="bg-gray-100 p-4 rounded-lg text-left mb-8">
-          <p className="text-sm font-semibold text-gray-800 mb-2">How to restore access:</p>
-          <p className="text-sm text-gray-600">
-            Please submit a formal email explaining the situation and confirming your adherence to our testing policies moving forward. 
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <a 
-            href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@microqbank.com'}?subject=Account%20Suspension%20Appeal`}
-            className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
-          >
-            <Mail className="w-5 h-5" />
-            Email Administration
-          </a>
-          <Link 
-            href="/login"
-            className="text-gray-500 hover:text-gray-700 text-sm font-semibold py-2"
-          >
-            Return to Login
-          </Link>
-        </div>
       </div>
-    </div>
+
+      <div className="flex flex-col gap-3">
+        <a
+          href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@microqbank.com'}?subject=Account%20Suspension%20Appeal`}
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-white px-4 text-sm font-semibold text-slate-950 transition-colors hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+        >
+          <Mail className="h-4 w-4" />
+          Email Administration
+        </a>
+        <Link
+          href="/login"
+          className="py-2 text-center text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300"
+        >
+          Return to Login
+        </Link>
+      </div>
+    </AuthShell>
   );
 }

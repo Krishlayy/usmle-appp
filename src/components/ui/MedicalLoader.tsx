@@ -1,20 +1,16 @@
 'use client';
 
-import { Activity } from 'lucide-react';
-
 export function MedicalLoader({ text = "Loading..." }: { text?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center space-y-4 p-8 animate-fade-slide-up">
-      <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 shadow-sm border border-blue-100 overflow-hidden">
-        {/* Heartbeat sweep animation */}
-        <div className="absolute inset-0 bg-blue-100/50 -translate-x-full animate-[sweep_2s_ease-in-out_infinite]" />
-        
-        {/* Pulse scale animation */}
-        <div className="relative animate-[pulse-scale_2s_ease-in-out_infinite]">
-          <Activity className="w-8 h-8" strokeWidth={2.5} />
-        </div>
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex flex-col items-center justify-center gap-4 p-8 text-slate-400"
+    >
+      <div className="relative h-px w-40 overflow-hidden bg-white/10">
+        <div className="absolute inset-y-0 left-0 w-full bg-teal-300 motion-safe:animate-[sweep_1.6s_ease-in-out_infinite]" />
       </div>
-      <p className="text-scale-sm font-semibold text-secondary animate-pulse">{text}</p>
+      <p className="font-mono text-[11px] uppercase tracking-[0.18em]">{text}</p>
     </div>
   );
 }

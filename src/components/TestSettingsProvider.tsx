@@ -32,7 +32,7 @@ interface TestSettingsContextType {
 }
 
 const defaultSettings: TestSettings = {
-  appTheme: 'UWORLD',
+  appTheme: 'MQB',
   appearance: 'NBME Official',
   fontSize: 15,
   colorTheme: 'light',
@@ -63,7 +63,7 @@ export function TestSettingsProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved);
         // Normalize themes
         if (parsed.appTheme === 'MODERN') parsed.appTheme = 'MQB';
-        if (!['UWORLD', 'MQB'].includes(parsed.appTheme)) parsed.appTheme = 'UWORLD';
+        if (!['UWORLD', 'MQB'].includes(parsed.appTheme)) parsed.appTheme = 'MQB';
         setSettings({ ...defaultSettings, ...parsed });
       } catch (e) {
         console.error('Failed to parse test settings', e);

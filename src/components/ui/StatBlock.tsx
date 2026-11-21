@@ -10,14 +10,14 @@ export interface StatBlockProps {
 
 export const StatBlock: React.FC<StatBlockProps> = ({ label, value, subValue, icon }) => {
   return (
-    <Card elevation="subtle" className="p-6 flex flex-col h-full">
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-[14px] font-medium text-secondary">{label}</h3>
-        {icon && <div className="text-muted">{icon}</div>}
+    <Card elevation="subtle" className="flex h-full flex-col p-6">
+      <div className="mb-3 flex items-start justify-between">
+        <h3 className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">{label}</h3>
+        {icon && <div className="text-slate-500">{icon}</div>}
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-[28px] font-bold text-primary tracking-tight tabular-nums">{value}</span>
-        {subValue && <span className="text-[14px] font-medium text-muted">{subValue}</span>}
+        <span className="font-mono text-3xl font-medium tabular-nums tracking-tight text-white">{value}</span>
+        {subValue && <span className="text-sm text-slate-500">{subValue}</span>}
       </div>
     </Card>
   );
