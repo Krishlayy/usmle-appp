@@ -24,6 +24,30 @@ export default function UploadQBankDocxPage() {
       const selected = e.target.files[0];
       setFile(selected);
       setError(null);
+
+      // Auto-detect QBank metadata from uploaded filename
+      const fname = selected.name.toLowerCase();
+      if (fname.includes('autoimmune')) {
+        setTitle('Autoimmune Diseases Q-Bank');
+        setSlug('autoimmune-diseases');
+        setQbankCode('AUTO');
+        setSpecialtyTag('Immunology / Rheumatology');
+      } else if (fname.includes('biologic')) {
+        setTitle('Biologics & Targeted Therapeutics');
+        setSlug('biologics-and-their-targets');
+        setQbankCode('BIO');
+        setSpecialtyTag('Pharmacology / Oncology');
+      } else if (fname.includes('immunodef')) {
+        setTitle('Immunodeficiency Disorders Q-Bank');
+        setSlug('immunodeficiency-disorders');
+        setQbankCode('IMMUNO');
+        setSpecialtyTag('Immunology / Genetics');
+      } else if (fname.includes('histolog')) {
+        setTitle('Approach to Histology');
+        setSlug('approach-to-histology');
+        setQbankCode('HIST');
+        setSpecialtyTag('Pathology & Histology');
+      }
     }
   };
 

@@ -80,33 +80,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Upsert the QBank in database
-    const qbank = await prisma.qBank.upsert({
-      where: { slug },
-      create: {
-        title,
-        slug,
-        qbankCode,
-        price: priceCents,
-        currency: 'USD',
-        specialtyTag,
-        description: `High-yield clinical scenarios and diagnostic microarchitecture with integrated video mnemonics.`,
-        totalQuestions: questions.length,
-        difficulty: 'Intermediate',
-        highYieldScore: 9.4,
-        boardCoverage: 'USMLE Step 1 & Step 2 CK',
-        isActive: true,
-        lastEditedById: session.user.id,
-        lastEditedAt: new Date(),
-      },
-      update: {
-        title,
-        totalQuestions: questions.length,
-        specialtyTag,
-        lastEditedById: session.user.id,
-        lastEditedAt: new Date(),
-      },
-    });
+    // Upsert the QBank in database safely checking both slug and qbankCode
+    const existingBySlug = await prisma.qBank.findUnique({ where: { slug } });
+    const existingByCode = await prisma.qBank.findUnique({ where: { qbankCode } });
+
+    let qbank;
+    if (existingBySlug) {
+      qbank = await prisma.qBank.update({
+        where: { id: existingBySlug.id },
+        data: {
+          title,
+          totalQuestions: questions.length,
+          specialtyTag,
+          lastEditedById: session.user.id,
+          lastEditedAt: new Date(),
+        },
+      });
+    } else if (existingByCode) {
+      qbank = await prisma.qBank.update({
+        where: { id: existingByCode.id },
+        data: {
+          title,
+          slug,
+          totalQuestions: questions.length,
+          specialtyTag,
+          lastEditedById: session.user.id,
+          lastEditedAt: new Date(),
+        },
+      });
+    } else {
+      qbank = await prisma.qBank.create({
+        data: {
+          title,
+          slug,
+          qbankCode,
+          price: priceCents,
+          currency: 'USD',
+          specialtyTag,
+          description: `High-yield clinical scenarios and diagnostic microarchitecture with integrated video mnemonics.`,
+          totalQuestions: questions.length,
+          difficulty: 'Intermediate',
+          highYieldScore: 9.4,
+          boardCoverage: 'USMLE Step 1 & Step 2 CK',
+          isActive: true,
+          lastEditedById: session.user.id,
+          lastEditedAt: new Date(),
+        },
+      });
+    }
 
     // If replacing existing questions, delete old questions and related data
     if (replaceExisting) {
