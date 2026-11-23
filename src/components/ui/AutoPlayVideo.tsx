@@ -19,6 +19,9 @@ export function AutoPlayVideo({
   label,
   preload = 'metadata',
   showFallback = true,
+  maxDuration,
+  controls = false,
+  videoRef,
 }: {
   src: string;
   muted?: boolean;
@@ -27,30 +30,88 @@ export function AutoPlayVideo({
   preload?: 'none' | 'metadata' | 'auto';
   /** Render a "Preview unavailable" tile on failure. Ambient backdrops pass false and render nothing. */
   showFallback?: boolean;
+  /** Maximum playback duration in seconds for looping previews (e.g. 3s). Disabled in fullscreen. */
+  maxDuration?: number;
+  /** Whether to show native player controls. Defaults to false. */
+  controls?: boolean;
+  /** Optional external ref to control the video element */
+  videoRef?: React.RefObject<HTMLVideoElement | null> | ((node: HTMLVideoElement | null) => void);
 }) {
-  const ref = useRef<HTMLVideoElement>(null);
+  const localRef = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const setRefs = (node: HTMLVideoElement | null) => {
+    (localRef as any).current = node;
+    if (typeof videoRef === 'function') {
+      videoRef(node);
+    } else if (videoRef && 'current' in videoRef) {
+      (videoRef as any).current = node;
+    }
+  };
 
   useEffect(() => {
-    const v = ref.current;
+    const v = localRef.current;
     if (v) {
       v.muted = muted;
       v.defaultMuted = muted;
+      if (!muted) {
+        void v.play().catch(() => {});
+      }
     }
   }, [muted]);
 
+  // Handle 3-second preview loop
   useEffect(() => {
-    const v = ref.current;
+    const v = localRef.current;
+    if (!v || !maxDuration) return;
+
+    const onTimeUpdate = () => {
+      const isFs = document.fullscreenElement === v;
+      if (!isFs && v.currentTime >= maxDuration) {
+        v.currentTime = 0;
+        void v.play().catch(() => {});
+      }
+    };
+
+    v.addEventListener('timeupdate', onTimeUpdate);
+    return () => {
+      v.removeEventListener('timeupdate', onTimeUpdate);
+    };
+  }, [maxDuration]);
+
+  // Handle fullscreen state change
+  useEffect(() => {
+    const v = localRef.current;
+    if (!v) return;
+
+    const onFsChange = () => {
+      const isFs = document.fullscreenElement === v;
+      setIsFullscreen(isFs);
+      if (isFs) {
+        v.controls = true;
+      } else {
+        v.controls = controls;
+        if (maxDuration && v.currentTime >= maxDuration) {
+          v.currentTime = 0;
+        }
+      }
+    };
+
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange);
+    };
+  }, [controls, maxDuration]);
+
+  useEffect(() => {
+    const v = localRef.current;
     if (!v) return;
     // The error event can fire before hydration attaches onError, so check the settled state too.
     if (v.error) {
       setFailed(true);
       return;
     }
-    const reduce =window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    setReduceMotion(reduce);
-    if (reduce) return;
 
     let onScreen = false;
     const sync = () => {
@@ -92,13 +153,13 @@ export function AutoPlayVideo({
 
   return (
     <video
-      ref={ref}
+      ref={setRefs}
       src={videoSrc(src)}
-      loop
-      muted
+      loop={!maxDuration}
+      muted={muted}
       playsInline
       preload={preload}
-      controls={reduceMotion}
+      controls={isFullscreen ? true : controls}
       aria-label={label}
       aria-hidden={label ? undefined : true}
       onError={() => setFailed(true)}
