@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { videoSrc } from '@/lib/videoUrl';
+import { videoSrc, localVideoSrc } from '@/lib/videoUrl';
 
 /**
  * Looping ambient/preview video that actually autoplays.
@@ -9,8 +9,8 @@ import { videoSrc } from '@/lib/videoUrl';
  * - Browsers only autoplay muted video, and React does not reliably emit the `muted` attribute
  *   in server HTML, so muting is applied imperatively before play().
  * - Plays only while on screen and the tab is visible (smooth scrolling, less bandwidth).
- * - With prefers-reduced-motion it does not autoplay; native controls appear instead.
- * - A missing/failed file renders a quiet placeholder instead of a black box.
+ * - Multi-tier fallback: tries primary URL (CDN/R2), falls back to local /videos/ on error.
+ * - Never shows "Preview unavailable" if either CDN or local copy is available.
  */
 export function AutoPlayVideo({
   src,
@@ -28,18 +28,23 @@ export function AutoPlayVideo({
   className?: string;
   label?: string;
   preload?: 'none' | 'metadata' | 'auto';
-  /** Render a "Preview unavailable" tile on failure. Ambient backdrops pass false and render nothing. */
   showFallback?: boolean;
-  /** Maximum playback duration in seconds for looping previews (e.g. 3s). Disabled in fullscreen. */
   maxDuration?: number;
-  /** Whether to show native player controls. Defaults to false. */
   controls?: boolean;
-  /** Optional external ref to control the video element */
   videoRef?: React.RefObject<HTMLVideoElement | null> | ((node: HTMLVideoElement | null) => void);
 }) {
   const localRef = useRef<HTMLVideoElement>(null);
+  const [currentSrc, setCurrentSrc] = useState<string>(() => videoSrc(src));
   const [failed, setFailed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const hasFallenBack = useRef(false);
+
+  // Sync src changes
+  useEffect(() => {
+    hasFallenBack.current = false;
+    setFailed(false);
+    setCurrentSrc(videoSrc(src));
+  }, [src]);
 
   const setRefs = (node: HTMLVideoElement | null) => {
     (localRef as any).current = node;
@@ -61,7 +66,7 @@ export function AutoPlayVideo({
     }
   }, [muted]);
 
-  // Handle 3-second preview loop
+  // Handle maxDuration loop
   useEffect(() => {
     const v = localRef.current;
     if (!v || !maxDuration) return;
@@ -107,11 +112,6 @@ export function AutoPlayVideo({
   useEffect(() => {
     const v = localRef.current;
     if (!v) return;
-    // The error event can fire before hydration attaches onError, so check the settled state too.
-    if (v.error) {
-      setFailed(true);
-      return;
-    }
 
     let onScreen = false;
     const sync = () => {
@@ -128,7 +128,6 @@ export function AutoPlayVideo({
     io.observe(v);
     document.addEventListener('visibilitychange', sync);
     v.addEventListener('canplay', sync);
-    // Some browsers defer autoplay until the first gesture.
     window.addEventListener('pointerdown', sync, { once: true });
     return () => {
       io.disconnect();
@@ -136,7 +135,18 @@ export function AutoPlayVideo({
       v.removeEventListener('canplay', sync);
       window.removeEventListener('pointerdown', sync);
     };
-  }, [src]);
+  }, [currentSrc]);
+
+  const handleError = () => {
+    const local = localVideoSrc(src);
+    // If we were on CDN and local is different, switch to local before failing
+    if (!hasFallenBack.current && local && currentSrc !== local) {
+      hasFallenBack.current = true;
+      setCurrentSrc(local);
+    } else {
+      setFailed(true);
+    }
+  };
 
   if (failed) {
     if (!showFallback) return null;
@@ -154,7 +164,7 @@ export function AutoPlayVideo({
   return (
     <video
       ref={setRefs}
-      src={videoSrc(src)}
+      src={currentSrc}
       loop={!maxDuration}
       muted={muted}
       playsInline
@@ -162,7 +172,7 @@ export function AutoPlayVideo({
       controls={isFullscreen ? true : controls}
       aria-label={label}
       aria-hidden={label ? undefined : true}
-      onError={() => setFailed(true)}
+      onError={handleError}
       className={className}
     />
   );

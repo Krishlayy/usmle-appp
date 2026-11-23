@@ -8,9 +8,27 @@
  */
 const BASE = (process.env.NEXT_PUBLIC_VIDEO_BASE_URL ?? '').replace(/\/+$/, '');
 
+/**
+ * Returns primary CDN source (if configured) or local path.
+ */
 export function videoSrc(url: string): string {
   if (!url) return '';
   const normalized = url.replace(/\.mov($|\?)/i, '.mp4$1');
   if (/^(https?:)?\/\//i.test(normalized) || !normalized.startsWith('/videos/')) return normalized;
   return `${BASE}${normalized}`;
 }
+
+/**
+ * Returns local fallback path on the origin server.
+ */
+export function localVideoSrc(url: string): string {
+  if (!url) return '';
+  const normalized = url.replace(/\.mov($|\?)/i, '.mp4$1');
+  // If it's a full CDN URL pointing to /videos/..., strip base to return local /videos/...
+  if (normalized.includes('/videos/')) {
+    const idx = normalized.indexOf('/videos/');
+    return normalized.substring(idx);
+  }
+  return normalized;
+}
+
