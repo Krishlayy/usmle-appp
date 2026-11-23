@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { gradeAnswer, getOptionIds } from '@/lib/grading';
+import { gradeAnswer, getOptionIds, parseOptions } from '@/lib/grading';
 
 type StoredOption = {
   id: string;
@@ -69,7 +69,7 @@ export async function POST(req: Request, props: { params: Promise<{ sessionId: s
       isCorrect,
       explanation: question.explanation,
       videoUrl: question.videoUrl || null,
-      options: (question.options as StoredOption[]).map(o => ({
+      options: parseOptions(question.options).map(o => ({
         id: o.id,
         isCorrect: o.id === question.correctAnswer || Boolean(o.isCorrect),
         isYellowDistractor: Boolean(o.isYellowDistractor),

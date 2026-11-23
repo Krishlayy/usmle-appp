@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { TestPlayer, TestSession } from '@/components/TestPlayer';
 import { TestSecurityOverlay } from '@/components/TestSecurityOverlay';
 import { getCachedOrFetch } from '@/lib/redis';
+import { parseOptions } from '@/lib/grading';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,7 +69,7 @@ export default async function SimulatorTestPlayerPage(props: {
     durationSec: requestedMode === 'timed' ? 3600 : null,
     blockNumber: 1,
     questions: questions.map((q, index) => {
-      const parsedOptions = (q.options as { id: string; text: string; explanation?: string | null }[]) || [];
+      const parsedOptions = parseOptions(q.options);
       return {
         id: `exam-progress-${index + 1}`,
         order: index,

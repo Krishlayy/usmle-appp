@@ -72,3 +72,4 @@ update-admins.js
 test-authorize.js
 test-login-api.js
 /test.js
+.env*

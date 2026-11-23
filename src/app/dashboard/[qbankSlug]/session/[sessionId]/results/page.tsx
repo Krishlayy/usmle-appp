@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { SessionResultsView, SessionResultsData } from '@/components/SessionResultsView';
+import { parseOptions } from '@/lib/grading';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,13 +50,7 @@ export default async function SessionResultsPage(props: {
           durationSec: testSession.durationSec,
           completedAt: testSession.completedAt?.toISOString(),
           questions: testSession.progress.map((p, index) => {
-            const parsedOptions = (p.question.options as Array<{
-              id: string;
-              text: string;
-              isCorrect?: boolean;
-              isYellowDistractor?: boolean;
-              explanation?: string | null;
-            }>) || [];
+            const parsedOptions = parseOptions(p.question.options);
 
             return {
               id: p.id,

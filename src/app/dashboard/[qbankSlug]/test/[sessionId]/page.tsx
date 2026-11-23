@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { TestPlayer } from '@/components/TestPlayer';
 import { TestSecurityOverlay } from '@/components/TestSecurityOverlay';
 import { headers } from 'next/headers';
+import { parseOptions } from '@/lib/grading';
 
 export default async function TestSessionPage(
   props: { params: Promise<{ qbankSlug: string, sessionId: string }>, searchParams: Promise<{ mode?: string, item?: string }> }
@@ -78,9 +79,9 @@ export default async function TestSessionPage(
         tags: p.question.tags,
         videoUrl: exposeAnswers ? p.question.videoUrl || null : null,
         media: p.question.media,
-        options: (p.question.options as { id: string; text: string; isCorrect?: boolean; isYellowDistractor?: boolean; explanation?: string | null }[]).map(opt => ({
+        options: parseOptions(p.question.options).map(opt => ({
           id: opt.id,
-          text: opt.text,
+          text: opt.text || '',
           isCorrect: exposeAnswers && (opt.id === p.question.correctAnswer || Boolean(opt.isCorrect)),
           isYellowDistractor: exposeAnswers && Boolean(opt.isYellowDistractor),
           explanation: exposeAnswers ? opt.explanation || null : null,
