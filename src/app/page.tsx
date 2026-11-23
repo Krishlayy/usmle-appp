@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { LandingQBanksSection } from '@/components/LandingQBanksSection';
-import { VideoBackdrop } from '@/components/ui/VideoBackdrop';
 import { Reveal } from '@/components/ui/Reveal';
 import { ArrowRight } from 'lucide-react';
 
@@ -38,8 +37,10 @@ export default function Home() {
   void session;
 
   return (
-    <div className="relative flex min-h-screen flex-col text-slate-900">
-      <VideoBackdrop />
+    <div className="relative flex min-h-screen flex-col bg-white text-slate-900">
+      {/* Subtle medical ambient glow & micro-grid */}
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50/50 via-white to-white" />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:32px_32px] opacity-40" />
 
       {/* Hero. The root layout owns <main>; sections here are plain elements. */}
       <section className="flex min-h-[85vh] items-center px-5 py-24 md:px-10">
