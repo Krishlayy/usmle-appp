@@ -113,7 +113,7 @@ export default async function DashboardPage() {
                   href="/simulator"
                   className="inline-flex items-center gap-2 rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800"
                 >
-                  Board simulator
+                  Resume your last test
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>
