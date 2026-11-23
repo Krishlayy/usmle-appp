@@ -27,23 +27,23 @@ font_small_bold = ImageFont.truetype(font_path_bold, 11)
 def ease_in_out(t):
     return t * t * (3 - 2 * t)
 
-def draw_cursor(draw, x, y, clicking=False, scale=1.0):
-    # Modern Mac/Linear style pointer cursor
+def draw_cursor(draw, x, y, clicking=False, scale=1.4):
+    # Modern Mac/Linear style pointer cursor - Bold Solid Black
     pts = [
         (x, y),
-        (x, y + 22 * scale),
-        (x + 5.5 * scale, y + 17 * scale),
-        (x + 11.5 * scale, y + 27 * scale),
-        (x + 15 * scale, y + 25 * scale),
-        (x + 9 * scale, y + 15.5 * scale),
-        (x + 16.5 * scale, y + 15.5 * scale),
+        (x, y + 24 * scale),
+        (x + 6 * scale, y + 18 * scale),
+        (x + 12 * scale, y + 29 * scale),
+        (x + 16 * scale, y + 27 * scale),
+        (x + 10 * scale, y + 16.5 * scale),
+        (x + 18 * scale, y + 16.5 * scale),
     ]
     # Draw shadow
-    shadow_pts = [(px + 2, py + 3) for px, py in pts]
-    draw.polygon(shadow_pts, fill=(0, 0, 0, 40))
-    # Draw cursor fill and border
-    draw.polygon(pts, fill=(15, 23, 42, 255))
-    draw.line(pts + [pts[0]], fill=(255, 255, 255, 255), width=2)
+    shadow_pts = [(px + 3, py + 4) for px, py in pts]
+    draw.polygon(shadow_pts, fill=(0, 0, 0, 120))
+    # Draw solid deep black cursor fill and clean white outline
+    draw.polygon(pts, fill=(0, 0, 0, 255))
+    draw.line(pts + [pts[0]], fill=(255, 255, 255, 255), width=3)
 
 def generate_video():
     output_path = os.path.join("public", "videos", "hero-simulator.mp4")
@@ -267,7 +267,27 @@ def generate_video():
         out.write(bgr_frame)
 
     out.release()
-    print("Done! Video saved successfully.")
+    print("OpenCV rendering complete. Transcoding to browser-compatible H.264...")
+
+    ffmpeg_path = r"C:\Users\hello\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.1-full_build\bin\ffmpeg.exe"
+    if os.path.exists(ffmpeg_path):
+        import subprocess
+        temp_path = os.path.join("public", "videos", "hero-simulator-temp.mp4")
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        os.rename(output_path, temp_path)
+        cmd = [
+            ffmpeg_path, "-y", "-i", temp_path,
+            "-c:v", "libx264", "-preset", "fast", "-crf", "22",
+            "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+            output_path
+        ]
+        subprocess.run(cmd, check=True)
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        print("Done! Transcoded to H.264 +faststart.")
+    else:
+        print("Done! Video saved successfully.")
 
 if __name__ == "__main__":
     generate_video()

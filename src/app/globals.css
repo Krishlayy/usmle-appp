@@ -46,19 +46,6 @@
   :root {
     --primary: #0f172a;
     --background: #ffffff;
-    caret-color: #0f172a;
-  }
-
-  html, body {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpolygon points='0,0 0,19 5.5,14.5 9.5,23 12.5,21.5 8.5,13 15,13' fill='%230f172a' stroke='%23ffffff' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E") 0 0, auto;
-  }
-
-  button, a, [role="button"], input[type="submit"], input[type="button"], select, .cursor-pointer {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpolygon points='0,0 0,19 5.5,14.5 9.5,23 12.5,21.5 8.5,13 15,13' fill='%230f172a' stroke='%23ffffff' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E") 0 0, pointer !important;
-  }
-
-  input[type="text"], input[type="email"], input[type="password"], textarea {
-    cursor: text;
   }
 }
 

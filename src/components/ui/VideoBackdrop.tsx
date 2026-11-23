@@ -12,9 +12,9 @@ export function VideoBackdrop({ src = '/videos/hero-simulator.mp4' }: { src?: st
         src={src}
         preload="auto"
         showFallback={false}
-        className="h-full w-full scale-105 object-cover opacity-30 blur-[3px]"
+        className="h-full w-full scale-105 object-cover opacity-65 mix-blend-multiply"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/75 to-white" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/75 pointer-events-none" />
     </div>
   );
 }
