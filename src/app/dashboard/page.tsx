@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { CheckoutButton } from '@/components/CheckoutButton';
 import { getCachedOrFetch } from '@/lib/redis';
 import { DashboardQBanksGrid } from '@/components/DashboardQBanksGrid';
-import { VideoBackdrop } from '@/components/ui/VideoBackdrop';
 import { Reveal } from '@/components/ui/Reveal';
 import { ArrowUpRight } from 'lucide-react';
 
@@ -91,8 +90,10 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col text-slate-900">
-      <VideoBackdrop />
+    <div className="relative flex min-h-screen flex-col bg-white text-slate-900">
+      {/* Subtle medical ambient glow & micro-grid */}
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50/50 via-white to-white" />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:32px_32px] opacity-40" />
 
       {/* The global Navbar comes from LayoutUIWrapper; root layout owns <main>. */}
       <div className="flex-1 px-5 pb-20 pt-16 md:px-10 md:pt-24">
