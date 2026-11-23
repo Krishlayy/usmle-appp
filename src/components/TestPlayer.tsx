@@ -933,22 +933,9 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
 
             <button 
               type="button"
-              onClick={() => updateSetting('colorTheme', settings.colorTheme === 'dark' ? 'light' : 'dark')}
-              className="flex flex-col items-center justify-center px-2 py-0.5 text-white hover:text-cyan-300 transition-colors cursor-pointer"
-              title="Reverse Color (USMLE Invert / Night Mode)"
-            >
-              <div className="w-4 h-4 rounded-xs border border-white/80 overflow-hidden flex shadow-2xs">
-                <div className="w-1/2 h-full bg-white"></div>
-                <div className="w-1/2 h-full bg-slate-900"></div>
-              </div>
-              <span className="text-[10px] font-bold mt-0.5">Reverse</span>
-            </button>
-
-            <button 
-              type="button"
               onClick={() => setSettingsMenuOpen(true)}
               className="flex flex-col items-center justify-center px-2 py-0.5 text-white hover:text-cyan-300 transition-colors cursor-pointer"
-              title="Settings"
+              title="Simulator Settings"
             >
               <SettingsIcon size={18} strokeWidth={1.8} />
               <span className="text-[10px] font-bold mt-0.5">Settings</span>
@@ -1922,6 +1909,61 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
         onHighlight={(color) => applyTextFormatting('highlight', color)} 
       />
       {settings.appTheme === 'MQB' ? renderMqbTheme() : renderUworldTheme()}
+
+      {/* Item Omission Confirmation Modal */}
+      {omissionWarning && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="omission-title"
+          className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div className="bg-white border-2 border-amber-500 w-[440px] shadow-2xl rounded-sm overflow-hidden font-sans">
+            <div className="bg-amber-600 px-4 py-2.5 text-white font-bold text-[13px] flex items-center justify-between">
+              <span id="omission-title" className="flex items-center gap-2">
+                <AlertTriangle size={16} />
+                Confirm Item Omission
+              </span>
+              <button
+                type="button"
+                onClick={() => setOmissionWarning(null)}
+                className="hover:bg-black/20 p-0.5 rounded text-xs cursor-pointer"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 text-[13px] text-slate-800 leading-relaxed font-sans">
+              <p className="font-semibold text-slate-900 mb-2">
+                You have not selected an answer for Item {currentIndex + 1}.
+              </p>
+              <p className="text-slate-600">
+                Proceeding will leave this question marked as omitted. Would you like to proceed anyway or return to choose an answer?
+              </p>
+            </div>
+            <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setOmissionWarning(null)}
+                className="px-4 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-semibold rounded shadow-xs transition-colors cursor-pointer"
+              >
+                Return to Question
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const proceedCb = omissionWarning;
+                  setOmissionWarning(null);
+                  proceedCb();
+                }}
+                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded shadow-xs transition-colors cursor-pointer"
+              >
+                Proceed Anyway →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

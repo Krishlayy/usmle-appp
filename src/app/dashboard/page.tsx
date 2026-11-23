@@ -33,16 +33,9 @@ export default async function DashboardPage() {
     include: { qbank: true },
   });
 
-  // Admins see all QBanks as unlocked without needing purchase records
-  const purchasedQbankIds = isAdmin
-    ? allActiveQbanks.map(q => q.id)
-    : purchases.map((p) => p.qbankId);
-
-  // For admins, build a display-only purchase list from the real qbank data
-  const displayPurchases = isAdmin
-    ? allActiveQbanks.map(qbank => ({ qbankId: qbank.id, qbank }))
-    : purchases.map(p => ({ qbankId: p.qbankId, qbank: p.qbank }));
-
+  // Ensure all active curriculum question banks are unlocked and directly accessible
+  const purchasedQbankIds = allActiveQbanks.map(q => q.id);
+  const displayPurchases = allActiveQbanks.map(qbank => ({ qbankId: qbank.id, qbank }));
   const availableQbanks = allActiveQbanks.filter(qb => !purchasedQbankIds.includes(qb.id));
 
   // Fetch only the fields needed for analytics — do NOT load all columns
@@ -158,19 +151,13 @@ export default async function DashboardPage() {
             )}
           </section>
 
-          {/* Available to unlock */}
-          <section className="flex flex-col gap-6">
-            <Reveal>
-              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-slate-600">Available to unlock</h2>
-            </Reveal>
-
-            {availableQbanks.length === 0 ? (
+          {/* Available to unlock (only shown if unowned banks exist) */}
+          {availableQbanks.length > 0 && (
+            <section className="flex flex-col gap-6">
               <Reveal>
-                <p className="rounded-lg border border-slate-200 bg-slate-100 p-8 text-sm text-slate-600">
-                  You own every available bank. Nothing left to unlock right now.
-                </p>
+                <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-slate-600">Available to unlock</h2>
               </Reveal>
-            ) : (
+
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {availableQbanks.map((qbank, i) => (
                   <Reveal key={qbank.id} delay={Math.min(i, 5) * 0.05}>
@@ -195,8 +182,8 @@ export default async function DashboardPage() {
                   </Reveal>
                 ))}
               </div>
-            )}
-          </section>
+            </section>
+          )}
         </div>
       </div>
 

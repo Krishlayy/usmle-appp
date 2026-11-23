@@ -2,9 +2,29 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { QuickPracticeModal, QBankData } from './QuickPracticeModal';
 import { Reveal } from '@/components/ui/Reveal';
+import { AutoPlayVideo } from '@/components/ui/AutoPlayVideo';
+
+const QBANK_PREVIEWS: Record<string, { videoUrl: string; label: string }> = {
+  'autoimmune-diseases': {
+    videoUrl: '/videos/mnemonics/autoimmune/bamboo-stairwell.mp4',
+    label: 'Autoimmune Diseases Mnemonic Video',
+  },
+  'biologics-and-their-targets': {
+    videoUrl: '/videos/mnemonics/biologics/badge-scanner.mp4',
+    label: 'Biologics & Targets Mnemonic Video',
+  },
+  'immunodeficiency-disorders': {
+    videoUrl: '/videos/mnemonics/immunodeficiency/eczema-clinic.mp4',
+    label: 'Immunodeficiency Mnemonic Video',
+  },
+  'approach-to-histology': {
+    videoUrl: '/videos/mnemonics/histology/colour-room.mp4',
+    label: 'Histology Mnemonic Video',
+  },
+};
 
 interface DashboardQBanksGridProps {
   purchases: Array<{
@@ -25,6 +45,16 @@ export function DashboardQBanksGrid({ purchases, analyticsMap }: DashboardQBanks
   const [selectedQBank, setSelectedQBank] = useState<QBankData | null>(null);
   const [selectedMode, setSelectedMode] = useState<'tutor' | 'timed'>('tutor');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mutedStates, setMutedStates] = useState<Record<string, boolean>>({});
+
+  const toggleMute = (slug: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setMutedStates((prev) => ({
+      ...prev,
+      [slug]: !prev[slug],
+    }));
+  };
 
   const handleOpenModal = (qbank: DashboardQBanksGridProps['purchases'][0]['qbank'], mode: 'tutor' | 'timed' = 'tutor') => {
     const attempted = analyticsMap[qbank.id]?.attempted?.length || 0;
@@ -57,11 +87,38 @@ export function DashboardQBanksGrid({ purchases, analyticsMap }: DashboardQBanks
           const totalCount = qbank.totalQuestions || 50;
           const displayPercentage = Math.min(Math.round((attemptedCount / totalCount) * 100), 100);
           const accuracy = attemptedCount > 0 ? Math.round((correctCount / attemptedCount) * 100) : 0;
+          const preview = QBANK_PREVIEWS[qbank.slug];
+          const isMuted = mutedStates[qbank.slug] ?? true;
 
           return (
             <Reveal key={qbank.id} delay={Math.min(i, 5) * 0.05}>
-              <article className="group flex h-full flex-col justify-between gap-8 rounded-lg border border-slate-200 bg-white shadow-sm p-6 transition-colors hover:border-slate-300">
+              <article className="group flex h-full flex-col justify-between gap-6 rounded-lg border border-slate-200 bg-white shadow-sm p-6 transition-colors hover:border-slate-300">
                 <div>
+                  {/* Video Mnemonic Card Thumbnail */}
+                  {preview && (
+                    <div className="relative mb-5 h-44 w-full overflow-hidden rounded-md border border-slate-200 bg-slate-100 sm:h-48">
+                      <AutoPlayVideo
+                        src={preview.videoUrl}
+                        muted={isMuted}
+                        label={preview.label}
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-sm border border-slate-200/90 bg-white/95 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-teal-700 font-semibold shadow-2xs backdrop-blur-xs">
+                        <Sparkles className="h-3 w-3 text-teal-600" />
+                        Video Mnemonic
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => toggleMute(qbank.slug, e)}
+                        className="absolute bottom-3 right-3 z-10 rounded-md border border-slate-200 bg-white/90 p-1.5 text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-900 shadow-2xs cursor-pointer backdrop-blur-xs"
+                        title={isMuted ? "Unmute mnemonic preview" : "Mute mnemonic preview"}
+                        aria-label={isMuted ? "Unmute mnemonic preview" : "Mute mnemonic preview"}
+                      >
+                        {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between gap-3">
                     <span className="font-mono text-[11px] uppercase tracking-wider text-teal-700">
                       {qbank.specialtyTag}
