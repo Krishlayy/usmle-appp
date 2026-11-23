@@ -3,7 +3,7 @@
 usage: python scripts/stage-videos.py [SOURCE_DIR]
 
 * .mp4 sources under 25 MB are copied as-is; larger ones are compressed the same way.
-* .mov sources (often 50+ MB, sometimes HEVC/ProRes that browsers cannot play) are transcoded to
+* .mp4 sources (often 50+ MB, sometimes HEVC/ProRes that browsers cannot play) are transcoded to
   720p H.264/AAC with +faststart so playback starts instantly and seeks work. Needs ffmpeg on PATH
   (Windows: `winget install Gyan.FFmpeg`).
 * For production, upload public/videos to your CDN bucket (see README "Video hosting").
@@ -30,23 +30,23 @@ def transcode(src, dst):
 mappings = {
     # AUTOIMMUNE (13 mnemonics)
     'autoimmune/boardroom': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/1. Boardroom', 'Clip 2.mp4'),
-    'autoimmune/renovation': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/2. Renovation', '2026_06_03_Autoimmune_Video-Mnemonic-Renovation_wing_Connective-Tissue_Poojan_Version_V1.mov'),
+    'autoimmune/renovation': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/2. Renovation', '2026_06_03_Autoimmune_Video-Mnemonic-Renovation_wing_Connective-Tissue_Poojan_Version_V1.mp4'),
     'autoimmune/motor-pool': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/3. Motor Pool', 'Motor Pool.mp4'),
     'autoimmune/bamboo-stairwell': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/4. Bamboo Stairwell', 'Clip 1.mp4'),
     'autoimmune/cable-run': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/5. High Voltage Cables', 'Clip 4.mp4'),
     'autoimmune/wall-sockets': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/6. Wall Sockets', 'Clip 4.mp4'),
     'autoimmune/thermostat': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/7. The Thermostat Room', 'Clip 5.mp4'),
     'autoimmune/supply-pipes': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/8. The Supply Pipes', 'Clip 1.mp4'),
-    'autoimmune/filtration-plant': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/9. Filtration Plant', '2026-06-18_Mnemonic9_The-Filtration-Plant_Hepatobiliary-autoimmune-diseases_Poojan_Version_V1.mov'),
+    'autoimmune/filtration-plant': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/9. Filtration Plant', '2026-06-18_Mnemonic9_The-Filtration-Plant_Hepatobiliary-autoimmune-diseases_Poojan_Version_V1.mp4'),
     'autoimmune/control-room': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/10. Control Room', 'Clip 1.mp4'),
     'autoimmune/the-walls': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/11. The Walls', 'the walls Mnemonic.mp4'),
-    'autoimmune/water-plant': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/12. Water Plant', '2026-06-21_Mnemonic12_Filtration-Plant_Renal-Diseases_Poojan_Version_V1.mov'),
+    'autoimmune/water-plant': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/12. Water Plant', '2026-06-21_Mnemonic12_Filtration-Plant_Renal-Diseases_Poojan_Version_V1.mp4'),
     'autoimmune/blood-bank': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/13. Blood Bank', 'Clip 6.mp4'),
 
     # IMMUNODEFICIENCY (13 mnemonics)
     'immunodeficiency/empty-nicu': ('Autoimmune Diseases/1. Autoimmune Disorders - Video-Mnemonics/1. Boardroom', 'Clip 4.mp4'),
-    'immunodeficiency/thymus-school': ('Immunodeficiency/2. Immunodeficiencies - Video-Mnemonics/2. Thymus Training Nursery', '2026-06-26_Mnemonic2_Thymus-Nursery_Image_Poojan_V1.mov'),
-    'immunodeficiency/bubble-ward': ('Immunodeficiency/2. Immunodeficiencies - Video-Mnemonics/3. Bubble Ward', '2026-06-26_Mnemonic3_Bubble-Ward_SCID_Poojan_V1.mov'),
+    'immunodeficiency/thymus-school': ('Immunodeficiency/2. Immunodeficiencies - Video-Mnemonics/2. Thymus Training Nursery', '2026-06-26_Mnemonic2_Thymus-Nursery_Image_Poojan_V1.mp4'),
+    'immunodeficiency/bubble-ward': ('Immunodeficiency/2. Immunodeficiencies - Video-Mnemonics/3. Bubble Ward', '2026-06-26_Mnemonic3_Bubble-Ward_SCID_Poojan_V1.mp4'),
     'immunodeficiency/eczema-clinic': ('Immunodeficiency/2. Immunodeficiencies - Video-Mnemonics/4. Eczema Clinic', 'Clip 4.mp4'),
     'immunodeficiency/locked-doors': ('Immunodeficiency/2. Immunodeficiencies - Video-Mnemonics/5. The Locked Doors', 'Clip 3.mp4'),
     'immunodeficiency/unregulated-wing': ('Immunodeficiency/2. Immunodeficiencies - Video-Mnemonics/6. The Unregulated Wing', '6 mnemonic.mp4'),
@@ -67,12 +67,12 @@ mappings = {
     'biologics/gate-check': ('Biologics/3. Biologics - Video-Mnemonics', '2026_08_31_Biologics_Mnemonic3_TwoSignalsTwoBrakes_Poojan_Draft_V1.mp4'),
 
     # HISTOLOGY (6 mnemonics)
-    'histology/colour-room': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 1_ The colour room.mov'),
-    'histology/read-books': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 2- Be so totally cool, Read Books_.mov'),
-    'histology/three-muscles': ('Approach to Histology/4. Histology - Video-mnemonics', 'video 3- \u201cThree Muscles and a Wire\u201d.mov'),
-    'histology/down-gut-tube': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 1_ The colour room.mov'),
-    'histology/endocrine-cabinet': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 5- The endocrine cabinet_.mov'),
-    'histology/seven-up': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 2- Be so totally cool, Read Books_.mov'),
+    'histology/colour-room': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 1_ The colour room.mp4'),
+    'histology/read-books': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 2- Be so totally cool, Read Books_.mp4'),
+    'histology/three-muscles': ('Approach to Histology/4. Histology - Video-mnemonics', 'video 3- \u201cThree Muscles and a Wire\u201d.mp4'),
+    'histology/down-gut-tube': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 1_ The colour room.mp4'),
+    'histology/endocrine-cabinet': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 5- The endocrine cabinet_.mp4'),
+    'histology/seven-up': ('Approach to Histology/4. Histology - Video-mnemonics', 'Video 2- Be so totally cool, Read Books_.mp4'),
 
     # BASIC PHARMACOLOGY (2 mnemonics)
     'pharmacology/docking-ring': ('Immunodeficiency/2. Immunodeficiencies - Video-Mnemonics/12. Pharmacy', '5.mp4'),

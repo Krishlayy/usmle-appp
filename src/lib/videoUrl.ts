@@ -9,6 +9,8 @@
 const BASE = (process.env.NEXT_PUBLIC_VIDEO_BASE_URL ?? '').replace(/\/+$/, '');
 
 export function videoSrc(url: string): string {
-  if (!url || /^(https?:)?\/\//i.test(url) || !url.startsWith('/videos/')) return url;
-  return `${BASE}${url}`;
+  if (!url) return '';
+  const normalized = url.replace(/\.mov($|\?)/i, '.mp4$1');
+  if (/^(https?:)?\/\//i.test(normalized) || !normalized.startsWith('/videos/')) return normalized;
+  return `${BASE}${normalized}`;
 }

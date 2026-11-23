@@ -5,42 +5,42 @@ import * as cheerio from 'cheerio';
 import { prisma } from '../src/lib/db';
 
 const videoMapping: Record<number, { url: string; title: string }> = {
-  1: { url: '/videos/histology/video_1_the_colour_room.mov', title: 'The Colour Room' },
-  16: { url: '/videos/histology/video_1_the_colour_room.mov', title: 'The Colour Room' },
-  48: { url: '/videos/histology/video_1_the_colour_room.mov', title: 'The Colour Room' },
-  49: { url: '/videos/histology/video_1_the_colour_room.mov', title: 'The Colour Room' },
+  1: { url: '/videos/histology/video_1_the_colour_room.mp4', title: 'The Colour Room' },
+  16: { url: '/videos/histology/video_1_the_colour_room.mp4', title: 'The Colour Room' },
+  48: { url: '/videos/histology/video_1_the_colour_room.mp4', title: 'The Colour Room' },
+  49: { url: '/videos/histology/video_1_the_colour_room.mp4', title: 'The Colour Room' },
 
-  4: { url: '/videos/histology/video_2_be_so_totally_cool_read_books.mov', title: 'Be So Totally Cool, Read Books' },
-  14: { url: '/videos/histology/video_2_be_so_totally_cool_read_books.mov', title: 'Be So Totally Cool, Read Books' },
-  15: { url: '/videos/histology/video_2_be_so_totally_cool_read_books.mov', title: 'Be So Totally Cool, Read Books' },
-  40: { url: '/videos/histology/video_2_be_so_totally_cool_read_books.mov', title: 'Be So Totally Cool, Read Books' },
+  4: { url: '/videos/histology/video_2_be_so_totally_cool_read_books.mp4', title: 'Be So Totally Cool, Read Books' },
+  14: { url: '/videos/histology/video_2_be_so_totally_cool_read_books.mp4', title: 'Be So Totally Cool, Read Books' },
+  15: { url: '/videos/histology/video_2_be_so_totally_cool_read_books.mp4', title: 'Be So Totally Cool, Read Books' },
+  40: { url: '/videos/histology/video_2_be_so_totally_cool_read_books.mp4', title: 'Be So Totally Cool, Read Books' },
 
-  17: { url: '/videos/histology/video_3_three_muscles_and_a_wire.mov', title: 'Three Muscles and a Wire' },
-  18: { url: '/videos/histology/video_3_three_muscles_and_a_wire.mov', title: 'Three Muscles and a Wire' },
-  19: { url: '/videos/histology/video_3_three_muscles_and_a_wire.mov', title: 'Three Muscles and a Wire' },
-  20: { url: '/videos/histology/video_3_three_muscles_and_a_wire.mov', title: 'Three Muscles and a Wire' },
+  17: { url: '/videos/histology/video_3_three_muscles_and_a_wire.mp4', title: 'Three Muscles and a Wire' },
+  18: { url: '/videos/histology/video_3_three_muscles_and_a_wire.mp4', title: 'Three Muscles and a Wire' },
+  19: { url: '/videos/histology/video_3_three_muscles_and_a_wire.mp4', title: 'Three Muscles and a Wire' },
+  20: { url: '/videos/histology/video_3_three_muscles_and_a_wire.mp4', title: 'Three Muscles and a Wire' },
 
-  22: { url: '/videos/histology/video_4_down_the_gut_tube.mov', title: 'Down the Gut Tube' },
-  23: { url: '/videos/histology/video_4_down_the_gut_tube.mov', title: 'Down the Gut Tube' },
-  24: { url: '/videos/histology/video_4_down_the_gut_tube.mov', title: 'Down the Gut Tube' },
-  25: { url: '/videos/histology/video_4_down_the_gut_tube.mov', title: 'Down the Gut Tube' },
-  26: { url: '/videos/histology/video_4_down_the_gut_tube.mov', title: 'Down the Gut Tube' },
-  39: { url: '/videos/histology/video_4_down_the_gut_tube.mov', title: 'Down the Gut Tube' },
-  41: { url: '/videos/histology/video_4_down_the_gut_tube.mov', title: 'Down the Gut Tube' },
+  22: { url: '/videos/histology/video_4_down_the_gut_tube.mp4', title: 'Down the Gut Tube' },
+  23: { url: '/videos/histology/video_4_down_the_gut_tube.mp4', title: 'Down the Gut Tube' },
+  24: { url: '/videos/histology/video_4_down_the_gut_tube.mp4', title: 'Down the Gut Tube' },
+  25: { url: '/videos/histology/video_4_down_the_gut_tube.mp4', title: 'Down the Gut Tube' },
+  26: { url: '/videos/histology/video_4_down_the_gut_tube.mp4', title: 'Down the Gut Tube' },
+  39: { url: '/videos/histology/video_4_down_the_gut_tube.mp4', title: 'Down the Gut Tube' },
+  41: { url: '/videos/histology/video_4_down_the_gut_tube.mp4', title: 'Down the Gut Tube' },
 
-  6: { url: '/videos/histology/video_5_the_endocrine_cabinet.mov', title: 'The Endocrine Cabinet' },
-  29: { url: '/videos/histology/video_5_the_endocrine_cabinet.mov', title: 'The Endocrine Cabinet' },
-  32: { url: '/videos/histology/video_5_the_endocrine_cabinet.mov', title: 'The Endocrine Cabinet' },
-  33: { url: '/videos/histology/video_5_the_endocrine_cabinet.mov', title: 'The Endocrine Cabinet' },
-  34: { url: '/videos/histology/video_5_the_endocrine_cabinet.mov', title: 'The Endocrine Cabinet' },
-  43: { url: '/videos/histology/video_5_the_endocrine_cabinet.mov', title: 'The Endocrine Cabinet' },
+  6: { url: '/videos/histology/video_5_the_endocrine_cabinet.mp4', title: 'The Endocrine Cabinet' },
+  29: { url: '/videos/histology/video_5_the_endocrine_cabinet.mp4', title: 'The Endocrine Cabinet' },
+  32: { url: '/videos/histology/video_5_the_endocrine_cabinet.mp4', title: 'The Endocrine Cabinet' },
+  33: { url: '/videos/histology/video_5_the_endocrine_cabinet.mp4', title: 'The Endocrine Cabinet' },
+  34: { url: '/videos/histology/video_5_the_endocrine_cabinet.mp4', title: 'The Endocrine Cabinet' },
+  43: { url: '/videos/histology/video_5_the_endocrine_cabinet.mp4', title: 'The Endocrine Cabinet' },
 
-  7: { url: '/videos/histology/video_6_seven_up.mov', title: 'SEVEN UP' },
-  8: { url: '/videos/histology/video_6_seven_up.mov', title: 'SEVEN UP' },
-  9: { url: '/videos/histology/video_6_seven_up.mov', title: 'SEVEN UP' },
-  10: { url: '/videos/histology/video_6_seven_up.mov', title: 'SEVEN UP' },
-  37: { url: '/videos/histology/video_6_seven_up.mov', title: 'SEVEN UP' },
-  38: { url: '/videos/histology/video_6_seven_up.mov', title: 'SEVEN UP' }
+  7: { url: '/videos/histology/video_6_seven_up.mp4', title: 'SEVEN UP' },
+  8: { url: '/videos/histology/video_6_seven_up.mp4', title: 'SEVEN UP' },
+  9: { url: '/videos/histology/video_6_seven_up.mp4', title: 'SEVEN UP' },
+  10: { url: '/videos/histology/video_6_seven_up.mp4', title: 'SEVEN UP' },
+  37: { url: '/videos/histology/video_6_seven_up.mp4', title: 'SEVEN UP' },
+  38: { url: '/videos/histology/video_6_seven_up.mp4', title: 'SEVEN UP' }
 };
 
 interface ParsedQuestion {
