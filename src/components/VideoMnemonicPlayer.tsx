@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { videoSrc } from '@/lib/videoUrl';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, Sparkles, ShieldAlert } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { videoSrc, fallbackVideoSrc } from '@/lib/videoUrl';
+import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, Sparkles, ShieldAlert, RefreshCw } from 'lucide-react';
 
 interface VideoMnemonicPlayerProps {
   videoUrl: string;
@@ -24,9 +24,29 @@ export function VideoMnemonicPlayer({
   const [duration, setDuration] = useState<number>(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [sourceIdx, setSourceIdx] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  if (!videoUrl || !videoUrl.trim()) return null;
+  // Derive all candidate CDN sources in order of preference
+  const candidateUrls = useMemo(() => {
+    if (!videoUrl || !videoUrl.trim()) return [];
+    const primary = videoSrc(videoUrl);
+    const fallback = fallbackVideoSrc(videoUrl);
+    const list: string[] = [];
+    if (primary) list.push(primary);
+    if (fallback && fallback !== primary) list.push(fallback);
+    return list;
+  }, [videoUrl]);
+
+  // Reset error state and try from primary whenever videoUrl changes
+  useEffect(() => {
+    setSourceIdx(0);
+    setLoadFailed(false);
+    setIsPlaying(false);
+    setCurrentTime(0);
+  }, [videoUrl]);
+
+  if (!videoUrl || !videoUrl.trim() || candidateUrls.length === 0) return null;
 
   // Helper to detect if URL is YouTube or Vimeo
   const getEmbedUrl = (url: string): string | null => {
@@ -48,6 +68,27 @@ export function VideoMnemonicPlayer({
   };
 
   const embedUrl = getEmbedUrl(videoUrl);
+  const activeVideoSrc = candidateUrls[sourceIdx] || candidateUrls[0];
+
+  const handleVideoError = () => {
+    // If we have an alternative CDN source, failover to it
+    if (sourceIdx < candidateUrls.length - 1) {
+      console.warn(`[VideoPlayer] Failed to load from primary CDN (${activeVideoSrc}), failing over to fallback CDN.`);
+      setSourceIdx(prev => prev + 1);
+    } else {
+      console.error(`[VideoPlayer] All candidate video sources failed to load.`);
+      setLoadFailed(true);
+      setIsPlaying(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setLoadFailed(false);
+    setSourceIdx(0);
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+  };
 
   const togglePlay = () => {
     if (!videoRef.current) return;
@@ -85,13 +126,6 @@ export function VideoMnemonicPlayer({
     if (videoRef.current.requestFullscreen) {
       videoRef.current.requestFullscreen();
     }
-  };
-
-  const restartVideo = () => {
-    if (!videoRef.current) return;
-    videoRef.current.currentTime = 0;
-    void videoRef.current.play().catch(() => setIsPlaying(false));
-    setIsPlaying(true);
   };
 
   const handleTimeUpdate = () => {
@@ -151,9 +185,10 @@ export function VideoMnemonicPlayer({
           <div className="relative w-full h-full group">
             <video
               ref={videoRef}
-              src={videoSrc(videoUrl)}
+              key={activeVideoSrc}
+              src={activeVideoSrc}
               playsInline
-              onError={() => setLoadFailed(true)}
+              onError={handleVideoError}
               preload="metadata"
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={() => videoRef.current && setDuration(videoRef.current.duration)}
@@ -173,8 +208,16 @@ export function VideoMnemonicPlayer({
             </div>
 
             {loadFailed && (
-              <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-900 px-6 text-center text-sm text-slate-300">
-                This video could not be loaded. Please try again shortly.
+              <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-slate-900/95 px-6 text-center text-sm text-slate-300 gap-3">
+                <p>Video loading encountered a temporary network delay.</p>
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                  className="px-4 py-1.5 rounded-md bg-teal-600 hover:bg-teal-500 text-white font-medium text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Retry Loading Video
+                </button>
               </div>
             )}
 
@@ -241,7 +284,7 @@ export function VideoMnemonicPlayer({
                     type="button"
                     onClick={() => skipSeconds(5)}
                     className="hover:text-teal-400 transition-colors p-1 flex items-center"
-                    title="Forward 5 seconds"
+                    title="Fast forward 5 seconds"
                   >
                     <RotateCw className="w-4 h-4" />
                     <span className="text-[9px] ml-0.5">5s</span>
@@ -255,26 +298,25 @@ export function VideoMnemonicPlayer({
                   >
                     {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                   </button>
-                </div>
 
-                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={changeSpeed}
-                    className="text-xs font-bold px-2 py-0.5 rounded bg-white/20 hover:bg-white/30 transition-colors"
-                    title="Playback Speed"
+                    className="hover:text-teal-400 transition-colors text-xs font-mono px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20"
+                    title="Playback speed"
                   >
                     {playbackSpeed}x
                   </button>
-                  <button
-                    type="button"
-                    onClick={toggleFullscreen}
-                    className="hover:text-teal-400 transition-colors p-1"
-                    aria-label="Fullscreen"
-                  >
-                    <Maximize className="w-4 h-4" />
-                  </button>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={toggleFullscreen}
+                  className="hover:text-teal-400 transition-colors p-1"
+                  aria-label="Fullscreen"
+                >
+                  <Maximize className="w-4 h-4" />
+                </button>
               </div>
 
             </div>
@@ -282,8 +324,15 @@ export function VideoMnemonicPlayer({
         )}
       </div>
 
-      <div className="px-4 py-2 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500">
-        <span>💡 Visual mnemonic active: Replays key mechanisms & high-yield differentiators for this vignette.</span>
+      {/* Footer bar */}
+      <div className="px-4 py-2 bg-slate-50 border-t border-teal-100 flex items-center justify-between text-[11px] text-slate-500">
+        <span className="flex items-center gap-1.5">
+          <span className="text-teal-600 font-medium">💡 Visual mnemonic active:</span>
+          <span>Replays key mechanisms &amp; high-yield differentiators for this vignette.</span>
+        </span>
+        <span className="font-mono text-slate-400 text-[10px]">
+          1080p HD
+        </span>
       </div>
     </div>
   );

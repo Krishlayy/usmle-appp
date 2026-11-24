@@ -46,12 +46,18 @@ next-env.d.ts
 public/videos/
 scripts/qbanks_seed_data.json
 scripts/qbanks_parsed_all.json
-*.png
+/*.png
 *.pdf
 screenshots/
 gsap.min.js
 *.html
 !src/**/*.html
+!public/**/*.png
+!public/**/*.jpg
+!public/**/*.jpeg
+!public/**/*.webp
+!public/**/*.svg
+!public/**/*.gif
 
 
 # Local tooling / scratch (never commit)
