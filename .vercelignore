@@ -15,7 +15,7 @@ node_modules/**
 .next/**
 .git/
 .git/**
-*.png
+/*.png
 *.pdf
 *.html
 scripts/
@@ -23,3 +23,8 @@ scripts/**
 tests/
 test-results/
 playwright-report/
+!public/**/*.png
+!public/**/*.jpg
+!public/**/*.jpeg
+!public/**/*.webp
+!public/**/*.svg
