@@ -100,34 +100,63 @@ export default async function DashboardPage() {
         <div className="mx-auto flex max-w-6xl flex-col gap-20">
 
           {/* Greeting */}
-          <section className="flex flex-col gap-12">
+          <section className="flex flex-col gap-10">
             <Reveal>
-              <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-teal-700">Dashboard</p>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-teal-50 px-3 py-0.5 font-mono text-[10px] uppercase tracking-wider text-teal-800 font-semibold shadow-2xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-teal-600 animate-pulse" />
+                  Clinical Candidate Portal
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-slate-600">
+                  Step 1 &amp; Step 2 CK Ready
+                </span>
+              </div>
               <h1 className="max-w-3xl font-serif text-4xl font-medium leading-[1.1] tracking-tight text-slate-900 md:text-6xl">
                 Welcome back, {displayName}.
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 md:text-lg">
-                Short questions. Video mnemonics. Pick up where you left off.
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
+                Short vignettes. High-yield video mnemonics. Full FRED v2 examination conditions. Pick up where you left off.
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className="mt-7 flex flex-wrap items-center gap-3">
                 <Link
                   href="/simulator"
-                  className="inline-flex items-center gap-2 rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800"
+                  className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-6 py-3 text-sm font-semibold text-white shadow-xs transition-all duration-200 hover:bg-teal-800 hover:shadow-md cursor-pointer"
                 >
                   Resume your last test
                   <ArrowUpRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/#qbanks"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-2xs transition-all hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
+                >
+                  Explore All Curriculum Banks
                 </Link>
               </div>
             </Reveal>
 
             <Reveal delay={0.1}>
-              <dl className="grid grid-cols-3 divide-x divide-slate-200 border-y border-slate-200">
-                {stats.map((s) => (
-                  <div key={s.label} className="px-4 py-6 first:pl-0 md:px-8">
-                    <dt className="text-xs uppercase tracking-widest text-slate-500">{s.label}</dt>
-                    <dd className="mt-2 font-mono text-3xl font-medium tabular-nums text-slate-900 md:text-4xl">{s.value}</dd>
-                  </div>
-                ))}
+              <dl className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs sm:grid-cols-3 sm:divide-x sm:divide-slate-200">
+                <div className="px-3 py-2 first:pl-0 sm:px-6">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">Questions Solved</dt>
+                  <dd className="mt-2 font-mono text-3xl font-bold tabular-nums text-slate-900 md:text-4xl">
+                    {totalAnswered.toLocaleString()}
+                  </dd>
+                  <p className="mt-1 text-[11px] text-slate-400 font-medium">Cumulative vignettes completed</p>
+                </div>
+                <div className="px-3 py-2 sm:px-6">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">Overall Accuracy</dt>
+                  <dd className="mt-2 font-mono text-3xl font-bold tabular-nums text-teal-700 md:text-4xl">
+                    {overallAccuracy}%
+                  </dd>
+                  <p className="mt-1 text-[11px] text-slate-400 font-medium">Target threshold &ge; 70%</p>
+                </div>
+                <div className="px-3 py-2 sm:px-6">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">Curriculum Unlocked</dt>
+                  <dd className="mt-2 font-mono text-3xl font-bold tabular-nums text-slate-900 md:text-4xl">
+                    {displayPurchases.length} / 4 Banks
+                  </dd>
+                  <p className="mt-1 text-[11px] text-emerald-600 font-semibold">100% Core Curriculum Access</p>
+                </div>
               </dl>
             </Reveal>
           </section>

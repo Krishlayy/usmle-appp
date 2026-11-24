@@ -54,17 +54,23 @@ export default function Navbar() {
     <>
       <header className={`sticky top-0 z-40 w-full border-b backdrop-blur-xl ${shell}`}>
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 md:px-10">
-          {/* Redesigned Brand Logo */}
+          {/* Enterprise Brand Logo */}
           <Link href={session ? '/dashboard' : '/'} className="flex items-center gap-3 select-none group">
-            <div className="grid h-7 w-7 place-items-center rounded-lg bg-teal-700 text-white shadow-2xs transition-transform group-hover:scale-105">
-              <span className="font-mono text-xs font-bold tracking-tight">Q</span>
+            <div className="relative grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-teal-700 to-teal-900 text-white shadow-xs border border-teal-600/30 transition-transform duration-300 group-hover:scale-105">
+              <span className="font-mono text-sm font-bold tracking-tight text-white drop-shadow-xs">M</span>
+              <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif text-[16px] font-semibold tracking-tight text-slate-900 leading-none">
-                MicroQBank
-              </span>
-              <span className="font-mono text-[9px] uppercase tracking-widest text-teal-700 font-medium">
-                USMLE&reg; Prep
+              <div className="flex items-center gap-1.5">
+                <span className="font-serif text-[17px] font-semibold tracking-tight text-slate-950 leading-none">
+                  MicroQBank
+                </span>
+                <span className="rounded-[4px] border border-teal-200 bg-teal-50 px-1 py-0.2 font-mono text-[8.5px] font-bold uppercase tracking-wider text-teal-800">
+                  Step 1
+                </span>
+              </div>
+              <span className="mt-0.5 font-mono text-[9px] uppercase tracking-widest text-slate-400 font-medium">
+                Clinical Board Suite
               </span>
             </div>
           </Link>
