@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import { verifyQbankAccess } from '@/lib/verifyQbankAccess';
 import { TestPlayer } from '@/components/TestPlayer';
 import { TestSecurityOverlay } from '@/components/TestSecurityOverlay';
 import { headers } from 'next/headers';
@@ -42,6 +43,13 @@ export default async function TestSessionPage(
 
   if (!testSession || testSession.userId !== session.user.id) {
     notFound();
+  }
+
+  // Strict enterprise check: user must own this QBank to access this session
+  try {
+    await verifyQbankAccess(session.user.id, testSession.qbankId);
+  } catch {
+    redirect(`/qbanks/${params.qbankSlug}?locked=1`);
   }
 
   const isReviewMode = searchParams.mode === 'review';

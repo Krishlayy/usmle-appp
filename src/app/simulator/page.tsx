@@ -1,14 +1,24 @@
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { redirect, notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import { verifyQbankAccess } from '@/lib/verifyQbankAccess';
 import { TestPlayer, TestSession } from '@/components/TestPlayer';
 import { TestSecurityOverlay } from '@/components/TestSecurityOverlay';
-import { getCachedOrFetch } from '@/lib/redis';
 import { parseOptions } from '@/lib/grading';
+import { headers } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SimulatorTestPlayerPage(props: {
   searchParams: Promise<{ mode?: string; theme?: string; qbank?: string; count?: string }>;
 }) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user || !session.user.id) {
+    redirect('/login?callbackUrl=/simulator');
+  }
+
   const searchParams = await props.searchParams;
   const requestedMode = (
     searchParams.mode === 'timed' 
@@ -17,54 +27,43 @@ export default async function SimulatorTestPlayerPage(props: {
         ? 'review' 
         : 'tutor'
   ) as 'timed' | 'tutor' | 'review';
-  const requestedSlug = searchParams.qbank || 'autoimmune-diseases';
+  const requestedSlug = searchParams.qbank || 'approach-to-histology';
   const questionCount = parseInt(searchParams.count || '50', 10);
 
-  // Fetch questions with fast Redis caching (3600s)
-  const qbank = await getCachedOrFetch(
-    `simulator:qbank:${requestedSlug}:${questionCount}`,
-    async () => {
-      let bank = await prisma.qBank.findFirst({
-        where: { slug: requestedSlug, isActive: true },
+  const qbank = await prisma.qBank.findFirst({
+    where: { slug: requestedSlug, isActive: true },
+    include: {
+      questions: {
+        take: questionCount,
+        orderBy: { qid: 'asc' },
         include: {
-          questions: {
-            take: questionCount,
-            orderBy: { qid: 'asc' },
-            include: {
-              media: {
-                orderBy: { order: 'asc' },
-              },
-            },
+          media: {
+            orderBy: { order: 'asc' },
           },
         },
-      });
-
-      if (!bank || bank.questions.length === 0) {
-        bank = await prisma.qBank.findFirst({
-          where: { isActive: true },
-          include: {
-            questions: {
-              take: questionCount,
-              orderBy: { qid: 'asc' },
-              include: {
-                media: {
-                  orderBy: { order: 'asc' },
-                },
-              },
-            },
-          },
-        });
-      }
-      return bank;
+      },
     },
-    3600
-  );
+  });
 
-  const questions = qbank?.questions || [];
+  if (!qbank) {
+    notFound();
+  }
+
+  // Strict enterprise check: user must own this QBank to access questions
+  try {
+    await verifyQbankAccess(session.user.id, qbank.id);
+  } catch {
+    redirect(`/qbanks/${qbank.slug}?locked=1`);
+  }
+
+  const questions = qbank.questions || [];
+  const headersList = await headers();
+  const userIp = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'Unknown IP';
+  const userEmail = session.user.email || 'Candidate';
 
   const examSession: TestSession = {
     id: 'usmle-exam-block-1',
-    qbankSlug: qbank?.slug || 'approach-to-histology',
+    qbankSlug: qbank.slug,
     mode: requestedMode,
     durationSec: requestedMode === 'timed' ? 3600 : null,
     blockNumber: 1,
@@ -73,6 +72,10 @@ export default async function SimulatorTestPlayerPage(props: {
       return {
         id: `exam-progress-${index + 1}`,
         order: index,
+        selectedOptionId: null,
+        isCorrect: null,
+        timeTakenSec: 0,
+        isFlagged: false,
         question: {
           id: q.id,
           qid: q.qid,
@@ -97,22 +100,17 @@ export default async function SimulatorTestPlayerPage(props: {
             explanation: opt.explanation || null,
           })),
         },
-        isFlagged: false,
-        selectedOptionId: null,
-        isCorrect: null,
-        timeTakenSec: 0,
-        notes: null,
-        strikethroughs: [],
       };
     }),
   };
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <TestSecurityOverlay userEmail="candidate@usmle-boards.org" userIp="192.168.1.38">
-        <TestPlayer 
-          session={examSession} 
-          initialIndex={0} 
+    <div className="relative min-h-screen bg-slate-100 flex flex-col font-sans select-none antialiased">
+      <TestSecurityOverlay userEmail={userEmail} userIp={userIp}>
+        <TestPlayer
+          session={examSession}
+          userEmail={userEmail}
+          userIp={userIp}
         />
       </TestSecurityOverlay>
     </div>

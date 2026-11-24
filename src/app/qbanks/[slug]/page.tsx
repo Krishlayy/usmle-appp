@@ -20,7 +20,7 @@ export default async function QBankDetailPage(props: { params: Promise<{ slug: s
         take: 1,
       },
       purchases: session?.user?.id ? {
-        where: { userId: session.user.id }
+        where: { userId: session.user.id, status: 'active' }
       } : false,
     },
   });

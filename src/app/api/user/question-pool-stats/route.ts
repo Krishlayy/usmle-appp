@@ -11,6 +11,8 @@ export async function GET() {
   }
 
   try {
+    const isStaff = ['ADMIN', 'SUPERADMIN'].includes(session.user.role);
+
     // 1. Get all active QBanks
     const qbanks = await prisma.qBank.findMany({
       where: { isActive: true },
@@ -20,6 +22,9 @@ export async function GET() {
         slug: true,
         qbankCode: true,
         specialtyTag: true,
+        description: true,
+        price: true,
+        currency: true,
         totalQuestions: true,
         _count: {
           select: { questions: { where: { status: 'PUBLISHED' } } }
@@ -28,7 +33,16 @@ export async function GET() {
       orderBy: { title: 'asc' }
     });
 
-    // 2. Fetch user's previous progress
+    // 2. Fetch user's active purchases
+    const purchases = await prisma.purchase.findMany({
+      where: { userId: session.user.id, status: 'active' },
+      select: { qbankId: true }
+    });
+    const purchasedQBankIds = new Set(
+      isStaff ? qbanks.map(q => q.id) : purchases.map(p => p.qbankId)
+    );
+
+    // 3. Fetch user's previous progress
     const userProgress = await prisma.userProgress.findMany({
       where: { userId: session.user.id },
       select: {
@@ -40,7 +54,7 @@ export async function GET() {
       }
     });
 
-    // 3. Aggregate per QBank
+    // 4. Aggregate per QBank
     const poolStats = qbanks.map(q => {
       const qProgress = userProgress.filter(p => p.qbankId === q.id);
       const answeredSet = new Set(qProgress.filter(p => p.selectedAnswer).map(p => p.questionId));
@@ -56,10 +70,14 @@ export async function GET() {
         slug: q.slug,
         qbankCode: q.qbankCode,
         specialtyTag: q.specialtyTag,
+        description: q.description,
+        price: q.price,
+        currency: q.currency,
         total: totalPublished,
         unused: unusedCount,
         incorrect: incorrectSet.size,
         flagged: flaggedSet.size,
+        isPurchased: purchasedQBankIds.has(q.id),
       };
     });
 
