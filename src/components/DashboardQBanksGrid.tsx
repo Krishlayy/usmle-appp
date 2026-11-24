@@ -121,11 +121,21 @@ export function DashboardQBanksGrid({ purchases, analyticsMap }: DashboardQBanks
   };
 
   return (
-    <div>
+    <div id="qbanks" className="scroll-mt-20 flex flex-col gap-8">
       <Reveal>
-        <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700 font-semibold">
-          Your Question Banks
-        </p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700 font-semibold">
+              High-Yield Curriculum
+            </p>
+            <h2 className="font-serif text-3xl font-medium tracking-tight text-slate-900 md:text-4xl">
+              Authentic USMLE&reg; Question Banks
+            </h2>
+          </div>
+          <p className="max-w-md text-sm text-slate-600 leading-relaxed">
+            Select a mode to launch instant board practice, preview video mnemonics, or inspect full curriculum topics.
+          </p>
+        </div>
       </Reveal>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -212,6 +222,24 @@ export function DashboardQBanksGrid({ purchases, analyticsMap }: DashboardQBanks
                   </h3>
                   {qbank.description && (
                     <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-slate-600">{qbank.description}</p>
+                  )}
+
+                  {preview?.topics && preview.topics.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {preview.topics.slice(0, 3).map((topic, tIdx) => (
+                        <span
+                          key={tIdx}
+                          className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[10px] text-slate-600"
+                        >
+                          {topic}
+                        </span>
+                      ))}
+                      {preview.topics.length > 3 && (
+                        <span className="inline-flex items-center rounded-md border border-slate-100 bg-slate-50 px-1.5 py-0.5 font-mono text-[10px] text-slate-400">
+                          +{preview.topics.length - 3} more
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
 

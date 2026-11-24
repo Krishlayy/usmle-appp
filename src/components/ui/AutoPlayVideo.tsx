@@ -143,8 +143,26 @@ export function AutoPlayVideo({
     if (!hasFallenBack.current && local && currentSrc !== local) {
       hasFallenBack.current = true;
       setCurrentSrc(local);
+      const v = localRef.current;
+      if (v) {
+        v.load();
+        void v.play().catch(() => {});
+      }
     } else {
       setFailed(true);
+    }
+  };
+
+  const handleRetry = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setFailed(false);
+    const local = localVideoSrc(src);
+    setCurrentSrc(local);
+    const v = localRef.current;
+    if (v) {
+      v.load();
+      void v.play().catch(() => {});
     }
   };
 
@@ -153,10 +171,24 @@ export function AutoPlayVideo({
     return (
       <div
         role="img"
-        aria-label={label}
-        className={`flex items-center justify-center bg-slate-100 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400 ${className}`}
+        aria-label={label || 'Video Mnemonic Preview'}
+        onClick={handleRetry}
+        className={`group/fail relative flex flex-col items-center justify-center bg-slate-900/95 text-slate-300 p-4 select-none cursor-pointer overflow-hidden ${className}`}
       >
-        Preview unavailable
+        <div className="absolute inset-0 bg-gradient-to-t from-teal-950/40 via-transparent to-slate-900/60 pointer-events-none" />
+        <div className="relative z-10 flex flex-col items-center gap-2 text-center">
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-400 group-hover/fail:scale-110 group-hover/fail:bg-teal-500/20 transition-all">
+            <svg className="h-4 w-4 fill-current ml-0.5" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+          <span className="font-mono text-[10.5px] uppercase tracking-wider text-slate-200 font-semibold">
+            {label || 'High-Yield Mnemonic Video'}
+          </span>
+          <span className="font-mono text-[9px] uppercase tracking-widest text-teal-400/90 font-medium">
+            Tap to Play Preview
+          </span>
+        </div>
       </div>
     );
   }
