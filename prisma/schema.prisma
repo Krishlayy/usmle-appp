@@ -34,6 +34,16 @@ model User {
   role               Role       @default(STUDENT)
   securityViolations Int        @default(0)
   isBlocked          Boolean    @default(false)
+  
+  // USMLE Candidate Profile & Onboarding
+  onboardingCompleted Boolean    @default(false)
+  preferredName       String?
+  targetExam          String?
+  examAttempt         String?
+  targetDate          String?
+  medicalSchool       String?
+  graduationYear      String?
+  
   purchases     Purchase[]
   progress      UserProgress[]
   testSessions  TestSession[]

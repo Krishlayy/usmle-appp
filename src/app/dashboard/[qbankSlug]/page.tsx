@@ -149,6 +149,15 @@ export default async function QBankDashboardPage(
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-16">
+      {searchParams?.purchased && (
+        <div className="mb-8 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 flex items-center gap-3 shadow-2xs">
+          <span className="text-xl">🎉</span>
+          <div>
+            <strong className="font-semibold">Module Unlocked!</strong> Payment was confirmed successfully. You now have full lifetime access to all practice questions and analytics.
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <Reveal>
         <div className="mb-14 flex flex-col justify-between gap-8 md:flex-row md:items-end">

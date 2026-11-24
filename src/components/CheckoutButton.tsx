@@ -43,14 +43,19 @@ export function CheckoutButton({ qbankId }: { qbankId: string }) {
   };
 
   return (
-    <Button
-      type="button"
-      variant="primary"
-      onClick={handleCheckout}
-      isLoading={loading}
-      className="w-full h-11"
-    >
-      {loading ? 'Processing...' : 'Buy Now'}
-    </Button>
+    <div className="flex flex-col gap-1.5 w-full">
+      <Button
+        type="button"
+        variant="primary"
+        onClick={handleCheckout}
+        isLoading={loading}
+        className="w-full h-11"
+      >
+        {loading ? 'Redirecting to Stripe...' : 'Buy Now'}
+      </Button>
+      <p className="text-[11px] text-center text-slate-500 font-mono">
+        💳 Test Mode &bull; Test Card 4242&hellip;
+      </p>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import UnblockButton from '../users/UnblockButton';
+import { UserRoleButton } from './UserRoleButton';
 
 type UserData = {
   id: string;
@@ -22,7 +23,8 @@ export default function UserTable({ users, type }: { users: UserData[], type: 'a
         <thead>
           <tr className="bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-600 uppercase tracking-wider">
             <th className="p-4">Name / Email</th>
-            {type === 'admin' && <th className="p-4">Role</th>}
+            <th className="p-4">Role</th>
+            <th className="p-4">Admin Privileges</th>
             <th className="p-4">Joined</th>
             <th className="p-4">Purchases</th>
             <th className="p-4">Sessions</th>
@@ -36,15 +38,24 @@ export default function UserTable({ users, type }: { users: UserData[], type: 'a
                 <div className="font-semibold text-slate-900">{user.name || 'No Name'}</div>
                 <div className="text-sm text-slate-500">{user.email}</div>
               </td>
-              {type === 'admin' && (
-                <td className="p-4">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                    user.role === 'SUPERADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {user.role}
-                  </span>
-                </td>
-              )}
+              <td className="p-4">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                  user.role === 'SUPERADMIN'
+                    ? 'bg-purple-100 text-purple-800'
+                    : user.role === 'ADMIN'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-slate-100 text-slate-700'
+                }`}>
+                  {user.role}
+                </span>
+              </td>
+              <td className="p-4">
+                <UserRoleButton
+                  userId={user.id}
+                  currentRole={user.role}
+                  userEmail={user.email}
+                />
+              </td>
               <td className="p-4 text-slate-600">
                 {new Date(user.createdAt).toLocaleDateString()}
               </td>
@@ -71,7 +82,7 @@ export default function UserTable({ users, type }: { users: UserData[], type: 'a
           ))}
           {users.length === 0 && (
             <tr>
-              <td colSpan={type === 'admin' ? 6 : 5} className="p-8 text-center text-slate-500">
+              <td colSpan={7} className="p-8 text-center text-slate-500">
                 No users found.
               </td>
             </tr>

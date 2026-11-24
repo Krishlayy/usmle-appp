@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import UnblockButton from './UnblockButton';
+import { UserRoleButton } from '../components/UserRoleButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +50,7 @@ export default async function AdminUsersPage() {
               <th className="p-4 border ">Purchases</th>
               <th className="p-4 border ">Sessions</th>
               <th className="p-4 border ">Security</th>
+              <th className="p-4 border ">Role Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -95,11 +97,18 @@ export default async function AdminUsersPage() {
                     )}
                   </div>
                 </td>
+                <td className="border p-4">
+                  <UserRoleButton
+                    userId={user.id}
+                    currentRole={user.role}
+                    userEmail={user.email}
+                  />
+                </td>
               </tr>
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-500">
+                <td colSpan={9} className="p-8 text-center text-slate-500">
                   No users found.
                 </td>
               </tr>
