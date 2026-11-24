@@ -49,7 +49,12 @@ export default async function QBankDashboardPage(
       const stripeSession = await stripe.checkout.sessions.retrieve(searchParams.session_id);
       if (stripeSession.payment_status === 'paid' && stripeSession.metadata?.userId === session.user.id && stripeSession.metadata?.qbankId === qbank.id) {
         await prisma.purchase.upsert({
-          where: { stripeSessionId: stripeSession.id },
+          where: {
+            userId_qbankId: {
+              userId: session.user.id,
+              qbankId: qbank.id,
+            },
+          },
           create: {
             userId: session.user.id,
             qbankId: qbank.id,
@@ -58,7 +63,12 @@ export default async function QBankDashboardPage(
             status: 'active',
             expiresAt: null,
           },
-          update: { status: 'active' },
+          update: {
+            status: 'active',
+            amountPaidCents: stripeSession.amount_total || 0,
+            stripeSessionId: stripeSession.id,
+            purchasedAt: new Date(),
+          },
         });
       }
     } catch (e) {
