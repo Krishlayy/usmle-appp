@@ -5,7 +5,7 @@ async function main() {
   const { prisma } = await import('../src/lib/db');
   const user = await prisma.user.findFirst({
     where: { email: { contains: 'krishlayy' } },
-    include: { accounts: true, purchases: true }
+    include: { Account: true, purchases: true }
   });
   console.log('User krishlayy in ep-cool-wildflower:');
   console.log(JSON.stringify(user, null, 2));
