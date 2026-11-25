@@ -133,10 +133,10 @@ export default function StoreClient({ initialQBanks }: StoreClientProps) {
                       </div>
 
                       <Link
-                        href={`/simulator?qbank=${qbank.slug}`}
+                        href={`/qbanks/${qbank.slug}`}
                         className="inline-flex items-center gap-1.5 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
                       >
-                        <span>Start Module</span>
+                        <span>View &amp; Unlock</span>
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                       </Link>
                     </div>

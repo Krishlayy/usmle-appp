@@ -26,16 +26,32 @@ export default async function DashboardPage() {
     3600
   );
 
-  const isAdmin = ['ADMIN', 'SUPERADMIN'].includes(session.user.role);
+  const isStaff = ['ADMIN', 'SUPERADMIN'].includes(session.user.role);
+
+  // Check onboarding status for candidates
+  const userProfile = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { onboardingCompleted: true, preferredName: true, role: true },
+  });
+
+  if (!isStaff && userProfile && !userProfile.onboardingCompleted) {
+    redirect('/onboarding');
+  }
 
   const purchases = await prisma.purchase.findMany({
     where: { userId: session.user.id, status: 'active' },
     include: { qbank: true },
   });
 
-  // Ensure all active curriculum question banks are unlocked and directly accessible
-  const purchasedQbankIds = allActiveQbanks.map(q => q.id);
-  const displayPurchases = allActiveQbanks.map(qbank => ({ qbankId: qbank.id, qbank }));
+  // For ADMIN/SUPERADMIN, provide access to all banks for quality checks.
+  // For students, ONLY banks with an active purchase in the database are unlocked.
+  const realPurchasedQbankIds = purchases.map(p => p.qbankId);
+  const purchasedQbankIds = isStaff ? allActiveQbanks.map(q => q.id) : realPurchasedQbankIds;
+
+  const displayPurchases = isStaff
+    ? allActiveQbanks.map(qbank => ({ qbankId: qbank.id, qbank }))
+    : purchases.map(p => ({ qbankId: p.qbankId, qbank: p.qbank }));
+
   const availableQbanks = allActiveQbanks.filter(qb => !purchasedQbankIds.includes(qb.id));
 
   // Fetch only the fields needed for analytics — do NOT load all columns
@@ -72,7 +88,7 @@ export default async function DashboardPage() {
     };
   });
 
-  const displayName = session.user.name || session.user.email?.split('@')[0] || 'there';
+  const displayName = userProfile?.preferredName || session.user.name || session.user.email?.split('@')[0] || 'there';
 
   const totalAnswered = purchasedQbankIds.reduce((acc, id) => acc + (analyticsMap[id]?.attempted.size || 0), 0);
   const totalCorrect = purchasedQbankIds.reduce((acc, id) => acc + (analyticsMap[id]?.correct.size || 0), 0);
@@ -123,9 +139,11 @@ export default async function DashboardPage() {
               <div className="px-3 py-2 sm:px-6">
                 <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">Curriculum Unlocked</dt>
                 <dd className="mt-2 font-mono text-3xl font-bold tabular-nums text-slate-900 md:text-4xl">
-                  {displayPurchases.length} / 4 Banks
+                  {displayPurchases.length} / {allActiveQbanks.length} Banks
                 </dd>
-                <p className="mt-1 text-[11px] text-emerald-600 font-semibold">100% Core Curriculum Access</p>
+                <p className={`mt-1 text-[11px] font-semibold ${displayPurchases.length === allActiveQbanks.length ? 'text-emerald-600' : 'text-slate-500'}`}>
+                  {displayPurchases.length === allActiveQbanks.length ? '100% Core Curriculum Access' : `${allActiveQbanks.length - displayPurchases.length} module(s) available to unlock`}
+                </p>
               </div>
             </dl>
           </Reveal>

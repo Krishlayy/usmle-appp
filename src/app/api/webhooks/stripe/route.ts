@@ -50,7 +50,10 @@ export async function POST(req: Request) {
     try {
       await prisma.purchase.upsert({
         where: {
-          stripeSessionId: session.id
+          userId_qbankId: {
+            userId,
+            qbankId,
+          },
         },
         create: {
           userId,

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import {
@@ -21,12 +21,26 @@ const DEMO_ACCOUNTS = [
   { role: 'Superadmin', email: 'superadmin@mqb.demo', password: 'Super#Demo2026' },
 ];
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const err = searchParams.get('error');
+    if (err) {
+      if (err === 'OAuthAccountNotLinked') {
+        setError('This email is already associated with another login method.');
+      } else if (err === 'OAuthCallback' || err === 'Callback') {
+        setError('There was an issue signing in with Google. Please try again.');
+      } else {
+        setError(`Authentication error: ${err}`);
+      }
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,5 +165,13 @@ export default function LoginPage() {
         </div>
       )}
     </AuthShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

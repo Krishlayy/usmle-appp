@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { videoSrc } from '@/lib/videoUrl';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, Sparkles, BookOpen, Layers, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { videoSrc, fallbackVideoSrc } from '@/lib/videoUrl';
+import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RotateCw, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface VideoMnemonicPlayerProps {
   videoUrl: string;
@@ -84,9 +84,30 @@ export function VideoMnemonicPlayer({
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [sourceIdx, setSourceIdx] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  if (!videoUrl || !videoUrl.trim()) return null;
+  // Derive candidate URLs
+  const candidateUrls = useMemo(() => {
+    if (!videoUrl || !videoUrl.trim()) return [];
+    const primary = videoSrc(videoUrl);
+    const fallback = fallbackVideoSrc(videoUrl);
+    const list: string[] = [];
+    if (primary) list.push(primary);
+    if (fallback && fallback !== primary) list.push(fallback);
+    return list;
+  }, [videoUrl]);
+
+  useEffect(() => {
+    setSourceIdx(0);
+    setLoadFailed(false);
+    setIsPlaying(false);
+    setCurrentTime(0);
+  }, [videoUrl]);
+
+  if (!videoUrl || !videoUrl.trim() || candidateUrls.length === 0) return null;
+
+  const currentSourceUrl = candidateUrls[sourceIdx] || candidateUrls[0];
 
   // Detect matching default mnemonic explanation based on video URL
   const matchedKey = Object.keys(DEFAULT_MNEMONIC_EXPLANATIONS).find((key) =>
@@ -98,7 +119,6 @@ export function VideoMnemonicPlayer({
   const displayExplanation = mnemonicExplanation || defaultMnemonic?.explanation || null;
   const displayAnchors = defaultMnemonic?.anchors || [];
 
-  // Helper to detect if URL is YouTube or Vimeo
   const getEmbedUrl = (url: string): string | null => {
     try {
       const ytMatch = url.match(
@@ -125,8 +145,10 @@ export function VideoMnemonicPlayer({
       videoRef.current.pause();
       setIsPlaying(false);
     } else {
-      void videoRef.current.play().catch(() => setIsPlaying(false));
-      setIsPlaying(true);
+      videoRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
     }
   };
 
@@ -139,43 +161,63 @@ export function VideoMnemonicPlayer({
   const changeSpeed = () => {
     if (!videoRef.current) return;
     const speeds = [1, 1.25, 1.5, 2];
-    const nextIndex = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
-    const nextSpeed = speeds[nextIndex];
+    const currentIdx = speeds.indexOf(playbackSpeed);
+    const nextSpeed = speeds[(currentIdx + 1) % speeds.length];
     videoRef.current.playbackRate = nextSpeed;
     setPlaybackSpeed(nextSpeed);
   };
 
-  const skipSeconds = (sec: number) => {
-    if (!videoRef.current) return;
-    videoRef.current.currentTime = Math.max(0, Math.min(duration, videoRef.current.currentTime + sec));
-  };
-
   const toggleFullscreen = () => {
     if (!videoRef.current) return;
-    if (videoRef.current.requestFullscreen) {
-      void videoRef.current.requestFullscreen();
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      videoRef.current.requestFullscreen?.() ||
+        (videoRef.current as any).webkitRequestFullscreen?.();
     }
   };
 
   const handleTimeUpdate = () => {
-    if (!isScrubbing && videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-      if (!duration && videoRef.current.duration) {
-        setDuration(videoRef.current.duration);
-      }
-    }
+    if (!videoRef.current || isScrubbing) return;
+    setCurrentTime(videoRef.current.currentTime);
   };
 
   const handleLoadedMetadata = () => {
+    if (!videoRef.current) return;
+    setDuration(videoRef.current.duration || 0);
+  };
+
+  const handleScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    setCurrentTime(val);
     if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-      setLoadFailed(false);
+      videoRef.current.currentTime = val;
     }
   };
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+  const skipSeconds = (sec: number) => {
+    if (!videoRef.current) return;
+    const target = Math.max(0, Math.min(videoRef.current.currentTime + sec, duration));
+    videoRef.current.currentTime = target;
+    setCurrentTime(target);
+  };
+
+  const handleVideoError = () => {
+    if (sourceIdx < candidateUrls.length - 1) {
+      setSourceIdx(sourceIdx + 1);
+      const v = videoRef.current;
+      if (v) {
+        v.load();
+        v.play().catch(() => {});
+      }
+    } else {
+      setLoadFailed(true);
+    }
+  };
+
+  const formatTime = (timeInSec: number): string => {
+    const mins = Math.floor(timeInSec / 60);
+    const secs = Math.floor(timeInSec % 60);
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
@@ -196,18 +238,18 @@ export function VideoMnemonicPlayer({
 
           <div className="flex items-center gap-2">
             {questionRange && (
-              <span className="rounded bg-teal-500/10 border border-teal-500/30 px-2 py-0.5 font-mono text-[10px] font-bold text-teal-300 uppercase tracking-wider">
+              <span className="rounded bg-teal-950 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-teal-300 border border-teal-800/60">
                 {questionRange}
               </span>
             )}
-            <span className="font-mono text-[10px] uppercase tracking-wider text-teal-400 font-bold bg-teal-950/60 border border-teal-800/60 px-2 py-0.5 rounded">
+            <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-slate-300 border border-slate-700">
               High-Yield Mnemonic
             </span>
           </div>
         </div>
 
-        {/* Video Area */}
-        <div className="relative aspect-video w-full bg-black">
+        {/* Video Canvas */}
+        <div className="relative aspect-video w-full bg-slate-950 flex items-center justify-center">
           {embedUrl ? (
             <iframe
               src={embedUrl}
@@ -215,56 +257,77 @@ export function VideoMnemonicPlayer({
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
+          ) : loadFailed ? (
+            <div className="flex flex-col items-center justify-center gap-3 p-6 text-center text-slate-400">
+              <span className="text-2xl">⚠️</span>
+              <p className="text-xs font-mono uppercase tracking-wider">
+                Video Mnemonic Streaming Offline
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoadFailed(false);
+                  setSourceIdx(0);
+                  videoRef.current?.load();
+                }}
+                className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-500 transition-colors"
+              >
+                Retry Stream
+              </button>
+            </div>
           ) : (
             <div className="group relative h-full w-full">
               <video
                 ref={videoRef}
-                src={videoSrc(videoUrl)}
-                className="h-full w-full object-contain"
+                src={currentSourceUrl}
                 playsInline
                 preload="metadata"
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onEnded={() => setIsPlaying(false)}
-                onError={() => setLoadFailed(true)}
+                onError={handleVideoError}
                 onClick={togglePlay}
+                className="h-full w-full object-cover cursor-pointer"
               />
 
               {/* Watermark Protection */}
-              <div className="pointer-events-none absolute bottom-12 right-4 z-20 font-mono text-[10px] text-white/30 select-none">
-                {userEmail} • USMLE Prep
+              <div className="pointer-events-none absolute bottom-12 right-3 font-mono text-[9px] uppercase tracking-wider text-white/20 select-none">
+                {userEmail} • USMLE Board Review
               </div>
 
-              {/* Centered Play Button Overlay */}
-              {!isPlaying && !loadFailed && (
+              {/* Center Play Button Overlay */}
+              {!isPlaying && (
                 <div
                   onClick={togglePlay}
-                  className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 cursor-pointer backdrop-blur-2xs transition-opacity"
+                  className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer transition-opacity group-hover:bg-black/30"
                 >
-                  <div className="grid h-16 w-16 place-items-center rounded-full bg-teal-600 text-white shadow-xl transition-transform hover:scale-110">
-                    <Play className="h-7 w-7 fill-current ml-1" />
+                  <div className="grid h-16 w-16 place-items-center rounded-full bg-teal-600/90 text-white shadow-lg transition-transform hover:scale-110">
+                    <Play className="h-8 w-8 fill-current ml-1" />
                   </div>
                 </div>
               )}
 
-              {/* Custom Bottom Player Controls */}
-              <div className="absolute bottom-0 left-0 right-0 z-30 flex flex-col justify-end bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 text-white">
-                {/* Scrubber */}
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="font-mono text-[10px] text-slate-300">{formatTime(currentTime)}</span>
+              {/* Bottom Custom Control Bar */}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 text-white transition-opacity">
+                {/* Timeline Slider */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-mono text-[10px] text-slate-300">
+                    {formatTime(currentTime)}
+                  </span>
                   <input
                     type="range"
                     min={0}
                     max={duration || 100}
+                    step={0.1}
                     value={currentTime}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      setCurrentTime(val);
-                      if (videoRef.current) videoRef.current.currentTime = val;
-                    }}
-                    className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-700 accent-teal-500"
+                    onChange={handleScrub}
+                    onMouseDown={() => setIsScrubbing(true)}
+                    onMouseUp={() => setIsScrubbing(false)}
+                    className="h-1.5 flex-1 cursor-pointer accent-teal-400 bg-white/30 rounded-lg appearance-none"
                   />
-                  <span className="font-mono text-[10px] text-slate-400">{formatTime(duration)}</span>
+                  <span className="font-mono text-[10px] text-slate-300">
+                    {formatTime(duration)}
+                  </span>
                 </div>
 
                 {/* Control Buttons */}
@@ -331,7 +394,7 @@ export function VideoMnemonicPlayer({
         </div>
       </div>
 
-      {/* DEDICATED VIDEO MNEMONIC EXPLANATION BOX (Required by User) */}
+      {/* DEDICATED VIDEO MNEMONIC EXPLANATION BOX */}
       {(displayExplanation || displayAnchors.length > 0) && (
         <div className="rounded-xl border border-teal-200/90 bg-white shadow-xs overflow-hidden transition-all duration-200">
           {/* Card Header */}

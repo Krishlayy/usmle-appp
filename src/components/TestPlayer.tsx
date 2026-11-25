@@ -1281,6 +1281,18 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         <img 
                           src={currentQ.question.media[0].url} 
                           alt="Clinical Exhibit"
+                          loading="eager"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent && !parent.querySelector('.exhibit-fallback-card')) {
+                              const fallback = document.createElement('div');
+                              fallback.className = 'exhibit-fallback-card flex flex-col items-center justify-center p-6 text-center text-slate-500 text-xs gap-1.5';
+                              fallback.innerHTML = '<span class="font-bold text-slate-700">Clinical Exhibit</span><span class="text-slate-400">Click to expand exhibit</span>';
+                              parent.appendChild(fallback);
+                            }
+                          }}
                           style={{
                             filter: `${previewImageInvert ? 'invert(1)' : ''} contrast(${previewImageContrast}%)`,
                           }}
@@ -1821,7 +1833,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                         aria-label={`Expand exhibit${m.caption ? `: ${m.caption}` : ''}`}
                         className="group/ex cursor-zoom-in overflow-hidden rounded-md border border-slate-200 bg-black/40 text-left transition-colors hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
                       >
-                        <img src={m.url} alt={m.caption || 'Clinical exhibit'} className="h-44 w-full object-contain p-2" />
+                        <img src={m.url} alt={m.caption || 'Clinical exhibit'} loading="eager" className="h-44 w-full object-contain p-2" />
                         {m.caption && <span className="block border-t border-slate-200 px-3 py-2 text-xs text-slate-600">{m.caption}</span>}
                       </button>
                     ))}

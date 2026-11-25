@@ -40,10 +40,12 @@ export async function POST(req: Request) {
       return new NextResponse('You already own this QBank', { status: 400 });
     }
 
-    // Construct base URL for redirects using the mandatory Host header
-    const host = req.headers.get('host');
-    const protocol = host?.includes('localhost') ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
+    // Construct base URL for redirects, matching the exact domain the user is browsing
+    const reqHost = req.headers.get('x-forwarded-host') || req.headers.get('host');
+    const reqProto = req.headers.get('x-forwarded-proto') || (reqHost?.includes('localhost') ? 'http' : 'https');
+    const baseUrl = reqHost 
+      ? `${reqProto}://${reqHost}` 
+      : (process.env.NEXTAUTH_URL ? process.env.NEXTAUTH_URL.replace(/\/+$/, '') : 'http://localhost:3000');
 
     // Create Stripe checkout session
     const stripeSession = await stripe.checkout.sessions.create({

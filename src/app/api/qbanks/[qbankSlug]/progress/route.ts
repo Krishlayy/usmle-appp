@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { verifyQbankAccess } from "@/lib/verifyQbankAccess";
 
 export async function GET(
   req: NextRequest,
@@ -23,6 +24,9 @@ export async function GET(
     if (!qbank) {
       return NextResponse.json({ error: "QBank not found" }, { status: 404 });
     }
+
+    // Verify access
+    await verifyQbankAccess(session.user.id, qbank.id);
 
     const [progress, firstTutorSession, subtopicRows] = await Promise.all([
       prisma.userProgress.findMany({
@@ -53,11 +57,14 @@ export async function GET(
       unusedCount,
       incorrectCount,
       flaggedCount,
-      hasCompletedFirstTutorSession: !!firstTutorSession,
-      subtopics: subtopicRows.map((s) => s.subtopic).filter(Boolean),
+      reviewSessionId: firstTutorSession?.id ?? null,
+      subtopics: subtopicRows.map((r) => r.subtopic).filter(Boolean),
     });
-  } catch (error) {
-    console.error("Failed to fetch progress:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (error: any) {
+    if (error?.name === 'ForbiddenError') {
+      return NextResponse.json({ error: "Forbidden: Question bank is locked." }, { status: 403 });
+    }
+    console.error("Failed to fetch qbank progress", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

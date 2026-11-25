@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { verifyQbankAccess } from '@/lib/verifyQbankAccess';
 
 export async function POST(req: Request, props: { params: Promise<{ qbankSlug: string }> }) {
   const params = await props.params;
@@ -19,6 +20,9 @@ export async function POST(req: Request, props: { params: Promise<{ qbankSlug: s
     if (!qbank) {
       return new NextResponse('QBank not found', { status: 404 });
     }
+
+    // Verify access
+    await verifyQbankAccess(session.user.id, qbank.id);
 
     const body = await req.json();
     const { questionId, front, back } = body;
@@ -38,7 +42,10 @@ export async function POST(req: Request, props: { params: Promise<{ qbankSlug: s
     });
 
     return NextResponse.json(flashcard);
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.name === 'ForbiddenError') {
+      return new NextResponse('Forbidden: Question bank is locked.', { status: 403 });
+    }
     console.error('[FLASHCARD_CREATE_ERROR]', error);
     return new NextResponse('Internal server error', { status: 500 });
   }

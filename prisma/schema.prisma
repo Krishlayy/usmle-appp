@@ -1,9 +1,18 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+  SUPERADMIN
 }
 
 model VerificationToken {
@@ -15,131 +24,174 @@ model VerificationToken {
 }
 
 model User {
-  id                  String          @id @default(cuid())
-  email               String          @unique
-  passwordHash        String?
-  name                String?
-  emailVerified       DateTime?
-  image               String?
-  createdAt           DateTime        @default(now())
-  role                Role            @default(STUDENT)
-  securityViolations  Int             @default(0)
-  isBlocked           Boolean         @default(false)
-  examAttempt         String?
-  graduationYear      String?
-  medicalSchool       String?
-  onboardingCompleted Boolean         @default(false)
+  id            String     @id @default(cuid())
+  email         String     @unique
+  passwordHash  String?
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  createdAt          DateTime   @default(now())
+  role               Role       @default(STUDENT)
+  securityViolations Int        @default(0)
+  isBlocked          Boolean    @default(false)
+  
+  // USMLE Candidate Profile & Onboarding
+  onboardingCompleted Boolean    @default(false)
   preferredName       String?
-  targetDate          String?
   targetExam          String?
-  Account             Account[]
-  flashcards          Flashcard[]
-  highlights          Highlight[]
-  purchases           Purchase[]
-  editedQBanks        QBank[]         @relation("QBankLastEditedBy")
-  issues              QuestionIssue[]
-  Session             Session[]
-  testSessions        TestSession[]
-  progress            UserProgress[]
+  examAttempt         String?
+  targetDate          String?
+  medicalSchool       String?
+  graduationYear      String?
+  
+  purchases     Purchase[]
+  progress      UserProgress[]
+  testSessions  TestSession[]
+  flashcards    Flashcard[]
+  issues        QuestionIssue[]
+  highlights    Highlight[]
+  editedQBanks  QBank[]    @relation("QBankLastEditedBy")
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model QBank {
-  id               String     @id @default(cuid())
-  title            String
-  slug             String     @unique
-  qbankCode        String     @unique
-  questionCounter  Int        @default(0)
-  description      String
-  specialtyTag     String
-  price            Int
-  currency         String     @default("USD")
-  thumbnailUrl     String?
-  totalQuestions   Int        @default(0)
-  difficulty       String     @default("Intermediate")
-  highYieldScore   Float      @default(8.5)
-  boardCoverage    String     @default("USMLE Step 1")
-  isActive         Boolean    @default(true)
-  stripePriceId    String?
-  createdAt        DateTime   @default(now())
+  id              String     @id @default(cuid())
+  title           String
+  slug            String     @unique
+  qbankCode       String     @unique
+  questionCounter Int        @default(0)
+  description     String
+  specialtyTag    String
+  price           Int        // cents (USD)
+  currency        String     @default("USD")
+  thumbnailUrl    String?
+  totalQuestions  Int        @default(0)
+  difficulty      String     @default("Intermediate")
+  highYieldScore  Float      @default(8.5)
+  boardCoverage   String     @default("USMLE Step 1")
+  isActive        Boolean    @default(true)
+  stripePriceId   String?    // Stripe Price object id
+  createdAt       DateTime   @default(now())
+  questions       Question[]
+  purchases       Purchase[]
   bibliographyTags String[]   @default([])
-  lastEditedById   String?
-  lastEditedAt     DateTime?
-  purchases        Purchase[]
-  lastEditedBy     User?      @relation("QBankLastEditedBy", fields: [lastEditedById], references: [id])
-  questions        Question[]
+
+  lastEditedById  String?
+  lastEditedBy    User?      @relation("QBankLastEditedBy", fields: [lastEditedById], references: [id])
+  lastEditedAt    DateTime?
 
   @@index([isActive])
 }
 
 model Question {
-  id                String          @id @default(cuid())
-  qid               String          @unique
-  qbankId           String
-  questionText      String
-  options           Json
-  correctAnswer     String
-  acceptableAnswers String[]        @default([])
-  tags              String[]        @default([])
-  explanation       String
-  difficulty        String
-  subtopic          String?
+  id                       String    @id @default(cuid())
+  qid                      String    @unique
+  qbankId                  String
+  qbank                    QBank     @relation(fields: [qbankId], references: [id])
+  questionText             String
+  options                  Json      // [{id, text}]
+  correctAnswer            String
+  acceptableAnswers        String[]  @default([])
+  tags                     String[]  @default([])
+  explanation              String
+  difficulty               String    // easy | medium | hard
+  subtopic                 String?   // e.g. "Arrhythmias"
   imageUrl                 String?
   videoUrl                 String?
-  videoPosition            String          @default("TOP")
   videoMnemonicTitle       String?
   videoMnemonicExplanation String?
-  youtubeId                String?
-  status            String          @default("PUBLISHED")
-  createdAt         DateTime        @default(now())
-  flashcards        Flashcard[]
-  highlights        Highlight[]
-  qbank             QBank           @relation(fields: [qbankId], references: [id])
-  explanationImages QuestionImage[]
-  issues            QuestionIssue[]
-  media             QuestionMedia[]
-  progress          UserProgress[]
+  videoPosition            String    @default("TOP") // TOP | BOTTOM
+  youtubeId                String?   // Deprecated in favor of videoUrl
+  explanationImages        QuestionImage[]
+  media                    QuestionMedia[]
+  status                   String    @default("PUBLISHED") // DRAFT | PUBLISHED | ARCHIVED
+  createdAt                DateTime  @default(now())
+  progress                 UserProgress[]
+  flashcards               Flashcard[]
+  issues                   QuestionIssue[]
+  highlights               Highlight[]
 
   @@index([qbankId])
   @@index([qbankId, subtopic])
-  @@index([status])
 }
 
 model QuestionIssue {
   id          String    @id @default(cuid())
   questionId  String
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
   userId      String
-  issueType   String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issueType   String    // typo, outdated, incorrect, other
   description String
-  status      String    @default("OPEN")
+  status      String    @default("OPEN") // OPEN, RESOLVED
   createdAt   DateTime  @default(now())
   resolvedAt  DateTime?
   resolvedBy  String?
-  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
   @@index([status])
   @@index([questionId])
 }
 
 model QuestionImage {
-  id         String   @id @default(cuid())
-  questionId String
-  url        String
-  caption    String?
-  order      Int      @default(0)
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  questionId  String
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  url         String
+  caption     String?
+  order       Int       @default(0)
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum MediaPlacement {
+  TOP
+  BOTTOM
 }
 
 model QuestionMedia {
-  id          String         @id @default(cuid())
+  id          String          @id @default(cuid())
   questionId  String
+  question    Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
   type        MediaType
   url         String
   caption     String?
-  placement   MediaPlacement @default(BOTTOM)
-  displaySize String         @default("MEDIUM")
-  order       Int            @default(0)
-  question    Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  placement   MediaPlacement  @default(BOTTOM)
+  displaySize String          @default("MEDIUM") // "SMALL" | "MEDIUM" | "LARGE" | "FULL"
+  order       Int             @default(0)
 
   @@index([questionId, placement, order])
 }
@@ -147,52 +199,52 @@ model QuestionMedia {
 model Purchase {
   id              String    @id @default(cuid())
   userId          String
+  user            User      @relation(fields: [userId], references: [id])
   qbankId         String
+  qbank           QBank     @relation(fields: [qbankId], references: [id])
   amountPaidCents Int
   stripeSessionId String?   @unique
-  status          String    @default("active")
+  status          String    @default("active") // active | refunded
   purchasedAt     DateTime  @default(now())
-  expiresAt       DateTime?
-  qbank           QBank     @relation(fields: [qbankId], references: [id])
-  user            User      @relation(fields: [userId], references: [id])
+  expiresAt       DateTime? // null = lifetime (current default)
 
   @@unique([userId, qbankId])
   @@index([userId])
 }
 
 model TestSession {
-  id          String         @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
+  user        User      @relation(fields: [userId], references: [id])
   qbankId     String
-  mode        String
-  status      String         @default("in_progress")
-  durationSec Int?
-  startedAt   DateTime       @default(now())
+  mode        String    // "timed" | "tutor"
+  status      String    @default("in_progress") // in_progress | completed
+  durationSec Int?      // for timed mode
+  startedAt   DateTime  @default(now())
   completedAt DateTime?
-  user        User           @relation(fields: [userId], references: [id])
   progress    UserProgress[]
 
   @@index([userId, qbankId, status])
 }
 
 model UserProgress {
-  id                      String       @id @default(cuid())
-  userId                  String
-  questionId              String
-  qbankId                 String
-  testSessionId           String?
-  selectedAnswer          String?
-  isCorrect               Boolean?
-  flagged                 Boolean      @default(false)
-  timeTakenSec            Int?
-  notes                   String?
-  strikethroughs          String[]     @default([])
-  attemptedAt             DateTime     @default(now())
-  highlightedExplanation  String?
+  id              String       @id @default(cuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  questionId      String
+  question        Question     @relation(fields: [questionId], references: [id])
+  qbankId         String
+  testSessionId   String?
+  testSession     TestSession? @relation(fields: [testSessionId], references: [id])
+  selectedAnswer  String?
+  isCorrect       Boolean?
+  flagged         Boolean      @default(false)
+  timeTakenSec    Int?
+  notes           String?
+  strikethroughs  String[]     @default([])
   highlightedQuestionText String?
-  question                Question     @relation(fields: [questionId], references: [id])
-  testSession             TestSession? @relation(fields: [testSessionId], references: [id])
-  user                    User         @relation(fields: [userId], references: [id])
+  highlightedExplanation  String?
+  attemptedAt     DateTime     @default(now())
 
   @@unique([userId, questionId, testSessionId])
   @@index([userId, qbankId])
@@ -202,35 +254,35 @@ model UserProgress {
 model Highlight {
   id          String   @id @default(cuid())
   userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   questionId  String
-  section     String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  section     String   // "stem", "option", "explanation", "pearl"
   text        String
   startOffset Int
   endOffset   Int
-  color       String
+  color       String   // "yellow", "green", "blue", "red", "purple"
   note        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
   @@index([userId, questionId])
 }
 
 model Flashcard {
-  id         String   @id @default(cuid())
-  userId     String
-  questionId String
-  qbankId    String
-  front      String
-  back       String
-  nextReview DateTime @default(now())
-  interval   Int      @default(0)
-  easeFactor Float    @default(2.5)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  qbankId     String
+  front       String
+  back        String
+  nextReview  DateTime @default(now())
+  interval    Int      @default(0) // in days
+  easeFactor  Float    @default(2.5)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([userId, nextReview])
   @@index([userId, qbankId])
@@ -244,49 +296,4 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@index([email])
-}
-
-model Account {
-  id                String  @id
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-}
-
-model Session {
-  id           String   @id
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-enum Role {
-  STUDENT
-  ADMIN
-  SUPERADMIN
-}
-
-enum MediaType {
-  IMAGE
-  VIDEO
-}
-
-enum MediaPlacement {
-  TOP
-  BOTTOM
 }

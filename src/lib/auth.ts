@@ -21,6 +21,7 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: 'Credentials',
@@ -66,16 +67,24 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
-      if (token && session.user) {
+      if (token && session.user && token.sub) {
         session.user.id = token.sub as string;
-        session.user.role = token.role as string;
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub as string },
+            select: { role: true },
+          });
+          session.user.role = dbUser?.role || (token.role as string) || 'STUDENT';
+        } catch {
+          session.user.role = (token.role as string) || 'STUDENT';
+        }
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id;
-        token.role = user.role;
+        token.role = user.role || 'STUDENT';
       }
       return token;
     },

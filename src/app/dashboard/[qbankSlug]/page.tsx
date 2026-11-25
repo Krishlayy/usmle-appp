@@ -49,7 +49,12 @@ export default async function QBankDashboardPage(
       const stripeSession = await stripe.checkout.sessions.retrieve(searchParams.session_id);
       if (stripeSession.payment_status === 'paid' && stripeSession.metadata?.userId === session.user.id && stripeSession.metadata?.qbankId === qbank.id) {
         await prisma.purchase.upsert({
-          where: { stripeSessionId: stripeSession.id },
+          where: {
+            userId_qbankId: {
+              userId: session.user.id,
+              qbankId: qbank.id,
+            },
+          },
           create: {
             userId: session.user.id,
             qbankId: qbank.id,
@@ -58,7 +63,12 @@ export default async function QBankDashboardPage(
             status: 'active',
             expiresAt: null,
           },
-          update: { status: 'active' },
+          update: {
+            status: 'active',
+            amountPaidCents: stripeSession.amount_total || 0,
+            stripeSessionId: stripeSession.id,
+            purchasedAt: new Date(),
+          },
         });
       }
     } catch (e) {
@@ -139,6 +149,15 @@ export default async function QBankDashboardPage(
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-16">
+      {searchParams?.purchased && (
+        <div className="mb-8 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 flex items-center gap-3 shadow-2xs">
+          <span className="text-xl">🎉</span>
+          <div>
+            <strong className="font-semibold">Module Unlocked!</strong> Payment was confirmed successfully. You now have full lifetime access to all practice questions and analytics.
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <Reveal>
         <div className="mb-14 flex flex-col justify-between gap-8 md:flex-row md:items-end">
