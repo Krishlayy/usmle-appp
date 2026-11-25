@@ -3,7 +3,23 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, ArrowRight, Play, Eye } from 'lucide-react';
+import {
+  UploadCloud,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  ArrowRight,
+  Play,
+  Eye,
+  FolderTree,
+  Cloud,
+  Terminal,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Check
+} from 'lucide-react';
 
 export default function UploadQBankDocxPage() {
   const router = useRouter();
@@ -18,6 +34,14 @@ export default function UploadQBankDocxPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadResult, setUploadResult] = useState<any | null>(null);
+  const [showGuide, setShowGuide] = useState(true);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCode(key);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,6 +71,13 @@ export default function UploadQBankDocxPage() {
         setSlug('approach-to-histology');
         setQbankCode('HIST');
         setSpecialtyTag('Pathology & Histology');
+      } else {
+        const cleanName = selected.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+        const autoTitle = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+        setTitle(autoTitle);
+        const autoSlug = autoTitle.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+        setSlug(autoSlug);
+        setQbankCode(autoSlug.substring(0, 4).toUpperCase());
       }
     }
   };
@@ -183,6 +214,111 @@ export default function UploadQBankDocxPage() {
           </div>
         </div>
       )}
+
+      {/* STANDARDIZED FOLDER & CLOUDFLARE R2 INGESTION GUIDE */}
+      <div className="mb-8 rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowGuide(!showGuide)}
+          className="w-full flex items-center justify-between p-5 bg-gradient-to-r from-slate-50 to-teal-50/30 hover:bg-slate-100/60 transition-colors text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-teal-600 text-white shadow-2xs">
+              <FolderTree className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                Standardized Folder Structure &amp; Cloudflare R2 Sync Guide
+                <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-mono font-bold text-teal-800 uppercase tracking-wider">
+                  Enterprise Flow
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                How to organize question DOCX files, video mnemonics, clinical scripts, and push to Cloudflare R2
+              </p>
+            </div>
+          </div>
+          {showGuide ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+        </button>
+
+        {showGuide && (
+          <div className="p-6 border-t border-slate-100 space-y-6 text-sm text-slate-700 bg-white">
+            {/* 1. Folder Hierarchy */}
+            <div>
+              <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <FolderTree className="h-4 w-4 text-teal-600" />
+                1. Required Standard Folder Layout
+              </h3>
+              <pre className="p-4 rounded-xl bg-slate-900 text-slate-200 text-xs font-mono overflow-x-auto leading-relaxed border border-slate-800 shadow-inner">
+{`[QBank Folder Name]/               # e.g. "Approach to Histology Question Bank"
+├── qbank/
+│   └── Approach_to_Histology_Q1-50.docx  # Authoring Word document
+└── video-mnemonics/
+    ├── video_1_colour_room.mp4           # Video for Questions 1 to 10
+    ├── video_1_colour_room_explanation.txt # Clinical script / explanation
+    ├── video_2_read_books.mp4            # Video for Questions 11 to 20
+    ├── video_2_read_books_explanation.txt
+    └── ...`}
+              </pre>
+            </div>
+
+            {/* 2. Cloudflare R2 Upload Steps */}
+            <div>
+              <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <Cloud className="h-4 w-4 text-sky-600" />
+                2. Uploading Videos to Cloudflare R2 Bucket
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <h4 className="font-bold text-xs text-slate-900 mb-1">Option A: Cloudflare Web Dashboard</h4>
+                  <ol className="list-decimal list-inside space-y-1.5 text-xs text-slate-600 mt-2">
+                    <li>Log into <strong>Cloudflare Dashboard</strong> &rarr; <strong>R2</strong>.</li>
+                    <li>Select bucket: <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[11px]">usmle-videos</code>.</li>
+                    <li>Open or create folder: <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[11px]">videos/mnemonics/&lt;qbank-slug&gt;/</code>.</li>
+                    <li>Drag &amp; drop all <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[11px]">.mp4</code> videos into that directory.</li>
+                  </ol>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <h4 className="font-bold text-xs text-slate-900 mb-1">Option B: Automated Terminal Sync</h4>
+                  <p className="text-xs text-slate-600 mb-2">
+                    Run the automated pipeline to map question ranges, parse DOCX, and output R2 links:
+                  </p>
+                  <div className="relative">
+                    <pre className="p-2.5 rounded-lg bg-slate-900 text-slate-200 text-[11px] font-mono overflow-x-auto">
+python scripts/ingest_qbank_folder.py "[Folder_Path]" [slug]
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard('python scripts/ingest_qbank_folder.py "Approach to Histology Question Bank" approach-to-histology', 'python')}
+                      className="absolute right-2 top-2 p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      title="Copy command"
+                    >
+                      {copiedCode === 'python' ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Production CDN Base */}
+            <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-3.5 text-xs flex items-center justify-between">
+              <div>
+                <span className="font-bold text-teal-900">Configured Cloudflare R2 Public Origin:</span>
+                <span className="ml-2 font-mono text-teal-700">https://pub-c41d355e448b44148957890140c7165a.r2.dev</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyToClipboard('https://pub-c41d355e448b44148957890140c7165a.r2.dev', 'cdn')}
+                className="px-2.5 py-1 rounded bg-teal-600 hover:bg-teal-500 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+              >
+                {copiedCode === 'cdn' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                <span>{copiedCode === 'cdn' ? 'Copied' : 'Copy Origin'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Upload Form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">

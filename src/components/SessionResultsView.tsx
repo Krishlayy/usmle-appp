@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { CheckCircle2, XCircle, Clock, Target, RotateCcw, Plus, ChevronLeft, Flag, Sparkles, TrendingUp, BookOpen, X } from 'lucide-react';
 import { VideoMnemonicPlayer } from './VideoMnemonicPlayer';
 import { sanitizeHTML } from '@/lib/sanitize';
+import { formatExplanationHtml } from '@/lib/formatExplanation';
 
 export interface ResultQuestionItem {
   id: string;
@@ -433,24 +434,25 @@ export function SessionResultsView({ initialData, qbankSlug, sessionId }: Sessio
 
               {/* Video Mnemonic if present */}
               {previewQuestion.question.videoUrl && (
-                <div className="mb-6 overflow-hidden rounded-md border border-slate-200 bg-black">
+                <div className="mb-6 overflow-hidden rounded-xl border border-slate-200">
                   <VideoMnemonicPlayer 
                     videoUrl={previewQuestion.question.videoUrl} 
                     title={`Visual Mnemonic (Question ${(previewQuestion.order ?? 0) + 1})`}
+                    questionRange={`Question ${(previewQuestion.order ?? 0) + 1}`}
                   />
                 </div>
               )}
 
               {/* Clinical Discussion */}
               {previewQuestion.question.explanation && (
-                <div className="rounded-md border border-slate-200 p-5">
-                  <div className="mb-2 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700">
-                    <Sparkles className="h-4 w-4" aria-hidden />
+                <div className="rounded-xl border border-slate-200 p-6 bg-white shadow-2xs">
+                  <div className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-teal-700 font-bold border-b border-slate-100 pb-2">
+                    <Sparkles className="h-4 w-4 text-teal-600" aria-hidden />
                     Educational Discussion &amp; Key Takeaways
                   </div>
                   <div 
-                    className="qbank-explanation-body select-text text-sm leading-relaxed text-slate-700"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(previewQuestion.question.explanation) }}
+                    className="qbank-explanation-body select-text text-sm md:text-[15px] leading-relaxed text-slate-700"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(formatExplanationHtml(previewQuestion.question.explanation)) }}
                   />
                 </div>
               )}

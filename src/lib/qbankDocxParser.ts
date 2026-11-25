@@ -19,12 +19,17 @@ export interface ParsedQuestion {
   explanation: string;
   explanationImages: string[];
   videoUrl?: string | null;
+  videoMnemonicTitle?: string | null;
+  videoMnemonicExplanation?: string | null;
 }
 
 export interface ParseOptions {
   qbankSlug: string;
   qbankCode?: string;
-  videoMapping?: Record<number, { title: string; url: string }>;
+  videoMapping?: Record<
+    number,
+    { title: string; url: string; mnemonicTitle?: string; mnemonicExplanation?: string }
+  >;
 }
 
 export async function parseQbankDocx(
@@ -334,6 +339,8 @@ export async function parseQbankDocx(
       explanationHtml = $expl('div').html() || '';
     }
 
+    const vInfo = videoMapping[current.num];
+
     questions.push({
       num: current.num,
       qid: `${qbankCode}-${String(current.num).padStart(3, '0')}`,
@@ -344,7 +351,9 @@ export async function parseQbankDocx(
       correctAnswer,
       explanation: explanationHtml,
       explanationImages,
-      videoUrl: videoMapping[current.num]?.url || null,
+      videoUrl: vInfo?.url || null,
+      videoMnemonicTitle: vInfo?.mnemonicTitle || vInfo?.title || null,
+      videoMnemonicExplanation: vInfo?.mnemonicExplanation || null,
     });
   }
 

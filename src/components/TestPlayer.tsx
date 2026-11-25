@@ -19,6 +19,7 @@ import { TimerDisplay, QuestionTimerDisplay } from '@/features/test-player/compo
 
 import { useTestPlayerStore } from '@/store/useTestPlayerStore';
 import { HighlightToolbar } from '@/components/HighlightToolbar';
+import { formatExplanationHtml } from '@/lib/formatExplanation';
 
 const sanitizeHTML = (html: string) => {
   return DOMPurify.sanitize(html, { 
@@ -53,6 +54,8 @@ type Question = {
   acceptableAnswers: string[];
   tags: string[];
   videoUrl?: string | null;
+  videoMnemonicTitle?: string | null;
+  videoMnemonicExplanation?: string | null;
   media?: { id: string; type: string; url: string; caption?: string | null; displaySize?: string; placement?: string; [key: string]: unknown }[];
   options: Option[];
 };
@@ -1167,13 +1170,16 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                   {/* Tutor / Review Mode: Rich Feedback & Explanations */}
                   {showFeedback && (
                     <div className="mt-6 pt-6 border-t-2 border-slate-300 space-y-6">
-                      {/* Video Mnemonic Player */}
+                      {/* Video Mnemonic Player & Breakdown */}
                       {currentQ.question.videoUrl && (
                         <div>
                           <VideoMnemonicPlayer 
                             videoUrl={currentQ.question.videoUrl} 
                             title={`High-Yield Video Mnemonic (Item ${currentIndex + 1})`}
                             userEmail={userEmail}
+                            mnemonicTitle={currentQ.question.videoMnemonicTitle || undefined}
+                            mnemonicExplanation={currentQ.question.videoMnemonicExplanation || undefined}
+                            questionRange={`Item ${currentIndex + 1}`}
                           />
                         </div>
                       )}
@@ -1200,7 +1206,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                           )}
                         </div>
 
-                        {/* Full Vignette Explanation with click-to-zoom on images */}
+                        {/* Full Vignette Explanation with click-to-zoom on images and professional clinical formatting */}
                         <div 
                           ref={explanationContentRef}
                           className={`text-[15px] leading-relaxed select-text cursor-text qbank-explanation-body selection:bg-teal-100 selection:text-teal-900 ${
@@ -1213,7 +1219,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                               if (src) setZoomImage(src);
                             }
                           }}
-                          dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedExplanation || currentQ.question.explanation || '') }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHTML(formatExplanationHtml(currentQ.highlightedExplanation || currentQ.question.explanation || '')) }}
                         />
                       </div>
                     </div>
@@ -1847,11 +1853,14 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                 {showFeedback && (
                   <div className="mt-10 space-y-8">
                     {currentQ.question.videoUrl && (
-                      <div className="overflow-hidden rounded-lg border border-slate-200 bg-black">
+                      <div className="overflow-hidden rounded-xl border border-slate-200">
                         <VideoMnemonicPlayer
                           videoUrl={currentQ.question.videoUrl}
-                          title={`Video mnemonic · Question ${currentIndex + 1}`}
+                          title={`Video Mnemonic · Question ${currentIndex + 1}`}
                           userEmail={userEmail}
+                          mnemonicTitle={currentQ.question.videoMnemonicTitle || undefined}
+                          mnemonicExplanation={currentQ.question.videoMnemonicExplanation || undefined}
+                          questionRange={`Question ${currentIndex + 1}`}
                         />
                       </div>
                     )}
@@ -1875,7 +1884,7 @@ function TestPlayerInner({ session, initialIndex = 0, userEmail = '', userIp = '
                             if (src) setZoomImage(src);
                           }
                         }}
-                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentQ.highlightedExplanation || currentQ.question.explanation || '') }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(formatExplanationHtml(currentQ.highlightedExplanation || currentQ.question.explanation || '')) }}
                       />
                     </div>
                   </div>

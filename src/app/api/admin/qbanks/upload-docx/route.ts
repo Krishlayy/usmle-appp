@@ -80,12 +80,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Upsert the QBank in database safely checking both slug and qbankCode
+    // 1. Resolve safe unique qbankCode and upsert safely without collisions
+    let finalCode = (qbankCode || 'HIST').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+    if (!finalCode) finalCode = 'QBK';
+
     const existingBySlug = await prisma.qBank.findUnique({ where: { slug } });
-    const existingByCode = await prisma.qBank.findUnique({ where: { qbankCode } });
 
     let qbank;
     if (existingBySlug) {
+      // QBank already exists with this slug: update title, metadata, but preserve its existing qbankCode
+      finalCode = existingBySlug.qbankCode;
       qbank = await prisma.qBank.update({
         where: { id: existingBySlug.id },
         data: {
@@ -96,24 +100,21 @@ export async function POST(req: NextRequest) {
           lastEditedAt: new Date(),
         },
       });
-    } else if (existingByCode) {
-      qbank = await prisma.qBank.update({
-        where: { id: existingByCode.id },
-        data: {
-          title,
-          slug,
-          totalQuestions: questions.length,
-          specialtyTag,
-          lastEditedById: session.user.id,
-          lastEditedAt: new Date(),
-        },
-      });
     } else {
+      // Creating a new QBank: Ensure finalCode does not collide with ANY existing QBank
+      let uniqueCode = finalCode;
+      let counter = 2;
+      while (await prisma.qBank.findUnique({ where: { qbankCode: uniqueCode } })) {
+        uniqueCode = `${finalCode.slice(0, 6)}${counter}`;
+        counter++;
+      }
+      finalCode = uniqueCode;
+
       qbank = await prisma.qBank.create({
         data: {
           title,
           slug,
-          qbankCode,
+          qbankCode: finalCode,
           price: priceCents,
           currency: 'USD',
           specialtyTag,
@@ -157,6 +158,8 @@ export async function POST(req: NextRequest) {
           correctAnswer: q.correctAnswer,
           acceptableAnswers: [],
           videoUrl: q.videoUrl,
+          videoMnemonicTitle: q.videoMnemonicTitle || null,
+          videoMnemonicExplanation: q.videoMnemonicExplanation || null,
           options: q.options,
           status: 'PUBLISHED',
           difficulty: 'medium',

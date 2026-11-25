@@ -17,6 +17,8 @@ export interface Question {
   acceptableAnswers: string[];
   tags: string[];
   videoUrl?: string | null;
+  videoMnemonicTitle?: string | null;
+  videoMnemonicExplanation?: string | null;
   media?: { id: string; type: string; url: string; caption?: string | null; displaySize?: string; placement?: string; [key: string]: unknown }[];
   options: Option[];
 }

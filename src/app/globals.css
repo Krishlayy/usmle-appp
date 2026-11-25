@@ -224,3 +224,92 @@
 .cursor-simulation {
   animation: demoCursorMove 4.5s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   ENTERPRISE CLINICAL EXPLANATION & FIGURE FORMATTING
+   ========================================================================== */
+.qbank-explanation-body {
+  font-family: var(--font-sans);
+  color: #1e293b;
+  line-height: 1.75;
+}
+
+.qbank-explanation-body p {
+  margin-bottom: 1rem;
+}
+
+/* Figure Captions: Small, italicized, authentic clinical exhibit styling */
+.qbank-explanation-body .clinical-figure-caption {
+  margin: 0.75rem 0 1.5rem 0;
+}
+
+.qbank-explanation-body p:has(> em:only-child),
+.qbank-explanation-body p > em:only-child {
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: #64748b;
+  background-color: #f8fafc;
+  border-left: 3px solid #0d9488;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin-top: 0.25rem;
+  margin-bottom: 1.25rem;
+  display: block;
+}
+
+/* Medical Comparison Tables */
+.qbank-explanation-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.qbank-explanation-body th {
+  background-color: #f1f5f9;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #0f172a;
+  padding: 0.625rem 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid #cbd5e1;
+  text-align: left;
+}
+
+.qbank-explanation-body td {
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  vertical-align: top;
+  line-height: 1.6;
+}
+
+.qbank-explanation-body tr:nth-child(even) td {
+  background-color: #f8fafc;
+}
+
+.qbank-explanation-body tr:hover td {
+  background-color: #f1f5f9;
+}
+
+/* Clinical Images in Explanations */
+.qbank-explanation-body img {
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  margin: 1rem auto;
+  max-width: 100%;
+  display: block;
+  cursor: zoom-in;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qbank-explanation-body img:hover {
+  transform: scale(1.01);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.09);
+}
+
